@@ -66,3 +66,19 @@ Reuse existing templates whenever possible.
 Additional project-specific instructions may exist in:
 
 - .claude/CLAUDE.local.md
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues in `mykola-blonskyi/todo`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`).
+See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context, non-standard paths — this repo's own `knowledge/`/`docs/decisions.md` layout, not
+`CONTEXT.md`/`docs/adr/`. See `docs/agents/domain.md`.
