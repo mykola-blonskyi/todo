@@ -13,7 +13,9 @@ rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 ## Phase 1 — Repo & infra foundation
 
 - [x] Flatten nested git repos into one monorepo (ADR-006)
-- [ ] Root `pnpm-workspace.yaml`, single lockfile, remove `frontend/package-lock.json`
+- [x] Root `pnpm-workspace.yaml`, single lockfile, remove `frontend/package-lock.json`
+- [x] Frontend: prettier + Vitest/RTL wired in, matching hub conventions (ADR-008) — no real
+      component tests yet (`passWithNoTests`), first ones land with Phase 3
 - [ ] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
 - [ ] Provision `todo_app` role / `todolist` database on the shared Postgres instance (ADR-002)
 - [ ] Prisma schema + first migration for the domain model
@@ -65,8 +67,14 @@ rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 
 ## Phase 7 — CI/CD & deploy
 
-- [ ] GitHub Actions: lint/typecheck/prettier/test both apps on every push (ADR-010)
-- [ ] Build + push two GHCR images, two Coolify webhooks on merge to `main`
+- [x] GitHub Actions: lint/format/typecheck/test both apps on every push (ADR-010) —
+      `.github/workflows/ci.yml`
+- [ ] E2E job (Playwright, both apps) — waiting on Phase 3+ delivering real pages/flows to drive;
+      no point wiring it against the default Nest/Next boilerplate
+- [ ] Dockerfiles for both apps
+- [ ] Build + push two GHCR images, two Coolify webhooks on merge to `main` — needs Dockerfiles
+      above, plus `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` secrets once todolist is registered
+      in Coolify
 - [ ] `docker-compose.yml`: frontend (public) + backend (internal-only)
 
 ---
