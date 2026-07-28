@@ -35,4 +35,23 @@ export class ListsResolver {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listsService.list(user.id, id);
   }
+
+  @Mutation(() => List)
+  async renameList(
+    @CurrentUser() identity: Identity,
+    @Args('id', { type: () => ID }) id: string,
+    @Args('title') title: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listsService.renameList(user.id, id, title);
+  }
+
+  @Mutation(() => Boolean)
+  async deleteList(
+    @CurrentUser() identity: Identity,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listsService.deleteList(user.id, id);
+  }
 }

@@ -67,3 +67,4 @@ tickets.
 - [x] Frontend middleware: hub validate + next-intl locale routing, with a documented local-dev
       bypass (issue #10)
 - [x] Backend List create/myLists/list(id) + frontend Lists overview and detail page (issue #10)
+- [x] Backend renameList/deleteList + frontend rename/delete UI, owner-only (issue #11)

@@ -40,14 +40,16 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 ## Phase 3 — Core List/Task (owner-only)
 
 Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+9..13)
-(#11 "Rename + delete List" is unblocked and ready next; #8/#9/#10 done)
+(#12 "Create + view + toggle-done Tasks" is unblocked and ready next; #8/#9/#10/#11 done)
 
 - [x] Frontend middleware: hub validate + next-intl routing (issue #10 - includes a documented
       local-dev bypass since `.blonskyi.dev` doesn't resolve on localhost)
 - [x] Backend: GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)
 - [x] Backend: List create/myLists/list(id), owner-only (issue #10)
-- [ ] Backend: remaining List/Task CRUD resolvers (ADR-003) — issues #11–#13
+- [x] Backend: renameList/deleteList, owner-only (issue #11)
+- [ ] Backend: Task CRUD resolvers (ADR-003) — issues #12–#13
 - [x] Frontend: Lists overview (create + navigate) and List detail page shell (issue #10)
+- [x] Frontend: rename + delete actions on the List detail page (issue #11)
 
 ---
 
