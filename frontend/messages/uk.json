@@ -18,6 +18,14 @@
     "title": "Завдання",
     "createPlaceholder": "Назва нового завдання",
     "addButton": "Додати",
-    "emptyState": "Поки що немає завдань. Додайте перше вище."
+    "emptyState": "Поки що немає завдань. Додайте перше вище.",
+    "editButton": "Редагувати",
+    "deleteButton": "Видалити",
+    "deleteConfirm": "Видалити це завдання?",
+    "saveButton": "Зберегти",
+    "cancelButton": "Скасувати",
+    "moveUp": "Перемістити вгору",
+    "moveDown": "Перемістити вниз",
+    "dueDateLabel": "Термін"
   }
 }
