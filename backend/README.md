@@ -1,98 +1,72 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS + GraphQL (code-first) API for the todolist app. Internal-only — no public subdomain; the
+frontend is the sole caller, over a private Docker network in production (see
+[docs/decisions.md](../docs/decisions.md) ADR-003).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Local development
 
-## Description
+### Prerequisites
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Node.js 22+, pnpm (installed at the repo root — see the top-level [README](../README.md))
+- Docker + Docker Compose
 
-## Project setup
+### Setup
 
 ```bash
-$ pnpm install
+cp .env.example .env
+# fill in DB_USER/DB_PASSWORD/DB_NAME (any values - throwaway local DB), then:
+#   DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@localhost:5437/<DB_NAME>
+
+docker compose -f docker-compose.dev.yml up -d --wait   # local Postgres on :5437
+pnpm db:migrate                                          # apply Prisma migrations
+pnpm start:dev                                            # watch mode
 ```
 
-## Compile and run the project
+> Port 5437, not 5432/5434/5435: those are taken by a native Postgres and the sibling hub repo's
+> own dev/test containers (see the hub's `docs/onboarding.md`). Port 5436 is reserved for this
+> repo's own `docker-compose.test.yml`.
+
+### Available commands
 
 ```bash
-# development
-$ pnpm run start
+pnpm start            # production mode (after pnpm build)
+pnpm start:dev         # development, watch mode
+pnpm build             # compile to dist/
 
-# watch mode
-$ pnpm run start:dev
+pnpm lint              # ESLint, --fix
+pnpm lint:check        # ESLint, no fix (CI)
+pnpm format            # Prettier, write
+pnpm format:check      # Prettier, check only (CI)
 
-# production mode
-$ pnpm run start:prod
+pnpm test              # unit tests (Jest, colocated *.spec.ts)
+pnpm test:e2e          # integration tests against a real Postgres (docker-compose.test.yml)
+
+pnpm db:generate       # regenerate the Prisma client after a schema change
+pnpm db:migrate        # create + apply a migration (prisma migrate dev)
+pnpm db:studio         # Prisma Studio (local DB UI)
 ```
 
-## Run tests
+## Testing
 
-```bash
-# unit tests
-$ pnpm run test
+`pnpm test:e2e` boots the real NestJS app and hits it via `supertest`/GraphQL, against a real
+Postgres — `pretest:e2e`/`posttest:e2e` hooks start and stop `docker-compose.test.yml`
+automatically. Tables are truncated between tests (`test/setup/jest-setup.ts`); migrations run once
+per test run (`test/setup/global-setup.ts`). Only the trusted `x-user-id` identity header is ever
+mocked — never the database — matching the hub's own integration-test philosophy (see the hub's
+ADR-008).
 
-# e2e tests
-$ pnpm run test:e2e
+## Prisma
 
-# test coverage
-$ pnpm run test:cov
-```
+Pinned to **Prisma 6** (`prisma-client-js` generator), not the current-latest Prisma 7 — its new
+ESM/WASM client architecture doesn't run under this project's Jest/CommonJS setup without a much
+bigger toolchain change than was warranted. See [docs/decisions.md](../docs/decisions.md) ADR-011
+before touching the Prisma version.
 
-## Deployment
+Schema: [prisma/schema.prisma](prisma/schema.prisma), matching
+[knowledge/domain-model.md](../knowledge/domain-model.md) entity-for-entity.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Further docs
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+See the [repo root README](../README.md) and [docs/](../docs/) for architecture, ADRs, and the
+phased implementation plan.
