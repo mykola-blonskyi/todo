@@ -31,3 +31,7 @@ was deferred rather than cut.
 - [ ] Bidirectional Google Calendar sync (read edits back from Calendar) — explicitly rejected for
       v1 due to conflict-resolution complexity; revisit only with real demand (ADR-005)
 - [ ] Real-time (WebSocket) updates instead of refresh-based visibility for shares/comments
+- [ ] Redis read-through caching layer — declined on general "read-heavy shared data" reasoning with
+      no concrete bottleneck (docs/decisions.md ADR-012); revisit only with a specific measured or
+      clearly-likely expensive query, and design the per-mutation invalidation strategy explicitly
+      before implementing

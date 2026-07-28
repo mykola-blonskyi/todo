@@ -350,3 +350,48 @@ dynamic-import interaction with Jest at all.
   before attempting it again, don't just re-run `pnpm add prisma@latest`
 - Dependency-update tooling (Renovate/Dependabot, if added later) should not auto-upgrade `prisma`/
   `@prisma/client` past the 6.x line without that deliberate migration
+
+---
+
+## ADR-012: Defer a Redis/read-through caching layer — no bottleneck exists yet
+
+Date: 2026-07-29
+
+Status: Accepted
+
+### Context
+Considered adding Redis as a read-through cache in front of Postgres reads, on the general
+reasoning that caching is a good fit for read-heavy, shareable data (Lists visible to multiple
+Collaborators once Phase 4 ships). There was no concrete measured or specific anticipated bottleneck
+driving this — every query in the codebase so far (`backend/src/lists/lists.service.ts` and
+equivalents) is a single-table lookup on an indexed column (primary key or the `ownerId` foreign
+key), the kind of query Postgres answers trivially at this project's scale.
+
+### Decision
+No caching layer for now. Reads go straight to Postgres via Prisma, as they already do.
+
+### Alternatives Considered
+- Redis read-through cache — rejected: the exact scenario motivating it (a List visible to multiple
+  Collaborators) is also the scenario where it's most dangerous. Every mutation across
+  List/Task/Comment/ListShare/CalendarSync would need correct, immediate invalidation, or a
+  Collaborator sees stale state after another Collaborator's edit — a correctness bug, not a
+  performance win. It would also need its own testing seam, breaking the "real Postgres, mock only
+  the trust boundary" philosophy established in ADR-008 and used consistently since. And it adds a
+  new operational component (provisioning, monitoring, a failure-mode decision for "Redis
+  unreachable") to a project that doesn't have a deploy pipeline yet (Phase 7 has no Dockerfiles).
+- In-memory/application-level caching (e.g. within a single Node process) — not seriously
+  considered; same invalidation-correctness problem as Redis, without even the benefit of surviving
+  a process restart or being shared across instances.
+
+### Consequences
+- Revisit only when there's a concrete, measured or clearly-likely bottleneck — e.g. a specific
+  query that becomes expensive once real features land (a cross-list aggregation, a future
+  "search everything you have access to" feature), or observed real-usage latency. Not on general
+  principle.
+- If revisited, the cache-invalidation strategy needs to be designed explicitly per mutation (which
+  writes invalidate which cached reads) before implementation starts — not bolted on generically -
+  and a new testing seam for the cache layer itself will need to be defined, consistent with how
+  every other seam in this project has been chosen deliberately (see `docs/decisions.md` and
+  `knowledge/business-rules.md` throughout)
+- This ADR itself is the record that this was considered and declined - don't re-propose it without
+  a concrete driver this entry doesn't already address
