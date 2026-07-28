@@ -20,7 +20,7 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 - [x] Root `pnpm-workspace.yaml`, single lockfile, remove `frontend/package-lock.json`
 - [x] Frontend: prettier + Vitest/RTL wired in, matching hub conventions (ADR-008) — no real
       component tests yet (`passWithNoTests`), first ones land with Phase 3
-- [ ] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
+- [x] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
 - [ ] Provision `todo_app` role / `todolist` database on the shared Postgres instance (ADR-002) —
       still needed for prod; local dev/test use their own docker-compose Postgres instances
 - [x] Prisma schema + first migration for the domain model (issue #8) — Prisma 6, not 7, see ADR-011
@@ -40,12 +40,14 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 ## Phase 3 — Core List/Task (owner-only)
 
 Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+9..13)
-(#10 "Create List + view all/one List" is unblocked and ready next; #8/#9 done)
+(#11 "Rename + delete List" is unblocked and ready next; #8/#9/#10 done)
 
-- [ ] Frontend middleware: hub validate + next-intl routing (copy hub's pattern)
+- [x] Frontend middleware: hub validate + next-intl routing (issue #10 - includes a documented
+      local-dev bypass since `.blonskyi.dev` doesn't resolve on localhost)
 - [x] Backend: GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)
-- [ ] Backend: List/Task CRUD resolvers (ADR-003) — issues #10–#13
-- [ ] Frontend: list view, task view, create/edit/delete (owner-only actions)
+- [x] Backend: List create/myLists/list(id), owner-only (issue #10)
+- [ ] Backend: remaining List/Task CRUD resolvers (ADR-003) — issues #11–#13
+- [x] Frontend: Lists overview (create + navigate) and List detail page shell (issue #10)
 
 ---
 

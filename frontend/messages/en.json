@@ -1,0 +1,14 @@
+{
+  "Common": {
+    "appName": "todolist"
+  },
+  "Lists": {
+    "title": "Your Lists",
+    "createPlaceholder": "New list title",
+    "createButton": "Create",
+    "emptyState": "No lists yet. Create one above to get started.",
+    "backToLists": "Back to lists",
+    "notFoundTitle": "List not found",
+    "notFoundBody": "This list doesn't exist, or you don't have access to it."
+  }
+}

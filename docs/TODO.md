@@ -63,3 +63,7 @@ tickets.
       ADR-011
 - [x] Published 4 specs (#3–#6) and 17 implementation tickets (#8–#24) to GitHub Issues
 - [x] GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)
+- [x] Downgraded frontend to Tailwind v3, copied hub's shadcn theme tokens (ADR-007)
+- [x] Frontend middleware: hub validate + next-intl locale routing, with a documented local-dev
+      bypass (issue #10)
+- [x] Backend List create/myLists/list(id) + frontend Lists overview and detail page (issue #10)

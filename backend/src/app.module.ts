@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { ListsModule } from './lists/lists.module';
 import { IdentityGuard } from './identity/identity.guard';
 
 @Module({
@@ -19,6 +20,7 @@ import { IdentityGuard } from './identity/identity.guard';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
     UsersModule,
+    ListsModule,
   ],
   controllers: [AppController],
   providers: [
