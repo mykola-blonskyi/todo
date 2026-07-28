@@ -66,6 +66,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter backend test
 
+  backend-test-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # pretest:e2e/posttest:e2e manage docker-compose.test.yml (a real
+      # Postgres) - migrations run in Jest's globalSetup, tables truncated
+      # between tests, matching the hub's own integration-test conventions.
+      - run: pnpm --filter backend test:e2e
+
   frontend-lint:
     runs-on: ubuntu-latest
     steps:
