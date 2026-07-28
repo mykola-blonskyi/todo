@@ -22,6 +22,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter backend exec prisma generate
       - run: pnpm --filter backend lint:check
 
   backend-format:
@@ -36,6 +37,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter backend exec prisma generate
       - run: pnpm --filter backend format:check
 
   backend-typecheck:
@@ -50,6 +52,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter backend exec prisma generate
       - run: pnpm --filter backend exec tsc --noEmit
 
   backend-test:
@@ -64,6 +67,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter backend exec prisma generate
       - run: pnpm --filter backend test
 
   backend-test-e2e:
@@ -78,6 +82,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter backend exec prisma generate
       # pretest:e2e/posttest:e2e manage docker-compose.test.yml (a real
       # Postgres) - migrations run in Jest's globalSetup, tables truncated
       # between tests, matching the hub's own integration-test conventions.
