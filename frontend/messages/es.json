@@ -9,6 +9,9 @@
     "emptyState": "Aún no hay listas. Crea una arriba para empezar.",
     "backToLists": "Volver a las listas",
     "notFoundTitle": "Lista no encontrada",
-    "notFoundBody": "Esta lista no existe, o no tienes acceso a ella."
+    "notFoundBody": "Esta lista no existe, o no tienes acceso a ella.",
+    "saveButton": "Guardar",
+    "deleteButton": "Eliminar",
+    "deleteConfirm": "¿Eliminar esta lista? Esta acción no se puede deshacer."
   }
 }

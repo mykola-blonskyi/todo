@@ -9,6 +9,9 @@
     "emptyState": "No lists yet. Create one above to get started.",
     "backToLists": "Back to lists",
     "notFoundTitle": "List not found",
-    "notFoundBody": "This list doesn't exist, or you don't have access to it."
+    "notFoundBody": "This list doesn't exist, or you don't have access to it.",
+    "saveButton": "Save",
+    "deleteButton": "Delete",
+    "deleteConfirm": "Delete this list? This can't be undone."
   }
 }

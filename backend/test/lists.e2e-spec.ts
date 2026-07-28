@@ -37,6 +37,14 @@ describe('List (GraphQL)', () => {
     return res.body as GraphQLResponse<T>;
   }
 
+  async function createList(headers: Record<string, string>, title: string) {
+    const body = await graphql<{ createList: { id: string } }>(
+      `mutation { createList(title: "${title}") { id } }`,
+      headers,
+    );
+    return body.data!.createList.id;
+  }
+
   it('creates a List for the calling user', async () => {
     const body = await graphql<{ createList: { id: string; title: string } }>(
       `
@@ -159,6 +167,74 @@ describe('List (GraphQL)', () => {
         }
       `,
       asUser('hub-1', 'owner@example.com'),
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('renames a List for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const body = await graphql<{ renameList: { title: string } }>(
+      `mutation { renameList(id: "${id}", title: "Weekly groceries") { title } }`,
+      owner,
+    );
+
+    expect(body.data?.renameList.title).toBe('Weekly groceries');
+  });
+
+  it('rejects renaming to an empty or blank title', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const body = await graphql<{ renameList: unknown }>(
+      `mutation { renameList(id: "${id}", title: "   ") { title } }`,
+      owner,
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('denies renameList for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const body = await graphql<{ renameList: unknown }>(
+      `mutation { renameList(id: "${id}", title: "Hijacked") { title } }`,
+      asUser('hub-2', 'other@example.com'),
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('deletes a List for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const deleteBody = await graphql<{ deleteList: boolean }>(
+      `mutation { deleteList(id: "${id}") }`,
+      owner,
+    );
+    expect(deleteBody.data?.deleteList).toBe(true);
+
+    const readBody = await graphql<{ list: unknown }>(
+      `query { list(id: "${id}") { title } }`,
+      owner,
+    );
+    expect(readBody.data).toBeNull();
+  });
+
+  it('denies deleteList for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const body = await graphql<{ deleteList: unknown }>(
+      `mutation { deleteList(id: "${id}") }`,
+      asUser('hub-2', 'other@example.com'),
     );
 
     expect(body.data).toBeNull();
