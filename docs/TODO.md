@@ -22,15 +22,11 @@ tickets.
 - [ ] Hub repo: register `todolist` project slug in the `projects` table
 - [ ] Provision `todo_app` Postgres role + `todolist` database on the shared VPS instance for prod
       (ADR-002) — local dev/test already have their own docker-compose Postgres
-- [ ] NestJS GraphQL resolvers/services for List/Task CRUD, enforcing owner-vs-collaborator rules
-      (business-rules.md Rules 2–3) — see GitHub Issues #9–#13
 - [ ] Sharing flow: search (via hub project-members), invite, accept/decline (Rules 3–4) — see
       GitHub Issues #14–#18
 - [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
 - [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
       GitHub Issues #20–#24
-- [ ] Frontend middleware: hub validate check + next-intl locale routing (copied from hub pattern)
-- [ ] Copy hub's shadcn theme tokens (light/dark/theme-rose) into frontend (ADR-007)
 - [ ] Dockerfiles for both apps; `docker-compose.yml`: frontend (public) + backend (internal-only)
 - [ ] Build+push+deploy CI jobs on merge to `main`, once Dockerfiles + Coolify registration exist
       (ADR-010)
@@ -70,3 +66,5 @@ tickets.
 - [x] Backend renameList/deleteList + frontend rename/delete UI, owner-only (issue #11)
 - [x] Backend createTask/toggleTaskDone + frontend Task list/add/toggle UI, owner-only, cascade
       verified e2e (issue #12)
+- [x] Backend updateTask/deleteTask/reorderTasks + frontend Task edit/delete/reorder UI,
+      owner-only (issue #13) — Phase 3 complete

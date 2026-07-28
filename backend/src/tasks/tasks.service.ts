@@ -48,6 +48,53 @@ export class TasksService {
     });
   }
 
+  async updateTask(
+    ownerId: string,
+    id: string,
+    updates: { title?: string; dueDate?: Date | null },
+  ) {
+    await this.requireOwnedTask(ownerId, id);
+
+    return this.prisma.task.update({
+      where: { id },
+      data: {
+        ...(updates.title !== undefined && {
+          title: this.requireTitle(updates.title),
+        }),
+        ...(updates.dueDate !== undefined && { dueDate: updates.dueDate }),
+      },
+    });
+  }
+
+  async deleteTask(ownerId: string, id: string) {
+    await this.requireOwnedTask(ownerId, id);
+    await this.prisma.task.delete({ where: { id } });
+    return true;
+  }
+
+  async reorderTasks(ownerId: string, listId: string, taskIds: string[]) {
+    await this.requireOwnedList(ownerId, listId);
+
+    const tasks = await this.prisma.task.findMany({ where: { listId } });
+    const currentIds = new Set(tasks.map((task) => task.id));
+    const sameSet =
+      taskIds.length === tasks.length &&
+      taskIds.every((id) => currentIds.has(id));
+    if (!sameSet) {
+      throw new BadRequestException(
+        "taskIds must match the List's current Tasks exactly",
+      );
+    }
+
+    await this.prisma.$transaction(
+      taskIds.map((id, position) =>
+        this.prisma.task.update({ where: { id }, data: { position } }),
+      ),
+    );
+
+    return this.tasksForList(listId);
+  }
+
   private requireTitle(title: string): string {
     const trimmed = title.trim();
     if (!trimmed) {

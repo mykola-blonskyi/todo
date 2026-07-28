@@ -18,6 +18,14 @@
     "title": "Задачи",
     "createPlaceholder": "Название новой задачи",
     "addButton": "Добавить",
-    "emptyState": "Задач пока нет. Добавьте первую выше."
+    "emptyState": "Задач пока нет. Добавьте первую выше.",
+    "editButton": "Изменить",
+    "deleteButton": "Удалить",
+    "deleteConfirm": "Удалить эту задачу?",
+    "saveButton": "Сохранить",
+    "cancelButton": "Отмена",
+    "moveUp": "Переместить вверх",
+    "moveDown": "Переместить вниз",
+    "dueDateLabel": "Срок"
   }
 }

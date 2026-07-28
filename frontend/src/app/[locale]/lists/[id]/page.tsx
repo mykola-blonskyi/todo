@@ -9,14 +9,18 @@ import {
   deleteListAction,
   createTaskAction,
   toggleTaskDoneAction,
+  updateTaskAction,
+  deleteTaskAction,
+  moveTaskAction,
 } from './actions';
 import { DeleteListButton } from './delete-list-button';
-import { TaskToggle } from './task-toggle';
+import { TaskRow } from './task-row';
 
 interface Task {
   id: string;
   title: string;
   done: boolean;
+  dueDate: string | null;
 }
 
 interface ListDetail {
@@ -37,7 +41,7 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
   let list: ListDetail;
   try {
     const data = await graphqlFetch<{ list: ListDetail }>(
-      `query ListDetail($id: ID!) { list(id: $id) { id title tasks { id title done } } }`,
+      `query ListDetail($id: ID!) { list(id: $id) { id title tasks { id title done dueDate } } }`,
       { id },
     );
     list = data.list;
@@ -51,6 +55,18 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
   const renameWithId = renameListAction.bind(null, id);
   const deleteWithId = deleteListAction.bind(null, id);
   const createTaskWithId = createTaskAction.bind(null, id);
+  const moveTaskInList = moveTaskAction.bind(null, id);
+
+  const taskRowLabels = {
+    editButton: tTasks('editButton'),
+    deleteButton: tTasks('deleteButton'),
+    deleteConfirm: tTasks('deleteConfirm'),
+    saveButton: tTasks('saveButton'),
+    cancelButton: tTasks('cancelButton'),
+    moveUp: tTasks('moveUp'),
+    moveDown: tTasks('moveDown'),
+    dueDateLabel: tTasks('dueDateLabel'),
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-8">
@@ -75,13 +91,18 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
           <p className="text-sm text-muted-foreground">{tTasks('emptyState')}</p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {list.tasks.map((task) => (
-              <li key={task.id} className="flex items-center gap-3">
-                <TaskToggle taskId={task.id} done={task.done} action={toggleTaskDoneAction} />
-                <span className={task.done ? 'text-muted-foreground line-through' : undefined}>
-                  {task.title}
-                </span>
-              </li>
+            {list.tasks.map((task, index) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                isFirst={index === 0}
+                isLast={index === list.tasks.length - 1}
+                labels={taskRowLabels}
+                onToggleDone={toggleTaskDoneAction}
+                onUpdate={updateTaskAction}
+                onDelete={deleteTaskAction}
+                onMove={moveTaskInList}
+              />
             ))}
           </ul>
         )}

@@ -180,4 +180,144 @@ describe('Task (GraphQL)', () => {
     expect(toggleBody.data).toBeNull();
     expect(toggleBody.errors?.[0]).toBeDefined();
   });
+
+  it('updates a Task title for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const body = await graphql<{ updateTask: { title: string } }>(
+      `mutation { updateTask(id: "${taskId}", title: "Oat milk") { title } }`,
+      owner,
+    );
+
+    expect(body.data?.updateTask.title).toBe('Oat milk');
+  });
+
+  it('updates a Task dueDate for its owner, leaving title untouched', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const body = await graphql<{
+      updateTask: { title: string; dueDate: string };
+    }>(
+      `mutation { updateTask(id: "${taskId}", dueDate: "2026-08-01T00:00:00.000Z") { title dueDate } }`,
+      owner,
+    );
+
+    expect(body.data?.updateTask.title).toBe('Milk');
+    expect(body.data?.updateTask.dueDate).toBe('2026-08-01T00:00:00.000Z');
+  });
+
+  it('rejects updating a Task to an empty or blank title', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const body = await graphql<{ updateTask: unknown }>(
+      `mutation { updateTask(id: "${taskId}", title: "   ") { title } }`,
+      owner,
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('denies updateTask for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const body = await graphql<{ updateTask: unknown }>(
+      `mutation { updateTask(id: "${taskId}", title: "Hijacked") { title } }`,
+      asUser('hub-2', 'other@example.com'),
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('deletes a Task for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const deleteBody = await graphql<{ deleteTask: boolean }>(
+      `mutation { deleteTask(id: "${taskId}") }`,
+      owner,
+    );
+    expect(deleteBody.data?.deleteTask).toBe(true);
+
+    const listBody = await graphql<{ list: { tasks: unknown[] } }>(
+      `query { list(id: "${listId}") { tasks { id } } }`,
+      owner,
+    );
+    expect(listBody.data?.list.tasks).toEqual([]);
+  });
+
+  it('denies deleteTask for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const body = await graphql<{ deleteTask: unknown }>(
+      `mutation { deleteTask(id: "${taskId}") }`,
+      asUser('hub-2', 'other@example.com'),
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('reorders Tasks within a List for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const milkId = await createTask(owner, listId, 'Milk');
+    const breadId = await createTask(owner, listId, 'Bread');
+    const eggsId = await createTask(owner, listId, 'Eggs');
+
+    const body = await graphql<{
+      reorderTasks: { title: string; position: number }[];
+    }>(
+      `mutation { reorderTasks(listId: "${listId}", taskIds: ["${eggsId}", "${milkId}", "${breadId}"]) { title position } }`,
+      owner,
+    );
+
+    expect(body.data?.reorderTasks).toEqual([
+      { title: 'Eggs', position: 0 },
+      { title: 'Milk', position: 1 },
+      { title: 'Bread', position: 2 },
+    ]);
+  });
+
+  it('rejects reorderTasks with a taskIds set that does not match the List exactly', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const milkId = await createTask(owner, listId, 'Milk');
+    await createTask(owner, listId, 'Bread');
+
+    const body = await graphql<{ reorderTasks: unknown }>(
+      `mutation { reorderTasks(listId: "${listId}", taskIds: ["${milkId}"]) { id } }`,
+      owner,
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
+  it('denies reorderTasks for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const milkId = await createTask(owner, listId, 'Milk');
+    const breadId = await createTask(owner, listId, 'Bread');
+
+    const body = await graphql<{ reorderTasks: unknown }>(
+      `mutation { reorderTasks(listId: "${listId}", taskIds: ["${breadId}", "${milkId}"]) { id } }`,
+      asUser('hub-2', 'other@example.com'),
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
 });

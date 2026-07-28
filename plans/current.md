@@ -40,7 +40,8 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 ## Phase 3 — Core List/Task (owner-only)
 
 Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+9..13)
-(#13 "Edit + delete + reorder Tasks" is unblocked and ready next; #8/#9/#10/#11/#12 done)
+— all done. Phase 3 is complete; Phase 4 (sharing) is next, gated on Phase 2's
+`project-members` endpoint (already done).
 
 - [x] Frontend middleware: hub validate + next-intl routing (issue #10 - includes a documented
       local-dev bypass since `.blonskyi.dev` doesn't resolve on localhost)
@@ -48,11 +49,13 @@ Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issu
 - [x] Backend: List create/myLists/list(id), owner-only (issue #10)
 - [x] Backend: renameList/deleteList, owner-only (issue #11)
 - [x] Backend: createTask/toggleTaskDone resolvers, owner-only, cascade-verified e2e (issue #12)
-- [ ] Backend: Task edit/delete/reorder resolvers (ADR-003) — issue #13
+- [x] Backend: updateTask/deleteTask/reorderTasks resolvers, owner-only (ADR-003, issue #13)
 - [x] Frontend: Lists overview (create + navigate) and List detail page shell (issue #10)
 - [x] Frontend: rename + delete actions on the List detail page (issue #11)
 - [x] Frontend: Tasks render on the List detail page with add-task form and toggle-done checkbox
       (issue #12)
+- [x] Frontend: Task edit (title/due date), delete, and button-based reorder on the List detail
+      page (issue #13)
 
 ---
 

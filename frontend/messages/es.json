@@ -18,6 +18,14 @@
     "title": "Tareas",
     "createPlaceholder": "Título de la nueva tarea",
     "addButton": "Añadir",
-    "emptyState": "Aún no hay tareas. Añade una arriba."
+    "emptyState": "Aún no hay tareas. Añade una arriba.",
+    "editButton": "Editar",
+    "deleteButton": "Eliminar",
+    "deleteConfirm": "¿Eliminar esta tarea?",
+    "saveButton": "Guardar",
+    "cancelButton": "Cancelar",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "dueDateLabel": "Vence"
   }
 }

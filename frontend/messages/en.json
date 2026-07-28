@@ -18,6 +18,14 @@
     "title": "Tasks",
     "createPlaceholder": "New task title",
     "addButton": "Add",
-    "emptyState": "No tasks yet. Add one above."
+    "emptyState": "No tasks yet. Add one above.",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "deleteConfirm": "Delete this task?",
+    "saveButton": "Save",
+    "cancelButton": "Cancel",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "dueDateLabel": "Due"
   }
 }
