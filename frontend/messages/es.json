@@ -13,5 +13,11 @@
     "saveButton": "Guardar",
     "deleteButton": "Eliminar",
     "deleteConfirm": "¿Eliminar esta lista? Esta acción no se puede deshacer."
+  },
+  "Tasks": {
+    "title": "Tareas",
+    "createPlaceholder": "Título de la nueva tarea",
+    "addButton": "Añadir",
+    "emptyState": "Aún no hay tareas. Añade una arriba."
   }
 }

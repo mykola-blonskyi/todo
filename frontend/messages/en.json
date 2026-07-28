@@ -13,5 +13,11 @@
     "saveButton": "Save",
     "deleteButton": "Delete",
     "deleteConfirm": "Delete this list? This can't be undone."
+  },
+  "Tasks": {
+    "title": "Tasks",
+    "createPlaceholder": "New task title",
+    "addButton": "Add",
+    "emptyState": "No tasks yet. Add one above."
   }
 }

@@ -28,3 +28,27 @@ export async function deleteListAction(id: string) {
   const locale = await getLocale();
   redirect({ href: '/', locale });
 }
+
+export async function createTaskAction(listId: string, formData: FormData) {
+  const title = formData.get('title');
+  if (typeof title !== 'string' || !title.trim()) {
+    return;
+  }
+
+  await graphqlFetch(
+    `mutation CreateTask($listId: ID!, $title: String!) {
+      createTask(listId: $listId, title: $title) { id }
+    }`,
+    { listId, title },
+  );
+
+  revalidatePath('/[locale]/lists/[id]', 'page');
+}
+
+export async function toggleTaskDoneAction(id: string) {
+  await graphqlFetch(`mutation ToggleTaskDone($id: ID!) { toggleTaskDone(id: $id) { id } }`, {
+    id,
+  });
+
+  revalidatePath('/[locale]/lists/[id]', 'page');
+}
