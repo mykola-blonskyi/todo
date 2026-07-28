@@ -3,6 +3,7 @@ packages:
   - frontend
 
 allowBuilds:
+  '@apollo/protobufjs': true
   '@prisma/client': true
   '@prisma/engines': true
   prisma: true
