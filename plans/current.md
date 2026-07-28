@@ -8,6 +8,10 @@ and localized to match the hub, deployed via the same Coolify/GHCR pipeline as t
 rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 [knowledge/business-rules.md](../knowledge/business-rules.md).
 
+This file tracks phase-level progress. The actual ticket-level, dependency-ordered breakdown lives
+as [GitHub Issues](https://github.com/mykola-blonskyi/todo/issues) (4 specs, #3–#6; 17
+implementation tickets, #8–#24) — each phase below links its ticket range.
+
 ---
 
 ## Phase 1 — Repo & infra foundation
@@ -35,6 +39,9 @@ rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 
 ## Phase 3 — Core List/Task (owner-only)
 
+Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+9..13)
+(#9 GraphQL scaffold + `me` query is unblocked and ready; #8, its own prerequisite, is done)
+
 - [ ] Frontend middleware: hub validate + next-intl routing (copy hub's pattern)
 - [ ] Backend: internal-only NestJS GraphQL API, code-first, List/Task CRUD (ADR-003)
 - [ ] Frontend: list view, task view, create/edit/delete (owner-only actions)
@@ -42,6 +49,8 @@ rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 ---
 
 ## Phase 4 — Sharing & collaboration
+
+Ticket breakdown: issues #14–#18
 
 - [ ] Share search UI (calls hub's project-members endpoint)
 - [ ] ListShare invite/accept/decline flow
@@ -52,11 +61,15 @@ rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 
 ## Phase 5 — Comments
 
+Ticket breakdown: issue #19
+
 - [ ] Task-level and list-level comments, both roles (Rule 6)
 
 ---
 
 ## Phase 6 — Google Calendar sync
+
+Ticket breakdown: issues #20–#24
 
 - [ ] "Connect Google Calendar" OAuth flow, `GoogleCalendarConnection` storage (ADR-004)
 - [ ] Manual per-list sync action, one-way push (ADR-005)

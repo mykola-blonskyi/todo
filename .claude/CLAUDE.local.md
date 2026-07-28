@@ -53,8 +53,9 @@ hub's Google SSO — this repo never implements its own login. Full design in
   (`todolist-frontend`, `todolist-backend`), two separate Coolify webhooks
 - Postgres is external/shared — not part of this repo's `docker-compose.yml`; requires a
   provisioned `todo_app` role / `todolist` database on the existing instance before first deploy
-- CI runs lint/typecheck/prettier/test for both apps unconditionally on every push — no path
-  filtering yet (ADR-010)
+- CI runs lint/format/typecheck/test for both apps, plus backend integration tests (real Postgres
+  via Docker), unconditionally on every push — no path filtering yet (ADR-010). No build/push/deploy
+  jobs exist yet — that's blocked on Dockerfiles + Coolify registration.
 
 ---
 
@@ -62,7 +63,15 @@ hub's Google SSO — this repo never implements its own login. Full design in
 
 - Calendar sync is e2e-test/mocked-API only for now — no real Google Calendar has exercised it yet
   (needs a second real Google account to dogfood, see plans/backlog.md)
-- Sharing requires the hub's `project-members` search endpoint, which doesn't exist yet — it's a
-  Phase 2 prerequisite in plans/current.md, not yet built on the hub side
 - No email/push/real-time notifications — share invites and comments are visible only the next time
   someone opens the relevant page (business-rules.md Rule 7)
+- No Dockerfiles yet, no Coolify registration — deploy pipeline (plans/current.md Phase 7) is CI
+  checks only so far, nothing builds/pushes/deploys yet
+
+## Issue tracking
+
+Specs and implementation tickets live as GitHub Issues in this repo (`mykola-blonskyi/todo`), not
+just in plans/current.md — see docs/agents/issue-tracker.md and docs/agents/triage-labels.md.
+plans/current.md tracks phase-level progress; GitHub Issues track the actual ticket-level breakdown
+(vertical slices, dependency-ordered) generated from each phase's spec. Check both — a phase
+checkbox here can be "not started" while its tickets already exist and are ready to pick up.

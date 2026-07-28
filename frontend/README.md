@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# frontend
 
-## Getting Started
+Next.js app for the todolist UI. Acts as the sole public entry point and BFF — it's the only thing
+that talks to the backend's internal GraphQL API (see [docs/decisions.md](../docs/decisions.md)
+ADR-003).
 
-First, run the development server:
+**Status**: still the default `create-next-app` scaffold plus test tooling (prettier, Vitest +
+React Testing Library, matching the hub's conventions — see ADR-008). No real pages, auth
+middleware, or theme yet; see [plans/current.md](../plans/current.md) Phase 3 for what's next.
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter frontend dev     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Available commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm lint            # ESLint
+pnpm format           # Prettier, write
+pnpm format:check     # Prettier, check only (CI)
+pnpm test             # Vitest (component tests; none exist yet, passWithNoTests)
+pnpm build            # production build
+pnpm start            # serve production build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Notes
 
-## Learn More
+- Pinned to **Tailwind CSS v4** for now (the `create-next-app` default) — planned downgrade to v3
+  to reuse the hub's shadcn theme tokens directly, see ADR-007 (not done yet).
+- No component tests exist yet — `vitest.config.ts` sets `passWithNoTests: true` until Phase 3
+  delivers real client components to test. Async Server Components can't render under React
+  Testing Library at all (same finding as the hub's own README) — those get Playwright e2e coverage
+  once that's wired up (Phase 7).
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See the [repo root README](../README.md) and [docs/](../docs/) for the full architecture and plan.

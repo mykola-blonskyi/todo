@@ -1,6 +1,9 @@
 # TODO
 
-See [plans/current.md](../plans/current.md) for the phased implementation plan this list feeds.
+See [plans/current.md](../plans/current.md) for the phased implementation plan this list feeds, and
+[GitHub Issues](https://github.com/mykola-blonskyi/todo/issues) for the actual ticket-level,
+dependency-ordered breakdown — this file tracks coarser-grained, cross-cutting items, not individual
+tickets.
 
 ## Backlog
 
@@ -16,23 +19,21 @@ See [plans/current.md](../plans/current.md) for the phased implementation plan t
 
 ## Planned
 
-- [ ] Hub repo: add `GET /api/auth/project-members?project=<slug>&q=<term>` endpoint (ADR-009)
 - [ ] Hub repo: register `todolist` project slug in the `projects` table
-- [ ] Hub repo / Google Cloud Console: add `https://todo.blonskyi.dev/api/google/calendar/callback`
-      as an authorized redirect URI on the existing OAuth Client (ADR-004)
-- [ ] Provision `todo_app` Postgres role + `todolist` database on the shared instance (ADR-002)
-- [ ] Prisma schema for User/List/Task/Comment/ListShare/CalendarSync/GoogleCalendarConnection
-      (knowledge/domain-model.md)
+- [ ] Provision `todo_app` Postgres role + `todolist` database on the shared VPS instance for prod
+      (ADR-002) — local dev/test already have their own docker-compose Postgres
 - [ ] NestJS GraphQL resolvers/services for List/Task CRUD, enforcing owner-vs-collaborator rules
-      (business-rules.md Rules 2–3)
-- [ ] Sharing flow: search (via hub project-members), invite, accept/decline (Rules 3–4)
-- [ ] Comment flow: task-level and list-level, both roles (Rule 6)
-- [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10)
+      (business-rules.md Rules 2–3) — see GitHub Issues #9–#13
+- [ ] Sharing flow: search (via hub project-members), invite, accept/decline (Rules 3–4) — see
+      GitHub Issues #14–#18
+- [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
+- [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
+      GitHub Issues #20–#24
 - [ ] Frontend middleware: hub validate check + next-intl locale routing (copied from hub pattern)
 - [ ] Copy hub's shadcn theme tokens (light/dark/theme-rose) into frontend (ADR-007)
-- [ ] CI workflow: lint/typecheck/prettier/test on every push; build+push+deploy on merge to `main`
+- [ ] Dockerfiles for both apps; `docker-compose.yml`: frontend (public) + backend (internal-only)
+- [ ] Build+push+deploy CI jobs on merge to `main`, once Dockerfiles + Coolify registration exist
       (ADR-010)
-- [ ] `docker-compose.yml`: frontend (public) + backend (internal-only) services (docs/architecture.md)
 
 ---
 
@@ -52,3 +53,12 @@ See [plans/current.md](../plans/current.md) for the phased implementation plan t
 
 - [x] Design/requirements grilling session — see docs/decisions.md ADR-001 through ADR-010
 - [x] Flattened nested backend/frontend git repos into single monorepo (ADR-006)
+- [x] Root pnpm workspace (single lockfile); frontend prettier + Vitest/RTL wired in (ADR-008)
+- [x] GitHub Actions CI: lint/format/typecheck/test both apps, backend integration tests, on every
+      push (ADR-010)
+- [x] Hub repo: added `GET /api/auth/project-members?project=<slug>&q=<term>` endpoint (ADR-009,
+      hub's own ADR-022) — merged
+- [x] Hub repo / Google Cloud Console: added the Calendar-callback redirect URI (ADR-004)
+- [x] Prisma schema for the full domain model + Postgres connection (issue #8) — Prisma 6, see
+      ADR-011
+- [x] Published 4 specs (#3–#6) and 17 implementation tickets (#8–#24) to GitHub Issues
