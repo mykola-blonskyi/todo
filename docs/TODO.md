@@ -62,3 +62,4 @@ tickets.
 - [x] Prisma schema for the full domain model + Postgres connection (issue #8) — Prisma 6, see
       ADR-011
 - [x] Published 4 specs (#3–#6) and 17 implementation tickets (#8–#24) to GitHub Issues
+- [x] GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)

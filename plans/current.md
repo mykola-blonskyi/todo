@@ -40,10 +40,11 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 ## Phase 3 — Core List/Task (owner-only)
 
 Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+9..13)
-(#9 GraphQL scaffold + `me` query is unblocked and ready; #8, its own prerequisite, is done)
+(#10 "Create List + view all/one List" is unblocked and ready next; #8/#9 done)
 
 - [ ] Frontend middleware: hub validate + next-intl routing (copy hub's pattern)
-- [ ] Backend: internal-only NestJS GraphQL API, code-first, List/Task CRUD (ADR-003)
+- [x] Backend: GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)
+- [ ] Backend: List/Task CRUD resolvers (ADR-003) — issues #10–#13
 - [ ] Frontend: list view, task view, create/edit/delete (owner-only actions)
 
 ---
