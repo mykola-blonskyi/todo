@@ -1,0 +1,171 @@
+// See knowledge/domain-model.md for entity responsibilities and relationships,
+// and knowledge/business-rules.md Rule 10 for the cascade-delete rules below.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+// Local shadow of a hub-identified person - hubUserId is the join key back to
+// the hub's own `users.id`, not a real FK (separate database, ADR-002).
+
+enum UserLocale {
+  en
+  ru
+  uk
+  es
+}
+
+enum UserTheme {
+  light
+  dark
+  theme_rose @map("theme-rose")
+}
+
+model User {
+  id         String     @id @default(uuid())
+  hubUserId  String     @unique
+  email      String     @unique
+  name       String?
+  image      String?
+  locale     UserLocale @default(en)
+  theme      UserTheme  @default(light)
+  createdAt  DateTime   @default(now())
+
+  ownedLists            List[]
+  listShares            ListShare[]
+  comments              Comment[]
+  calendarSyncs         CalendarSync[]
+  googleCalendarConnection GoogleCalendarConnection?
+
+  @@map("users")
+}
+
+// ─── List ────────────────────────────────────────────────────────────────────
+
+model List {
+  id        String   @id @default(uuid())
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  tasks   Task[]
+  shares  ListShare[]
+  comments Comment[] @relation("ListComments")
+
+  @@map("lists")
+}
+
+// ─── Task ────────────────────────────────────────────────────────────────────
+
+model Task {
+  id        String    @id @default(uuid())
+  title     String
+  done      Boolean   @default(false)
+  dueDate   DateTime?
+  position  Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  listId String
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  comments      Comment[]      @relation("TaskComments")
+  calendarSyncs CalendarSync[]
+
+  @@map("tasks")
+}
+
+// ─── ListShare ───────────────────────────────────────────────────────────────
+// Invitation/membership record - see business-rules.md Rules 3-4. An `accepted`
+// row is what makes a User a Collaborator on a List.
+
+enum ListShareStatus {
+  pending
+  accepted
+  declined
+}
+
+model ListShare {
+  id          String          @id @default(uuid())
+  status      ListShareStatus @default(pending)
+  invitedAt   DateTime        @default(now())
+  respondedAt DateTime?
+
+  listId String
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([listId, userId])
+  @@map("list_shares")
+}
+
+// ─── Comment ─────────────────────────────────────────────────────────────────
+// Attached to exactly one of Task or List - enforced at the application layer
+// (see the Task & List comments ticket), not a DB-level CHECK constraint.
+
+model Comment {
+  id        String   @id @default(uuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  taskId String?
+  task   Task?   @relation("TaskComments", fields: [taskId], references: [id], onDelete: Cascade)
+
+  listId String?
+  list   List?   @relation("ListComments", fields: [listId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+// ─── CalendarSync ────────────────────────────────────────────────────────────
+// One row per user per task that's been synced - independent calendar events
+// per user, per business-rules.md Rule 8.
+
+model CalendarSync {
+  id              String   @id @default(uuid())
+  googleEventId   String
+  googleCalendarId String
+  syncedAt        DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@map("calendar_syncs")
+}
+
+// ─── GoogleCalendarConnection ────────────────────────────────────────────────
+// Created only via an explicit "Connect Google Calendar" action (ADR-004) -
+// never implied by hub login. Tokens are encrypted at rest at the application
+// layer before being stored here.
+
+model GoogleCalendarConnection {
+  id           String   @id @default(uuid())
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scope        String
+  connectedAt  DateTime @default(now())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("google_calendar_connections")
+}

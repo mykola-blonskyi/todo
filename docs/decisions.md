@@ -294,3 +294,59 @@ unconditionally. Path-based filtering is deferred.
 - Adding path filtering later is purely additive (a `dorny/paths-filter` step plus `if:` conditions
   on already-separate per-app jobs) — this decision doesn't need to be reversed to add it, just
   extended, so revisit only if CI runtime actually becomes a real cost
+
+---
+
+## ADR-011: Pinned to Prisma 6, `prisma-client-js` generator — not Prisma 7's new client
+
+Date: 2026-07-28
+
+Status: Accepted
+
+### Context
+Implementing the Prisma schema + Postgres connection ticket, `pnpm add prisma @prisma/client`
+installed the current stable major, Prisma 7, which defaults to a new `prisma-client` generator
+(replacing `prisma-client-js`): ESM-native output, a mandatory driver adapter (`@prisma/adapter-pg`)
+instead of a plain `new PrismaClient()`, and a `prisma.config.ts` file replacing schema-level
+datasource config.
+
+Wiring this up against the existing Jest/ts-jest setup (already established in ADR-008 for NestJS
+compatibility reasons) surfaced two independent failures in sequence:
+1. The generated client's ESM output couldn't be `require()`'d by ts-jest's CommonJS transform at
+   all (`exports is not defined in ES module scope`) — fixed by explicitly setting
+   `moduleFormat = "cjs"` and `importFileExtension = ""` in the generator block, which got past
+   module loading.
+2. Past that, Prisma 7's new query engine (a WASM-based "query compiler", replacing the old Rust
+   binary engine) loads itself via a runtime `await import(...)` regardless of `moduleFormat` -
+   `TypeError: A dynamic import callback was invoked without --experimental-vm-modules`. This isn't
+   a config knob; it's Node's CJS module system fundamentally unable to do a dynamic `import()` of
+   an ESM/WASM module without either `--experimental-vm-modules` or Jest itself running in native
+   ESM mode - a real toolchain incompatibility, not a mistake in configuration.
+
+### Decision
+Downgraded to `prisma@6.19.3` / `@prisma/client@6.19.3` (`--save-exact`, latest stable Prisma 6) with
+the classic `prisma-client-js` generator: default output into `node_modules/@prisma/client`, a plain
+`new PrismaClient()` (no driver adapter required), datasource URL via `env("DATABASE_URL")` in
+`schema.prisma` directly (no `prisma.config.ts`). This is the generator every existing NestJS+Prisma
+integration pattern (including the `nestjs-prisma` library) assumes, and it has no ESM/WASM
+dynamic-import interaction with Jest at all.
+
+### Alternatives Considered
+- Making Prisma 7's new client work under Jest via `--experimental-vm-modules` or a full ESM Jest
+  config — rejected: would mean converting the entire backend's test toolchain to native ESM to
+  accommodate one dependency's brand-new architecture, a much bigger and riskier change than this
+  ticket's actual scope, for a dependency version with no feature this project currently needs.
+- Switching the backend off Jest to a test runner with better native-ESM support — rejected outright,
+  contradicts ADR-008's explicit reasoning for keeping Jest as NestJS's idiomatic default.
+
+### Consequences
+- `backend/prisma/schema.prisma`'s generator block and datasource config, and any future Prisma
+  setup instructions, should target Prisma 6 syntax (`prisma-client-js`, `env("DATABASE_URL")` in
+  the datasource block) - not the Prisma 7 `prisma-client`/`prisma.config.ts` patterns found in
+  current-latest Prisma docs or `prisma init` output
+- Upgrading to Prisma 7 later is possible but should be its own deliberate migration once either (a)
+  the backend's test toolchain moves off Jest/CommonJS, or (b) Prisma's WASM query compiler gets a
+  documented, supported way to load under a synchronous CJS `require()` context - revisit this ADR
+  before attempting it again, don't just re-run `pnpm add prisma@latest`
+- Dependency-update tooling (Renovate/Dependabot, if added later) should not auto-upgrade `prisma`/
+  `@prisma/client` past the 6.x line without that deliberate migration

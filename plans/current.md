@@ -17,8 +17,9 @@ rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 - [x] Frontend: prettier + Vitest/RTL wired in, matching hub conventions (ADR-008) — no real
       component tests yet (`passWithNoTests`), first ones land with Phase 3
 - [ ] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
-- [ ] Provision `todo_app` role / `todolist` database on the shared Postgres instance (ADR-002)
-- [ ] Prisma schema + first migration for the domain model
+- [ ] Provision `todo_app` role / `todolist` database on the shared Postgres instance (ADR-002) —
+      still needed for prod; local dev/test use their own docker-compose Postgres instances
+- [x] Prisma schema + first migration for the domain model (issue #8) — Prisma 6, not 7, see ADR-011
 
 ---
 
