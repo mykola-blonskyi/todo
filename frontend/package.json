@@ -12,12 +12,24 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@radix-ui/react-checkbox": "^1.3.11",
+    "@radix-ui/react-label": "^2.1.15",
+    "@radix-ui/react-slot": "^1.3.3",
+    "autoprefixer": "^10.5.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.27.0",
     "next": "16.2.12",
+    "next-auth": "5.0.0-beta.31",
+    "next-intl": "^4.13.4",
+    "next-themes": "^0.4.6",
+    "postcss": "^8.5.23",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -29,7 +41,6 @@
     "eslint-config-next": "16.2.12",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
-    "tailwindcss": "^4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.10"

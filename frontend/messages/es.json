@@ -1,0 +1,14 @@
+{
+  "Common": {
+    "appName": "todolist"
+  },
+  "Lists": {
+    "title": "Tus listas",
+    "createPlaceholder": "Título de la nueva lista",
+    "createButton": "Crear",
+    "emptyState": "Aún no hay listas. Crea una arriba para empezar.",
+    "backToLists": "Volver a las listas",
+    "notFoundTitle": "Lista no encontrada",
+    "notFoundBody": "Esta lista no existe, o no tienes acceso a ella."
+  }
+}
