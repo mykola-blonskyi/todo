@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Task } from '../tasks/task.model';
 
 @ObjectType()
 export class List {
@@ -13,4 +14,7 @@ export class List {
 
   @Field()
   updatedAt: Date;
+
+  @Field(() => [Task])
+  tasks?: Task[];
 }

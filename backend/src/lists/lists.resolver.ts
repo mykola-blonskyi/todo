@@ -1,7 +1,16 @@
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  ID,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { List } from './list.model';
 import { ListsService } from './lists.service';
 import { UsersService } from '../users/users.service';
+import { TasksService } from '../tasks/tasks.service';
 import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
 
@@ -10,7 +19,13 @@ export class ListsResolver {
   constructor(
     private readonly listsService: ListsService,
     private readonly usersService: UsersService,
+    private readonly tasksService: TasksService,
   ) {}
+
+  @ResolveField()
+  tasks(@Parent() list: List) {
+    return this.tasksService.tasksForList(list.id);
+  }
 
   @Mutation(() => List)
   async createList(

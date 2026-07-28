@@ -20,7 +20,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "pretest:e2e": "docker compose -f docker-compose.test.yml up -d --wait",
-    "test:e2e": "DATABASE_URL=postgresql://todolist_test:todolist_test@localhost:5436/todolist_test jest --config ./test/jest-e2e.json",
+    "test:e2e": "DATABASE_URL=postgresql://todolist_test:todolist_test@localhost:5436/todolist_test jest --config ./test/jest-e2e.json --runInBand",
     "posttest:e2e": "docker compose -f docker-compose.test.yml down",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
