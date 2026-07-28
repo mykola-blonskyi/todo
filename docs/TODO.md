@@ -68,3 +68,5 @@ tickets.
       bypass (issue #10)
 - [x] Backend List create/myLists/list(id) + frontend Lists overview and detail page (issue #10)
 - [x] Backend renameList/deleteList + frontend rename/delete UI, owner-only (issue #11)
+- [x] Backend createTask/toggleTaskDone + frontend Task list/add/toggle UI, owner-only, cascade
+      verified e2e (issue #12)
