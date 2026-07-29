@@ -1,9 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { graphqlFetch } from '@/lib/graphql-client';
 import { Link } from '@/lib/i18n/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/shared/ui/components/button';
+import { Input } from '@/shared/ui/components/input';
+import { Card, CardContent } from '@/shared/ui/components/card';
 import { createListAction } from './actions';
 
 interface ListSummary {
