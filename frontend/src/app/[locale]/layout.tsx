@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeProvider } from '@/shared/ui/theme-provider';
 import { locales, type Locale } from '@/lib/i18n/config';
 import '../globals.css';
 

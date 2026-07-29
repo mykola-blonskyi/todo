@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/shared/ui/components/button';
+import { Checkbox } from '@/shared/ui/components/checkbox';
+import { Input } from '@/shared/ui/components/input';
 
 interface Task {
   id: string;
