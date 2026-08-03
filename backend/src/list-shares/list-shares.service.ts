@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ListsService } from '../lists/lists.service';
 import { UsersService } from '../users/users.service';
@@ -49,5 +53,43 @@ export class ListSharesService {
       update: { status: ListShareStatus.pending, respondedAt: null },
       create: { listId, userId: invitee.id, status: ListShareStatus.pending },
     });
+  }
+
+  async pendingInvites(userId: string) {
+    return this.prisma.listShare.findMany({
+      where: { userId, status: ListShareStatus.pending },
+    });
+  }
+
+  async acceptInvite(userId: string, shareId: string) {
+    await this.requirePendingInvite(userId, shareId);
+
+    return this.prisma.listShare.update({
+      where: { id: shareId },
+      data: { status: ListShareStatus.accepted, respondedAt: new Date() },
+    });
+  }
+
+  async declineInvite(userId: string, shareId: string) {
+    await this.requirePendingInvite(userId, shareId);
+
+    return this.prisma.listShare.update({
+      where: { id: shareId },
+      data: { status: ListShareStatus.declined, respondedAt: new Date() },
+    });
+  }
+
+  private async requirePendingInvite(userId: string, shareId: string) {
+    const listShare = await this.prisma.listShare.findUnique({
+      where: { id: shareId },
+    });
+
+    if (listShare?.userId !== userId) {
+      throw new NotFoundException('Invite not found');
+    }
+
+    if (listShare.status !== ListShareStatus.pending) {
+      throw new ConflictException('Invitation already accepted or declined');
+    }
   }
 }

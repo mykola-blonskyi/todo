@@ -54,4 +54,28 @@ export class ListSharesResolver {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listSharesService.invite(user.id, listId, candidate);
   }
+
+  @Query(() => [ListShare])
+  async pendingInvites(@CurrentUser() identity: Identity) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listSharesService.pendingInvites(user.id);
+  }
+
+  @Mutation(() => ListShare)
+  async acceptInvite(
+    @CurrentUser() identity: Identity,
+    @Args('shareId', { type: () => ID }) shareId: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listSharesService.acceptInvite(user.id, shareId);
+  }
+
+  @Mutation(() => ListShare)
+  async declineInvite(
+    @CurrentUser() identity: Identity,
+    @Args('shareId', { type: () => ID }) shareId: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listSharesService.declineInvite(user.id, shareId);
+  }
 }
