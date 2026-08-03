@@ -51,7 +51,7 @@ export class ListsService {
   // A List that isn't the caller's own might as well not exist from their
   // perspective - NotFoundException for both "doesn't exist" and "exists but
   // isn't yours" avoids leaking which lists exist to non-owners.
-  private async requireOwned(ownerId: string, id: string) {
+  async requireOwned(ownerId: string, id: string) {
     const list = await this.prisma.list.findUnique({ where: { id } });
     if (!list || list.ownerId !== ownerId) {
       throw new NotFoundException('List not found');

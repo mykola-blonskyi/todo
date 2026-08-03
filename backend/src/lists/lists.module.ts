@@ -7,5 +7,6 @@ import { TasksModule } from '../tasks/tasks.module';
 @Module({
   imports: [UsersModule, TasksModule],
   providers: [ListsService, ListsResolver],
+  exports: [ListsService],
 })
 export class ListsModule {}
