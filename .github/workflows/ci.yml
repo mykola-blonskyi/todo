@@ -72,6 +72,13 @@ jobs:
 
   backend-test-e2e:
     runs-on: ubuntu-latest
+    env:
+      # searchShareCandidates (backend/src/hub/hub-client.service.ts) builds a
+      # URL from these at request time even though the e2e specs always mock
+      # global.fetch - without them, new URL() throws before the mock is ever
+      # reached. Values are dummies, never dereferenced over the network.
+      HUB_URL: http://hub.test
+      PROJECT_SLUG: todolist-ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
