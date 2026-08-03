@@ -10,6 +10,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { ListsModule } from './lists/lists.module';
 import { IdentityGuard } from './identity/identity.guard';
+import { ListSharesModule } from './list-shares/list-shares.module';
+import { HubModule } from './hub/hub.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { IdentityGuard } from './identity/identity.guard';
     }),
     UsersModule,
     ListsModule,
+    ListSharesModule,
+    HubModule,
   ],
   controllers: [AppController],
   providers: [
