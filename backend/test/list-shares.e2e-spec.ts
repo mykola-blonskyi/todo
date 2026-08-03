@@ -3,6 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
+import { ListShareStatus } from '@prisma/client';
+import { ShareCandidateInput } from '../src/list-shares/share-candidate.input';
+import { testDb } from './setup/db';
 
 interface GraphQLResponse<T> {
   data: T | null;
@@ -149,6 +152,212 @@ describe('List Sharing (GraphQL)', () => {
 
       expect(body.data).toBeNull();
       expect(body.errors?.[0]).toBeDefined();
+    });
+  });
+
+  describe('inviting a collaborator (inviteToList)', () => {
+    it('Owner invites a new hub user', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaborator = {
+        hubUserId: 'collaborator-1',
+        email: 'collaborator@example.com',
+        name: 'A',
+        image: null,
+      } as ShareCandidateInput;
+
+      const body = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status }}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data!.inviteToList.status).toBe(ListShareStatus.pending);
+    });
+
+    it('denies inviteToList for a non-owner', async () => {
+      const { listId } = await getOwnerAndList();
+      const stranger = asUser('stranger-1', 'stranger@example.com');
+      const collaborator = {
+        hubUserId: 'collaborator-1',
+        email: 'collaborator@example.com',
+        name: 'A',
+        image: null,
+      } as ShareCandidateInput;
+
+      const body = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status }}`,
+        stranger,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('re-invite same candidate while pending', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaborator = {
+        hubUserId: 'collaborator-1',
+        email: 'collaborator@example.com',
+        name: 'A',
+        image: null,
+      } as ShareCandidateInput;
+
+      const invited = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status }}`,
+        owner,
+      );
+
+      expect(invited.errors).toBeUndefined();
+      expect(invited.data!.inviteToList.status).toBe(ListShareStatus.pending);
+
+      const body = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status }}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data!.inviteToList.status).toBe(ListShareStatus.pending);
+      expect(body.data!.inviteToList.id).toBe(invited.data!.inviteToList.id);
+    });
+
+    it('re-invite same candidate while declined', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaborator = {
+        hubUserId: 'collaborator-1',
+        email: 'collaborator@example.com',
+        name: 'A',
+        image: null,
+      } as ShareCandidateInput;
+
+      const invited = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status }}`,
+        owner,
+      );
+
+      expect(invited.errors).toBeUndefined();
+      expect(invited.data!.inviteToList.status).toBe(ListShareStatus.pending);
+
+      await testDb.listShare.update({
+        where: { id: invited.data?.inviteToList.id },
+        data: { status: ListShareStatus.declined, respondedAt: new Date() },
+      });
+
+      const body = await graphql<{
+        inviteToList: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string | null;
+        };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status respondedAt }}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data!.inviteToList.status).toBe(ListShareStatus.pending);
+      expect(body.data!.inviteToList.id).toBe(invited.data!.inviteToList.id);
+      expect(body.data!.inviteToList.respondedAt).toBeNull();
+
+      const listSharesCount = await testDb.listShare.count();
+
+      expect(listSharesCount).toBe(1);
+    });
+
+    it('re-invite same candidate while accepted', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaborator = {
+        hubUserId: 'collaborator-1',
+        email: 'collaborator@example.com',
+        name: 'A',
+        image: null,
+      } as ShareCandidateInput;
+
+      const invited = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status }}`,
+        owner,
+      );
+
+      expect(invited.errors).toBeUndefined();
+      expect(invited.data!.inviteToList.status).toBe(ListShareStatus.pending);
+
+      const acceptedShare = await testDb.listShare.update({
+        where: { id: invited.data?.inviteToList.id },
+        data: { status: ListShareStatus.accepted, respondedAt: new Date() },
+      });
+
+      const body = await graphql<{
+        inviteToList: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string | null;
+        };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator.hubUserId}",
+          email: "${collaborator.email}",
+          name: "${collaborator.name}",
+          image: null
+        } ) {id status respondedAt }}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data!.inviteToList.status).toBe(ListShareStatus.accepted);
+      expect(body.data!.inviteToList.id).toBe(invited.data!.inviteToList.id);
+      expect(body.data!.inviteToList.respondedAt).toBe(
+        acceptedShare.respondedAt?.toISOString(),
+      );
+
+      const listSharesCount = await testDb.listShare.count();
+
+      expect(listSharesCount).toBe(1);
     });
   });
 });

@@ -40,6 +40,10 @@ export class ListsService {
     return true;
   }
 
+  async listById(id: string) {
+    return this.prisma.list.findUnique({ where: { id } });
+  }
+
   private requireTitle(title: string): string {
     const trimmed = title.trim();
     if (!trimmed) {
