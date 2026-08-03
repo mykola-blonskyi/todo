@@ -4,10 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
+import { ListShareStatus } from '@prisma/client';
 
 @Injectable()
 export class ListsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
+  ) {}
 
   createList(ownerId: string, title: string) {
     return this.prisma.list.create({
@@ -15,15 +20,27 @@ export class ListsService {
     });
   }
 
-  myLists(ownerId: string) {
+  myLists(userId: string) {
     return this.prisma.list.findMany({
-      where: { ownerId },
+      where: {
+        OR: [
+          { ownerId: userId },
+          {
+            shares: {
+              some: {
+                userId,
+                status: ListShareStatus.accepted,
+              },
+            },
+          },
+        ],
+      },
       orderBy: { createdAt: 'asc' },
     });
   }
 
   async list(ownerId: string, id: string) {
-    return this.requireOwned(ownerId, id);
+    return this.requireAccess(ownerId, id);
   }
 
   async renameList(ownerId: string, id: string, title: string) {
@@ -60,6 +77,33 @@ export class ListsService {
     if (!list || list.ownerId !== ownerId) {
       throw new NotFoundException('List not found');
     }
+    return list;
+  }
+
+  private async requireAccess(userId: string, id: string) {
+    const list = await this.prisma.list.findUnique({ where: { id } });
+
+    if (!list) {
+      throw new NotFoundException('List not found');
+    }
+
+    if (list.ownerId === userId) {
+      return list;
+    }
+
+    const listShare = await this.prisma.listShare.findUnique({
+      where: {
+        listId_userId: {
+          userId,
+          listId: id,
+        },
+      },
+    });
+
+    if (listShare?.status !== ListShareStatus.accepted) {
+      throw new NotFoundException('List not found');
+    }
+
     return list;
   }
 }

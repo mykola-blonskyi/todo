@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ListShareStatus } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
@@ -40,8 +41,8 @@ export class TasksService {
     });
   }
 
-  async toggleTaskDone(ownerId: string, id: string) {
-    const task = await this.requireOwnedTask(ownerId, id);
+  async toggleTaskDone(userId: string, id: string) {
+    const task = await this.requireAccessToTask(userId, id);
     return this.prisma.task.update({
       where: { id },
       data: { done: !task.done },
@@ -119,6 +120,36 @@ export class TasksService {
     if (!task || task.list.ownerId !== ownerId) {
       throw new NotFoundException('Task not found');
     }
+    return task;
+  }
+
+  private async requireAccessToTask(userId: string, id: string) {
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+      include: { list: true },
+    });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    if (task.list.ownerId === userId) {
+      return task;
+    }
+
+    const listShare = await this.prisma.listShare.findUnique({
+      where: {
+        listId_userId: {
+          userId,
+          listId: task.listId,
+        },
+      },
+    });
+
+    if (listShare?.status !== ListShareStatus.accepted) {
+      throw new NotFoundException('Task not found');
+    }
+
     return task;
   }
 }
