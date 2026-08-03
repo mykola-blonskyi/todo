@@ -360,4 +360,368 @@ describe('List Sharing (GraphQL)', () => {
       expect(listSharesCount).toBe(1);
     });
   });
+
+  describe('responding to invites (pendingInvites / acceptInvite / declineInvite)', () => {
+    it("pendingInvites returns the calling user's own pending shares", async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+      const collaboratorB = asUser('collaborator-b', 'b@example.com');
+
+      await graphql(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      await graphql(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+        hubUserId: "${collaboratorB['x-user-id']}",
+        email: "${collaboratorB['x-user-email']}",
+        name: "B",
+        image: null
+      }) {id status}}`,
+        owner,
+      );
+
+      const acceptCollaborator = await graphql<{
+        pendingInvites: { id: string; status: ListShareStatus }[];
+      }>(
+        `
+          query {
+            pendingInvites {
+              id
+              status
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      expect(acceptCollaborator.errors).toBeUndefined();
+      expect(acceptCollaborator.data!.pendingInvites).toHaveLength(1);
+      expect(acceptCollaborator.data!.pendingInvites[0].status).toBe(
+        ListShareStatus.pending,
+      );
+    });
+
+    it('denies acceptInvite for the owner', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        acceptInvite: { id: string; status: ListShareStatus };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+            }
+          }
+        `,
+        owner,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('denies acceptInvite for an unrelated user', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+      const collaboratorB = asUser('collaborator-b', 'b@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        acceptInvite: { id: string; status: ListShareStatus };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+            }
+          }
+        `,
+        collaboratorB,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('denies declineInvite for the owner', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        declineInvite: { id: string; status: ListShareStatus };
+      }>(
+        `
+          mutation {
+            declineInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+            }
+          }
+        `,
+        owner,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('denies declineInvite for an unrelated user', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+      const collaboratorB = asUser('collaborator-b', 'b@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        declineInvite: { id: string; status: ListShareStatus };
+      }>(
+        `
+          mutation {
+            declineInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+            }
+          }
+        `,
+        collaboratorB,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('denies acceptInvite for an already-responded share', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      await testDb.listShare.update({
+        where: { id: listShare.data?.inviteToList.id },
+        data: {
+          status: ListShareStatus.accepted,
+          respondedAt: new Date(),
+        },
+      });
+
+      const body = await graphql<{
+        acceptInvite: { id: string; status: ListShareStatus };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('denies declineInvite for an already-responded share', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      await testDb.listShare.update({
+        where: { id: listShare.data?.inviteToList.id },
+        data: {
+          status: ListShareStatus.accepted,
+          respondedAt: new Date(),
+        },
+      });
+
+      const body = await graphql<{
+        declineInvite: { id: string; status: ListShareStatus };
+      }>(
+        `
+          mutation {
+            declineInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('accepts a pending invite and sets respondedAt', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        acceptInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+        };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      const respondedAtData = await testDb.listShare.findUnique({
+        where: { id: listShare.data?.inviteToList.id },
+        select: { respondedAt: true },
+      });
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.acceptInvite.status).toBe(ListShareStatus.accepted);
+      expect(body.data?.acceptInvite.respondedAt).toBe(
+        respondedAtData?.respondedAt?.toISOString(),
+      );
+    });
+
+    it('declines a pending invite and sets respondedAt', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        declineInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+        };
+      }>(
+        `
+          mutation {
+            declineInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      const respondedAtData = await testDb.listShare.findUnique({
+        where: { id: listShare.data?.inviteToList.id },
+        select: { respondedAt: true },
+      });
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.declineInvite.status).toBe(ListShareStatus.declined);
+      expect(body.data?.declineInvite.respondedAt).toBe(
+        respondedAtData?.respondedAt?.toISOString(),
+      );
+    });
+  });
 });
