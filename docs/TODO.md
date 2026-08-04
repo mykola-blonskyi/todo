@@ -27,9 +27,8 @@ tickets.
 - [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
 - [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
       GitHub Issues #20–#24
-- [ ] Dockerfiles for both apps; `docker-compose.yml`: frontend (public) + backend (internal-only)
-- [ ] Build+push+deploy CI jobs on merge to `main`, once Dockerfiles + Coolify registration exist
-      (ADR-010)
+- [ ] Build+push+deploy CI jobs on merge to `main`, once Coolify registration exists (ADR-010) —
+      Dockerfiles/docker-compose.yml are done (issue #55)
 
 ---
 
@@ -71,3 +70,5 @@ tickets.
 - [x] Backend sharing & collaboration: searchShareCandidates, inviteToList, pendingInvites/
       acceptInvite/declineInvite, collaborator permission boundary (requireAccess/
       requireAccessToTask), removeCollaborator/leaveList (issues #14–#18) — frontend still open
+- [x] Dockerfiles for backend/frontend + root `docker-compose.yml` for Coolify (issue #55) — no
+      Postgres service (shared VPS instance, ADR-002), backend stays internal-only (ADR-003)

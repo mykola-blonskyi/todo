@@ -103,11 +103,11 @@ Ticket breakdown: issues #20–#24
       `.github/workflows/ci.yml`
 - [ ] E2E job (Playwright, both apps) — waiting on Phase 3+ delivering real pages/flows to drive;
       no point wiring it against the default Nest/Next boilerplate
-- [ ] Dockerfiles for both apps
-- [ ] Build + push two GHCR images, two Coolify webhooks on merge to `main` — needs Dockerfiles
-      above, plus `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` secrets once todolist is registered
-      in Coolify
-- [ ] `docker-compose.yml`: frontend (public) + backend (internal-only)
+- [x] Dockerfiles for both apps, `docker-compose.yml`: frontend (public) + backend
+      (internal-only) — issue #55, env vars from Coolify's own per-resource panel, not a committed
+      `.env` (see `backend/.env.example`/`frontend/.env.example`)
+- [ ] Build + push two GHCR images, two Coolify webhooks on merge to `main` — needs
+      `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` secrets once todolist is registered in Coolify
 
 ---
 
