@@ -1,10 +1,12 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ThemeProvider } from '@/shared/ui/theme-provider';
+import { ServiceWorkerRegistration } from '@/shared/ui/service-worker-registration';
 import { locales, type Locale } from '@shared/lib/i18n/config';
+import { THEME_COLOR } from '@shared/lib/pwa';
 import '../globals.css';
 
 const geistSans = Geist({
@@ -20,6 +22,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'todolist',
   description: 'Advanced TODO list at todo.blonskyi.dev',
+};
+
+export const viewport: Viewport = {
+  themeColor: THEME_COLOR,
 };
 
 interface LocaleLayoutProps {
@@ -56,6 +62,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider messages={messages}>
             {children}
           </NextIntlClientProvider>
+          <ServiceWorkerRegistration />
         </ThemeProvider>
       </body>
     </html>
