@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { graphqlFetch } from '@/lib/graphql-client';
+import { graphqlFetch } from '@shared/lib/graphql-client';
 
 export async function createListAction(formData: FormData) {
   const title = formData.get('title');

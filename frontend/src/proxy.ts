@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import createMiddleware from 'next-intl/middleware';
-import { routing } from '@/lib/i18n/routing';
+import { routing } from '@shared/lib/i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -21,7 +21,10 @@ interface Identity {
 // non-production + an explicit opt-in env var so it can never accidentally
 // activate anywhere real.
 function devBypassIdentity(): Identity | null {
-  if (process.env.NODE_ENV === 'production' || process.env.DEV_BYPASS_AUTH !== 'true') {
+  if (
+    process.env.NODE_ENV === 'production' ||
+    process.env.DEV_BYPASS_AUTH !== 'true'
+  ) {
     return null;
   }
   const userId = process.env.DEV_USER_ID;
@@ -36,16 +39,23 @@ async function resolveIdentity(request: NextRequest): Promise<Identity | null> {
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/validate?project=${PROJECT_SLUG}`, {
-      headers: { cookie: request.headers.get('cookie') ?? '' },
-      cache: 'no-store',
-    });
+    const res = await fetch(
+      `${API_URL}/api/auth/validate?project=${PROJECT_SLUG}`,
+      {
+        headers: { cookie: request.headers.get('cookie') ?? '' },
+        cache: 'no-store',
+      },
+    );
 
     if (!res.ok) {
       return null;
     }
 
-    const body = (await res.json()) as { allowed: boolean; userId?: string; email?: string };
+    const body = (await res.json()) as {
+      allowed: boolean;
+      userId?: string;
+      email?: string;
+    };
     return body.allowed && body.userId && body.email
       ? { userId: body.userId, email: body.email }
       : null;
@@ -66,7 +76,8 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const locale = request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
+  const locale =
+    request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
   const loginUrl = new URL(`${API_URL}/${locale}/login`);
   loginUrl.searchParams.set('callbackUrl', request.url);
 

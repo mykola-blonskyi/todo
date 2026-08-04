@@ -11,7 +11,11 @@ interface DeleteListButtonProps {
 
 // The only piece of this page that needs client JS - a native confirm()
 // before an irreversible delete. Everything else stays a Server Component.
-export function DeleteListButton({ action, label, confirmMessage }: DeleteListButtonProps) {
+export function DeleteListButton({
+  action,
+  label,
+  confirmMessage,
+}: DeleteListButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   return (

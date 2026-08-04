@@ -36,7 +36,10 @@ export async function graphqlFetch<T>(
     cache: 'no-store',
   });
 
-  const json = (await res.json()) as { data: T | null; errors?: GraphQLErrorPayload[] };
+  const json = (await res.json()) as {
+    data: T | null;
+    errors?: GraphQLErrorPayload[];
+  };
 
   if (json.errors) {
     throw new GraphQLRequestError(json.errors);

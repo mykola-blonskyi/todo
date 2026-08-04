@@ -29,7 +29,11 @@ interface TaskRowProps {
   isLast: boolean;
   labels: TaskRowLabels;
   onToggleDone: (id: string) => Promise<void>;
-  onUpdate: (id: string, title: string, dueDate: string | null) => Promise<void>;
+  onUpdate: (
+    id: string,
+    title: string,
+    dueDate: string | null,
+  ) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onMove: (id: string, direction: 'up' | 'down') => Promise<void>;
 }
@@ -65,7 +69,12 @@ export function TaskRow({
             });
           }}
         >
-          <Input name="title" defaultValue={task.title} required className="flex-1" />
+          <Input
+            name="title"
+            defaultValue={task.title}
+            required
+            className="flex-1"
+          />
           <Input
             name="dueDate"
             type="date"
@@ -100,7 +109,11 @@ export function TaskRow({
           });
         }}
       />
-      <span className={task.done ? 'flex-1 text-muted-foreground line-through' : 'flex-1'}>
+      <span
+        className={
+          task.done ? 'flex-1 text-muted-foreground line-through' : 'flex-1'
+        }
+      >
         {task.title}
         {task.dueDate ? (
           <span className="ml-2 text-xs text-muted-foreground">
@@ -126,7 +139,12 @@ export function TaskRow({
       >
         ↓<span className="sr-only">{labels.moveDown}</span>
       </Button>
-      <Button type="button" variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsEditing(true)}
+      >
         {labels.editButton}
       </Button>
       <Button

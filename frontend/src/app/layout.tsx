@@ -2,6 +2,10 @@
 // solely because `app/page.tsx` (the unprefixed `/` fallback) needs some
 // layout above it. Rendering html/body here too would nest <html> inside
 // <body> (same fix as the hub's own ADR-020).
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return children;
 }

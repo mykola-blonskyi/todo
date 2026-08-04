@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { graphqlFetch, GraphQLRequestError } from '@/lib/graphql-client';
-import { Link } from '@/lib/i18n/navigation';
+import { graphqlFetch, GraphQLRequestError } from '@shared/lib/graphql-client';
+import { Link } from '@shared/lib/i18n/navigation';
 import { Button } from '@/shared/ui/components/button';
 import { Input } from '@/shared/ui/components/input';
 import {
@@ -70,25 +70,41 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-8">
-      <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        href="/"
+        className="text-sm text-muted-foreground hover:text-foreground"
+      >
         ← {t('backToLists')}
       </Link>
 
       <form action={renameWithId} className="flex gap-2">
-        <Input name="title" defaultValue={list.title} required className="text-xl font-semibold" />
+        <Input
+          name="title"
+          defaultValue={list.title}
+          required
+          className="text-xl font-semibold"
+        />
         <Button type="submit">{t('saveButton')}</Button>
       </form>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">{tTasks('title')}</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {tTasks('title')}
+        </h2>
 
         <form action={createTaskWithId} className="flex gap-2">
-          <Input name="title" placeholder={tTasks('createPlaceholder')} required />
+          <Input
+            name="title"
+            placeholder={tTasks('createPlaceholder')}
+            required
+          />
           <Button type="submit">{tTasks('addButton')}</Button>
         </form>
 
         {list.tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{tTasks('emptyState')}</p>
+          <p className="text-sm text-muted-foreground">
+            {tTasks('emptyState')}
+          </p>
         ) : (
           <ul className="flex flex-col gap-2">
             {list.tasks.map((task, index) => (

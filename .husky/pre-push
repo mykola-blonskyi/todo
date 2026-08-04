@@ -1,0 +1,3 @@
+pnpm --filter backend exec prisma generate
+pnpm --filter backend exec tsc --noEmit
+pnpm --filter frontend exec tsc --noEmit

@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
-import { graphqlFetch } from '@/lib/graphql-client';
-import { Link } from '@/lib/i18n/navigation';
+import { graphqlFetch } from '@shared/lib/graphql-client';
+import { Link } from '@shared/lib/i18n/navigation';
 import { Button } from '@/shared/ui/components/button';
 import { Input } from '@/shared/ui/components/input';
 import { Card, CardContent } from '@/shared/ui/components/card';

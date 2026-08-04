@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ThemeProvider } from '@/shared/ui/theme-provider';
-import { locales, type Locale } from '@/lib/i18n/config';
+import { locales, type Locale } from '@shared/lib/i18n/config';
 import '../globals.css';
 
 const geistSans = Geist({
@@ -27,7 +27,10 @@ interface LocaleLayoutProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: LocaleLayoutProps) {
   const { locale } = await params;
 
   if (!locales.includes(locale as Locale)) {
@@ -42,7 +45,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -50,7 +53,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           themes={['light', 'dark', 'theme-rose']}
           disableTransitionOnChange
         >
-          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>
