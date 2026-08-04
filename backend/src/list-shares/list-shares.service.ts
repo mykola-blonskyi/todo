@@ -79,6 +79,59 @@ export class ListSharesService {
     });
   }
 
+  async removeCollaborator(
+    ownerId: string,
+    listId: string,
+    targetUserId: string,
+  ) {
+    await this.listsService.requireOwned(ownerId, listId);
+
+    const listShare = await this.prisma.listShare.findUnique({
+      where: {
+        listId_userId: {
+          listId,
+          userId: targetUserId,
+        },
+      },
+    });
+
+    if (!listShare) {
+      throw new NotFoundException('Collaborator not found');
+    }
+
+    await this.prisma.listShare.delete({
+      where: { listId_userId: { userId: targetUserId, listId } },
+    });
+
+    return true;
+  }
+
+  async leaveList(userId: string, listId: string) {
+    const listShare = await this.prisma.listShare.findUnique({
+      where: {
+        listId_userId: {
+          listId,
+          userId,
+        },
+      },
+    });
+
+    if (!listShare) {
+      throw new NotFoundException('Not a collaborator on this list');
+    }
+
+    await this.prisma.listShare.delete({
+      where: {
+        listId_userId: {
+          userId,
+          listId,
+        },
+      },
+    });
+
+    return true;
+  }
+
   private async requirePendingInvite(userId: string, shareId: string) {
     const listShare = await this.prisma.listShare.findUnique({
       where: { id: shareId },
