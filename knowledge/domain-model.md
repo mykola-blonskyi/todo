@@ -145,6 +145,48 @@ Constraints: unique on (`listId`, `userId`) — a User has at most one ListShare
 
 ---
 
+### Category
+
+Responsibilities:
+- A User's own named grouping for Lists. Always private and per-User — never shared, never visible
+  to anyone else, even on a List multiple Users have access to.
+
+Fields:
+- `id`, `name`, `createdAt`
+- `ownerId` (→ User)
+
+Relationships:
+- N:1 with **User** (owner)
+- 1:N with **ListCategoryAssignment**
+
+Constraints: unique on (`ownerId`, `name`) — a User can't have two categories with the same name.
+
+---
+
+### ListCategoryAssignment
+
+Responsibilities:
+- Connects one User's Category to one List they have access to. Existence of this row is what
+  makes a List categorized *for that User specifically* — a shared List can be independently
+  categorized (or left uncategorized) by its owner and each Collaborator, with no visibility into
+  each other's choice.
+
+Fields:
+- `id`, `assignedAt`
+- `userId` (→ User), `listId` (→ List), `categoryId` (→ Category)
+
+Relationships:
+- N:1 with **User**
+- N:1 with **List**
+- N:1 with **Category**
+
+Constraints: unique on (`userId`, `listId`) — at most one Category per User per List (a "folder"
+model, not multi-tag). `myLists(categoryId: ID, uncategorizedOnly: Boolean)` filters on this: the
+two arguments are mutually exclusive filter modes, not overlaid onto one nullable argument — a
+List with no ListCategoryAssignment row for the caller is what `uncategorizedOnly: true` matches.
+
+---
+
 ### Comment
 
 Responsibilities:

@@ -168,3 +168,44 @@ no configuration lost.
 Changing a ListTemplate's checklist, recurrence rule, timezone, or TemplateCollaborator set never
 retroactively modifies Lists it already spawned — those Lists are independent entities from the
 moment they're created (Rule 13). Only the next Occurrence onward reflects the edit.
+
+---
+
+## Rule 20 — Only a Category's owner manages it
+
+Only a Category's owner may create, rename, or delete it — the same sole-authority pattern as List
+ownership (Rule 2) and ListTemplate ownership (Rule 12). Categories have no collaborator role.
+
+---
+
+## Rule 21 — Assigning a Category requires access to the List, not ownership of it
+
+Any User with access to a List (owner or accepted Collaborator, same check as the `list` query)
+may assign or unassign one of their own Categories on it. Assigning a Category never requires
+owning the List — only having a Category of one's own and access to the List being categorized.
+
+---
+
+## Rule 22 — Category assignment is per-User and fully independent
+
+A ListCategoryAssignment is scoped to one User. On a shared List, the owner and each Collaborator
+categorize it entirely independently — with no visibility into, or influence over, each other's
+choice. A List can be "Work" for its owner and simultaneously uncategorized for a Collaborator.
+
+---
+
+## Rule 23 — Deleting a Category only removes its assignments, never the Lists
+
+Deleting a Category cascades to delete its ListCategoryAssignment rows only. The Lists that were
+assigned to it are completely untouched — they simply become uncategorized for that User. Distinct
+from Rule 10 (deleting a List cascades to *its own* children); here, deleting the *grouping*
+leaves the grouped things alone.
+
+---
+
+## Rule 24 — A ListTemplate's default category only ever applies to the template's own owner
+
+A ListTemplate's optional default Category (see Rule 14 for the analogous TemplateCollaborator
+auto-share) is applied as the *owner's own* ListCategoryAssignment on every List the template
+spawns — never for TemplateCollaborators, consistent with categorization being per-User (Rule 22).
+A Collaborator on a spawned List always starts uncategorized for themselves.

@@ -67,6 +67,23 @@ may move it from `pending` to `accepted`/`declined`.
 
 ---
 
+### Category
+
+A User's own named grouping for Lists (e.g. "Work", "Personal") — always private and per-User, not
+shared or visible to anyone else, even on a List multiple Users have access to. A "folder" model
+(a List has at most one Category per User), not a multi-tag system.
+
+---
+
+### ListCategoryAssignment
+
+The record connecting one User's Category to one List they have access to. Independent per User —
+the owner and each Collaborator on a shared List categorize it separately, with no visibility into
+each other's choice. A List with no ListCategoryAssignment for a given User is "uncategorized" for
+that User specifically — not a repo-wide state.
+
+---
+
 ### ListTemplate
 
 A reusable, editable recipe, owned by one User, that spawns a brand-new List every time its
