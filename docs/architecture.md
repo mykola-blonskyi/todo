@@ -50,11 +50,11 @@ Responsibilities:
 - GraphQL API (code-first) for all List/Task/Comment/ListShare/CalendarSync operations
 - Google Calendar API calls (push events, delete events) using each user's stored
   GoogleCalendarConnection
-- Owns the `todolist` Postgres database via Prisma
+- Owns the `todo` Postgres database via Prisma
 
 Stack: NestJS, `@nestjs/graphql` (code-first driver), Prisma ORM, PostgreSQL
 
-Dependencies: PostgreSQL (`todolist` database, dedicated `todo_app` role — see [ADR-002](decisions.md)),
+Dependencies: PostgreSQL (`todo` database, dedicated `todo_app` role — see [ADR-002](decisions.md)),
 Google Calendar API
 
 **Not publicly reachable.** No subdomain, no public DNS entry, no CORS config. Only the frontend

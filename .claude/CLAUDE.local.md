@@ -49,13 +49,17 @@ hub's Google SSO — this repo never implements its own login. Full design in
 
 ## Deployment Notes
 
-- Deploys via Coolify on the same VPS as the hub; two GHCR images
-  (`todolist-frontend`, `todolist-backend`), two separate Coolify webhooks
+- Deploys via Coolify on the same VPS as the hub, as a single Docker Compose resource
+  (`docker-compose.yml`: `backend` + `frontend` services, Coolify builds both itself — no GHCR)
 - Postgres is external/shared — not part of this repo's `docker-compose.yml`; requires a
-  provisioned `todo_app` role / `todolist` database on the existing instance before first deploy
+  provisioned `todo_app` role / `todo` database on the existing instance before first deploy, and
+  the resource's "Connect to Predefined Network" toggle enabled to reach it at host `postgres`
+- Backend gets no domain/port mapping — stays internal-only (ADR-003); only the frontend gets a
+  public domain
 - CI runs lint/format/typecheck/test for both apps, plus backend integration tests (real Postgres
-  via Docker), unconditionally on every push — no path filtering yet (ADR-010). No build/push/deploy
-  jobs exist yet — that's blocked on Dockerfiles + Coolify registration.
+  via Docker), unconditionally on every push (ADR-010), then a `deploy` job pings a single Coolify
+  deploy webhook after all of those pass on `main` — a no-op until `COOLIFY_WEBHOOK_URL`/
+  `COOLIFY_WEBHOOK_TOKEN` repo secrets exist (issue #55)
 
 ---
 
@@ -65,8 +69,9 @@ hub's Google SSO — this repo never implements its own login. Full design in
   (needs a second real Google account to dogfood, see plans/backlog.md)
 - No email/push/real-time notifications — share invites and comments are visible only the next time
   someone opens the relevant page (business-rules.md Rule 7)
-- No Dockerfiles yet, no Coolify registration — deploy pipeline (plans/current.md Phase 7) is CI
-  checks only so far, nothing builds/pushes/deploys yet
+- Coolify registration itself (the actual resource, env vars, webhook secrets) isn't done yet —
+  Dockerfiles/docker-compose.yml/CI wiring are all in place (issue #55), only the manual
+  registration step remains
 
 ## Issue tracking
 

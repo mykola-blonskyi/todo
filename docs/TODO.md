@@ -20,7 +20,7 @@ tickets.
 ## Planned
 
 - [ ] Hub repo: register `todolist` project slug in the `projects` table
-- [ ] Provision `todo_app` Postgres role + `todolist` database on the shared VPS instance for prod
+- [ ] Provision `todo_app` Postgres role + `todo` database on the shared VPS instance for prod
       (ADR-002) — local dev/test already have their own docker-compose Postgres
 - [ ] Sharing flow frontend: search UI, invite button, pending-invite surface + accept/decline,
       collaborators list with remove/leave actions — see GitHub Issues #14–#18 (backend done)

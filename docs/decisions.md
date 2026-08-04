@@ -32,7 +32,7 @@ the hub's structure. `API_URL` points at `https://blonskyi.dev`.
 
 ---
 
-## ADR-002: Dedicated `todo_app` role and `todolist` database on the shared Postgres instance
+## ADR-002: Dedicated `todo_app` role and `todo` database on the shared Postgres instance
 
 Date: 2026-07-28
 
@@ -44,7 +44,7 @@ instance: a dedicated, least-privilege role and database per service, rather tha
 existing role or a shared database.
 
 ### Decision
-Todolist gets its own `todo_app` role and `todolist` database on that same instance, reachable at
+Todolist gets its own `todo_app` role and `todo` database on that same instance, reachable at
 Docker DNS alias `postgres` on the `coolify` network — identical pattern to the hub's.
 
 ### Alternatives Considered

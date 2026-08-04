@@ -21,7 +21,7 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 - [x] Frontend: prettier + Vitest/RTL wired in, matching hub conventions (ADR-008) — no real
       component tests yet (`passWithNoTests`), first ones land with Phase 3
 - [x] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
-- [ ] Provision `todo_app` role / `todolist` database on the shared Postgres instance (ADR-002) —
+- [ ] Provision `todo_app` role / `todo` database on the shared Postgres instance (ADR-002) —
       still needed for prod; local dev/test use their own docker-compose Postgres instances
 - [x] Prisma schema + first migration for the domain model (issue #8) — Prisma 6, not 7, see ADR-011
 
