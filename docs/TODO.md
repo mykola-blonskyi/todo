@@ -19,16 +19,15 @@ tickets.
 
 ## Planned
 
-- [ ] Hub repo: register `todolist` project slug in the `projects` table
-- [ ] Provision `todo_app` Postgres role + `todo` database on the shared VPS instance for prod
-      (ADR-002) — local dev/test already have their own docker-compose Postgres
 - [ ] Sharing flow frontend: search UI, invite button, pending-invite surface + accept/decline,
       collaborators list with remove/leave actions — see GitHub Issues #14–#18 (backend done)
 - [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
 - [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
       GitHub Issues #20–#24
-- [ ] Register `todolist` in Coolify + add `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo
-      secrets — the `deploy` CI job (issue #55) is wired up but a no-op until these exist
+- [ ] Coolify resource created (Docker Compose, domains split correctly between frontend/backend) —
+      still need to confirm env vars, "Connect to Predefined Network", and add
+      `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets before the `deploy` CI job
+      (issue #55) does anything
 
 ---
 
@@ -74,3 +73,6 @@ tickets.
       Postgres service (shared VPS instance, ADR-002), backend stays internal-only (ADR-003)
 - [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color
       (issues #38/#48) — manual install verification on real devices still outstanding
+- [x] Hub repo: registered `todo` project slug in the `projects` table
+- [x] Provisioned `todo_app` Postgres role + `todo` database on the shared VPS instance for prod
+      (ADR-002)

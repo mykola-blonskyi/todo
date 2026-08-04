@@ -86,7 +86,7 @@ External systems:
 ```
 User → todo.blonskyi.dev → frontend middleware
 → read JWT from .blonskyi.dev cookie (or none → redirect to hub login)
-→ GET {API_URL}/api/auth/validate?project=todolist
+→ GET {API_URL}/api/auth/validate?project=todo
 → allowed:false → redirect to hub login
 → allowed:true → upsert local shadow User row from claims → serve page
 ```
@@ -94,7 +94,7 @@ User → todo.blonskyi.dev → frontend middleware
 ### Share flow
 ```
 Owner searches "share with…" → frontend calls backend GraphQL
-→ backend calls hub GET /api/auth/project-members?project=todolist&q=<term>
+→ backend calls hub GET /api/auth/project-members?project=todo&q=<term>
 → owner picks a result → backend creates ListShare(status: pending)
 → invitee's next login/visit → sees pending ListShare → accepts/declines
 → accepted → invitee is now a Collaborator (Rule 3, Rule 4 in business-rules.md)
@@ -114,42 +114,20 @@ User clicks "Sync to Google Calendar" on a List (with a valid GoogleCalendarConn
 ## Deployment
 
 - **VPS**: same server as the hub, Docker + Coolify
-- **Network**: `coolify` external network (frontend + backend both join it; only frontend gets a
-  Traefik/domain label)
-- **Database**: same shared Postgres instance as the hub, dedicated `todo_app` role / `todolist`
+- **Build**: Coolify builds both images itself from the root `docker-compose.yml` (Docker Compose
+  build pack) — no GHCR, no separately-pushed images
+- **Network**: no custom `networks:` block in `docker-compose.yml` — Coolify manages its own
+  per-stack network, with "Connect to Predefined Network" enabled on this resource so the backend
+  can reach the shared Postgres instance at host `postgres`
+- **Domains**: only the `frontend` service gets a public domain (`todo.blonskyi.dev`); `backend`
+  gets none, staying internal-only (ADR-003)
+- **Database**: same shared Postgres instance as the hub, dedicated `todo_app` role / `todo`
   database — not part of this repo's `docker-compose.yml` (external, already running)
-- **Registry**: GHCR — `ghcr.io/mykola-blonskyi/todolist-frontend`,
-  `ghcr.io/mykola-blonskyi/todolist-backend`
-- **Deploy trigger**: two Coolify webhooks, one per service, called by GitHub Actions after a
-  successful build on `main`
+- **Deploy trigger**: a single Coolify deploy webhook, called by the `deploy` job in
+  `.github/workflows/ci.yml` only after every lint/format/typecheck/test job passes on `main`
 
-### Docker Compose (both services)
-```yaml
-services:
-  frontend:
-    image: ghcr.io/mykola-blonskyi/todolist-frontend:latest
-    networks: [coolify]
-    environment:
-      - API_URL=https://blonskyi.dev
-      - AUTH_SECRET=${AUTH_SECRET}
-      - COOKIE_DOMAIN=.blonskyi.dev
-      - PROJECT_SLUG=todolist
-      - BACKEND_URL=http://backend:4000/graphql
-    # Traefik/domain labels for todo.blonskyi.dev configured in Coolify
-
-  backend:
-    image: ghcr.io/mykola-blonskyi/todolist-backend:latest
-    networks: [coolify]
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-    # no public labels — internal only
-
-networks:
-  coolify:
-    external: true
-```
+See `docker-compose.yml`, `backend/Dockerfile`, and `frontend/Dockerfile` at the repo root for the
+actual configuration — this section intentionally doesn't duplicate it.
 
 ---
 

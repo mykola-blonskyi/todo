@@ -256,7 +256,7 @@ deferred, ADR-001) auth-extraction idea.
 
 ### Decision
 Add one small, narrowly-scoped read endpoint to the hub: `GET /api/auth/project-members?project=
-todolist&q=<term>`, returning `{ userId, email, name, image }[]` matches (case-insensitive, capped
+todo&q=<term>`, returning `{ userId, email, name, image }[]` matches (case-insensitive, capped
 result count) among users with `project_access` for the given project slug.
 
 ### Alternatives Considered

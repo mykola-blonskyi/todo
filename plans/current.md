@@ -4,7 +4,7 @@
 
 Ship a working v1 of the todolist app at `todo.blonskyi.dev`: hub-authenticated login, List/Task
 CRUD, sharing with accept/decline, comments, optional manual one-way Google Calendar sync, themed
-and localized to match the hub, deployed via the same Coolify/GHCR pipeline as the hub. Full design
+and localized to match the hub, deployed via Coolify on the same VPS as the hub. Full design
 rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 [knowledge/business-rules.md](../knowledge/business-rules.md).
 
@@ -21,15 +21,15 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 - [x] Frontend: prettier + Vitest/RTL wired in, matching hub conventions (ADR-008) — no real
       component tests yet (`passWithNoTests`), first ones land with Phase 3
 - [x] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
-- [ ] Provision `todo_app` role / `todo` database on the shared Postgres instance (ADR-002) —
-      still needed for prod; local dev/test use their own docker-compose Postgres instances
+- [x] Provision `todo_app` role / `todo` database on the shared Postgres instance for prod (ADR-002)
+      — local dev/test use their own docker-compose Postgres instances
 - [x] Prisma schema + first migration for the domain model (issue #8) — Prisma 6, not 7, see ADR-011
 
 ---
 
 ## Phase 2 — Hub prerequisites (small changes to the `my-projects` repo)
 
-- [ ] Register `todolist` slug in the hub's `projects` table
+- [x] Register `todo` slug in the hub's `projects` table
 - [x] Add `/api/auth/project-members` search endpoint (ADR-009) — done in `my-projects`
       (`src/app/api/auth/project-members/route.ts`, hub's own ADR-022), tests passing
 - [x] Add `todo.blonskyi.dev` Calendar-callback redirect URI to the existing Google OAuth Client
@@ -108,8 +108,8 @@ Ticket breakdown: issues #20–#24
       `.env` (see `backend/.env.example`/`frontend/.env.example`)
 - [x] `deploy` CI job triggers a single Coolify deploy webhook after every check job passes on a
       push to `main` — Coolify builds both images itself from `docker-compose.yml`, no GHCR. Not
-      yet live: needs `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets once todolist is
-      registered in Coolify (currently a no-op if unset)
+      yet live: Coolify resource is created, still need to confirm env vars/network toggle and add
+      `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets (currently a no-op if unset)
 
 ---
 

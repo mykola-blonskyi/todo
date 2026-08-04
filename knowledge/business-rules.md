@@ -5,7 +5,7 @@ terminology.
 
 ## Rule 1 — Hub project access gates everything, before any List-level rule applies
 
-A User must have a hub `project_access` grant for the `todolist` project slug (or be the hub owner)
+A User must have a hub `project_access` grant for the `todo` project slug (or be the hub owner)
 to reach todo.blonskyi.dev at all — enforced by the subdomain middleware calling the hub's
 `/api/auth/validate` endpoint. No rule below is ever reached by a User who fails this check.
 
@@ -28,7 +28,7 @@ List to a third party.
 
 ## Rule 4 — Share targets must already have hub project access
 
-A List may only be shared with a User who already has `project_access` for the `todolist` project
+A List may only be shared with a User who already has `project_access` for the `todo` project
 slug on the hub (checked via the hub's `project-members` search endpoint at invite time, see ADR-004
 in [docs/decisions.md](../docs/decisions.md)). Sharing with an arbitrary email address is not
 supported — someone who can't reach todo.blonskyi.dev at all can't act on a shared List anyway.

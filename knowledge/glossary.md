@@ -12,7 +12,7 @@ a *consumer* of the hub's auth, not a re-implementation of it.
 
 ### Project (hub term)
 
-A registered pet project in the hub's `projects` table (e.g. slug `todolist`), listed on the hub's
+A registered pet project in the hub's `projects` table (e.g. slug `todo`), listed on the hub's
 project directory and gated by `project_access`. Not to be confused with a **List** (todolist's own
 domain concept, see below) — "project" always means the hub-level registration, "list" always means
 a todolist entity.
