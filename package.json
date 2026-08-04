@@ -1,6 +1,7 @@
 {
   "name": "todo",
   "private": true,
+  "packageManager": "pnpm@11.12.0",
   "scripts": {
     "prepare": "husky"
   },

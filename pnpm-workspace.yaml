@@ -2,6 +2,10 @@ packages:
   - backend
   - frontend
 
+# Lets `pnpm deploy` (used by backend/Dockerfile) build a self-contained
+# node_modules for a single workspace package.
+injectWorkspacePackages: true
+
 allowBuilds:
   '@apollo/protobufjs': true
   '@parcel/watcher': true
