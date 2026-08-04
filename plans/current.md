@@ -107,9 +107,9 @@ Ticket breakdown: issues #20–#24
       (internal-only) — issue #55, env vars from Coolify's own per-resource panel, not a committed
       `.env` (see `backend/.env.example`/`frontend/.env.example`)
 - [x] `deploy` CI job triggers a single Coolify deploy webhook after every check job passes on a
-      push to `main` — Coolify builds both images itself from `docker-compose.yml`, no GHCR. Not
-      yet live: Coolify resource is created, still need to confirm env vars/network toggle and add
-      `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets (currently a no-op if unset)
+      push to `main` — Coolify builds both images itself from `docker-compose.yml`, no GHCR.
+      `todo.blonskyi.dev` is live and confirmed working (hub auth, cookie verification, project
+      validation, PWA install all verified end to end)
 
 ---
 
@@ -118,8 +118,8 @@ Ticket breakdown: issues #20–#24
 Specs/tickets from the templates/categories/PWA grilling session (issues #36–#48) — not yet
 sequenced against Phases 5–6, tracked here as it lands.
 
-- [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color
-      (issues #38/#48) — manual install verification on real devices still outstanding
+- [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color,
+      manually verified installing on mobile (issues #38/#48)
 - [ ] Recurring ListTemplates: schema, CRUD, occurrence-spawning engine, cron wiring, frontend
       (issues #36/#39–#43)
 - [ ] List categories + filtering: schema, CRUD, per-user filter, frontend, ListTemplate

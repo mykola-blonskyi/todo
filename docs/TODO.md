@@ -24,10 +24,6 @@ tickets.
 - [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
 - [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
       GitHub Issues #20–#24
-- [ ] Coolify resource created (Docker Compose, domains split correctly between frontend/backend) —
-      still need to confirm env vars, "Connect to Predefined Network", and add
-      `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets before the `deploy` CI job
-      (issue #55) does anything
 
 ---
 
@@ -71,8 +67,11 @@ tickets.
       requireAccessToTask), removeCollaborator/leaveList (issues #14–#18) — frontend still open
 - [x] Dockerfiles for backend/frontend + root `docker-compose.yml` for Coolify (issue #55) — no
       Postgres service (shared VPS instance, ADR-002), backend stays internal-only (ADR-003)
-- [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color
-      (issues #38/#48) — manual install verification on real devices still outstanding
+- [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color,
+      manually verified installing on mobile (issues #38/#48)
 - [x] Hub repo: registered `todo` project slug in the `projects` table
 - [x] Provisioned `todo_app` Postgres role + `todo` database on the shared VPS instance for prod
       (ADR-002)
+- [x] Registered `todo` in Coolify (Docker Compose resource, env vars, "Connect to Predefined
+      Network", `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets) — `todo.blonskyi.dev` is
+      live, gated deploy confirmed working end to end (issue #55)
