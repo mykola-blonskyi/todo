@@ -27,8 +27,8 @@ tickets.
 - [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
 - [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
       GitHub Issues #20–#24
-- [ ] Build+push+deploy CI jobs on merge to `main`, once Coolify registration exists (ADR-010) —
-      Dockerfiles/docker-compose.yml are done (issue #55)
+- [ ] Register `todolist` in Coolify + add `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo
+      secrets — the `deploy` CI job (issue #55) is wired up but a no-op until these exist
 
 ---
 

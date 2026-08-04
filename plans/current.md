@@ -106,8 +106,10 @@ Ticket breakdown: issues #20–#24
 - [x] Dockerfiles for both apps, `docker-compose.yml`: frontend (public) + backend
       (internal-only) — issue #55, env vars from Coolify's own per-resource panel, not a committed
       `.env` (see `backend/.env.example`/`frontend/.env.example`)
-- [ ] Build + push two GHCR images, two Coolify webhooks on merge to `main` — needs
-      `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` secrets once todolist is registered in Coolify
+- [x] `deploy` CI job triggers a single Coolify deploy webhook after every check job passes on a
+      push to `main` — Coolify builds both images itself from `docker-compose.yml`, no GHCR. Not
+      yet live: needs `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets once todolist is
+      registered in Coolify (currently a no-op if unset)
 
 ---
 

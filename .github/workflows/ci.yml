@@ -155,3 +155,29 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter frontend test
+
+  deploy:
+    # Only after every check above is green, and only for real pushes to
+    # main (never PRs) - Coolify itself builds the images from
+    # docker-compose.yml (issue #55), this job just tells it to.
+    needs:
+      - backend-lint
+      - backend-format
+      - backend-typecheck
+      - backend-test
+      - backend-test-e2e
+      - frontend-lint
+      - frontend-format
+      - frontend-typecheck
+      - frontend-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deployment
+        run: |
+          if [ -z "${{ secrets.COOLIFY_WEBHOOK_URL }}" ]; then
+            echo "COOLIFY_WEBHOOK_URL not set yet (todolist isn't registered in Coolify - see docs/TODO.md) - skipping."
+            exit 0
+          fi
+          curl --fail --request GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+            --header "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}"
