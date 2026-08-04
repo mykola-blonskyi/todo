@@ -61,12 +61,19 @@ Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issu
 
 ## Phase 4 — Sharing & collaboration
 
-Ticket breakdown: issues #14–#18
+Ticket breakdown: [issues #14–#18](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+14..18)
+— backend done; frontend still open.
 
-- [ ] Share search UI (calls hub's project-members endpoint)
-- [ ] ListShare invite/accept/decline flow
-- [ ] Collaborator permissions: toggle-done only, no task edit (Rule 2)
-- [ ] In-app "pending invite" surface on next login (Rule 7)
+- [x] Backend: searchShareCandidates, owner-only (issue #14)
+- [x] Backend: inviteToList, idempotent re-invite semantics (issue #15)
+- [x] Backend: pendingInvites/acceptInvite/declineInvite, invitee-only (issue #16)
+- [x] Backend: collaborator permission boundary — requireAccess/requireAccessToTask, toggle-done
+      only, no task edit (Rule 2) (issue #17)
+- [x] Backend: removeCollaborator/leaveList, immediate access revocation (issue #18)
+- [ ] Frontend: Share search UI + invite button (calls hub's project-members endpoint)
+- [ ] Frontend: In-app "pending invite" surface on next login, accept/decline (Rule 7)
+- [ ] Frontend: Collaborators list on the List detail page, owner "Remove" + collaborator "Leave"
+      actions
 
 ---
 

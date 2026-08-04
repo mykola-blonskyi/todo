@@ -22,8 +22,8 @@ tickets.
 - [ ] Hub repo: register `todolist` project slug in the `projects` table
 - [ ] Provision `todo_app` Postgres role + `todolist` database on the shared VPS instance for prod
       (ADR-002) — local dev/test already have their own docker-compose Postgres
-- [ ] Sharing flow: search (via hub project-members), invite, accept/decline (Rules 3–4) — see
-      GitHub Issues #14–#18
+- [ ] Sharing flow frontend: search UI, invite button, pending-invite surface + accept/decline,
+      collaborators list with remove/leave actions — see GitHub Issues #14–#18 (backend done)
 - [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
 - [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
       GitHub Issues #20–#24
@@ -68,3 +68,6 @@ tickets.
       verified e2e (issue #12)
 - [x] Backend updateTask/deleteTask/reorderTasks + frontend Task edit/delete/reorder UI,
       owner-only (issue #13) — Phase 3 complete
+- [x] Backend sharing & collaboration: searchShareCandidates, inviteToList, pendingInvites/
+      acceptInvite/declineInvite, collaborator permission boundary (requireAccess/
+      requireAccessToTask), removeCollaborator/leaveList (issues #14–#18) — frontend still open
