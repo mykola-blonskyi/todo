@@ -6,6 +6,7 @@ import { routing } from '@shared/lib/i18n/routing';
 const intlMiddleware = createMiddleware(routing);
 
 const API_URL = process.env.API_URL!;
+const APP_URL = process.env.APP_URL!;
 const AUTH_SECRET = process.env.AUTH_SECRET!;
 const PROJECT_SLUG = process.env.PROJECT_SLUG ?? 'todolist';
 
@@ -79,16 +80,23 @@ export default async function proxy(request: NextRequest) {
   const locale =
     request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
   const loginUrl = new URL(`${API_URL}/${locale}/login`);
-  loginUrl.searchParams.set('callbackUrl', request.url);
+  // Don't use request.url here - behind Coolify/Traefik it resolves to the
+  // container's internal bind address (e.g. 0.0.0.0:3000), not the public
+  // origin (same gotcha the hub's own post-login/route.ts documents). Combine
+  // the actual path/query with our own known-public origin instead.
+  const currentUrl = new URL(
+    request.nextUrl.pathname + request.nextUrl.search,
+    APP_URL,
+  );
+  loginUrl.searchParams.set('callbackUrl', currentUrl.toString());
 
   if (!devBypassIdentity()) {
     const token = await getToken({
       req: request,
       secret: AUTH_SECRET,
-      cookieName:
-        process.env.NODE_ENV === 'production'
-          ? '__Secure-authjs.session-token'
-          : 'authjs.session-token',
+      // The hub's own auth.ts pins this cookie name unconditionally (no
+      // __Secure- prefix, even in production) - must match exactly here.
+      cookieName: 'authjs.session-token',
       secureCookie: process.env.NODE_ENV === 'production',
     });
 
