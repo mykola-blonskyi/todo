@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { defaultLocale } from '@/lib/i18n/config';
+import { defaultLocale } from '@shared/lib/i18n/config';
 
 // Unreachable in normal operation - middleware redirects every unprefixed
 // request into a locale first. Exists only because Next.js requires some

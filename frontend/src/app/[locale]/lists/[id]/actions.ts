@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale } from 'next-intl/server';
-import { redirect } from '@/lib/i18n/navigation';
-import { graphqlFetch } from '@/lib/graphql-client';
+import { redirect } from '@shared/lib/i18n/navigation';
+import { graphqlFetch } from '@shared/lib/graphql-client';
 
 export async function renameListAction(id: string, formData: FormData) {
   const title = formData.get('title');
@@ -22,7 +22,9 @@ export async function renameListAction(id: string, formData: FormData) {
 }
 
 export async function deleteListAction(id: string) {
-  await graphqlFetch(`mutation DeleteList($id: ID!) { deleteList(id: $id) }`, { id });
+  await graphqlFetch(`mutation DeleteList($id: ID!) { deleteList(id: $id) }`, {
+    id,
+  });
 
   revalidatePath('/[locale]', 'page');
   const locale = await getLocale();
@@ -46,14 +48,21 @@ export async function createTaskAction(listId: string, formData: FormData) {
 }
 
 export async function toggleTaskDoneAction(id: string) {
-  await graphqlFetch(`mutation ToggleTaskDone($id: ID!) { toggleTaskDone(id: $id) { id } }`, {
-    id,
-  });
+  await graphqlFetch(
+    `mutation ToggleTaskDone($id: ID!) { toggleTaskDone(id: $id) { id } }`,
+    {
+      id,
+    },
+  );
 
   revalidatePath('/[locale]/lists/[id]', 'page');
 }
 
-export async function updateTaskAction(id: string, title: string, dueDate: string | null) {
+export async function updateTaskAction(
+  id: string,
+  title: string,
+  dueDate: string | null,
+) {
   if (!title.trim()) {
     return;
   }
@@ -69,12 +78,18 @@ export async function updateTaskAction(id: string, title: string, dueDate: strin
 }
 
 export async function deleteTaskAction(id: string) {
-  await graphqlFetch(`mutation DeleteTask($id: ID!) { deleteTask(id: $id) }`, { id });
+  await graphqlFetch(`mutation DeleteTask($id: ID!) { deleteTask(id: $id) }`, {
+    id,
+  });
 
   revalidatePath('/[locale]/lists/[id]', 'page');
 }
 
-export async function moveTaskAction(listId: string, taskId: string, direction: 'up' | 'down') {
+export async function moveTaskAction(
+  listId: string,
+  taskId: string,
+  direction: 'up' | 'down',
+) {
   const data = await graphqlFetch<{ list: { tasks: { id: string }[] } }>(
     `query TaskOrder($id: ID!) { list(id: $id) { tasks { id } } }`,
     { id: listId },

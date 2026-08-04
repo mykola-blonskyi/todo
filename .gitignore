@@ -191,3 +191,7 @@ id_ed25519
 *.bak
 *.tmp
 *.swp
+
+# Husky's regenerated internal helper scripts (recreated by `pnpm install`
+# via the root "prepare" script) - only .husky/pre-commit itself is tracked.
+.husky/_
