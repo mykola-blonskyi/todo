@@ -78,4 +78,27 @@ export class ListSharesResolver {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listSharesService.declineInvite(user.id, shareId);
   }
+
+  @Mutation(() => Boolean)
+  async removeCollaborator(
+    @CurrentUser() identity: Identity,
+    @Args('listId', { type: () => ID }) listId: string,
+    @Args('targetUserId', { type: () => ID }) targetUserId: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listSharesService.removeCollaborator(
+      user.id,
+      listId,
+      targetUserId,
+    );
+  }
+
+  @Mutation(() => Boolean)
+  async leaveList(
+    @CurrentUser() identity: Identity,
+    @Args('listId', { type: () => ID }) listId: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listSharesService.leaveList(user.id, listId);
+  }
 }

@@ -725,6 +725,295 @@ describe('List Sharing (GraphQL)', () => {
     });
   });
 
+  describe('removing a collaborator (removeCollaborator / leaveList)', () => {
+    it('removes the ListShare row and immediately denies further access', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const taskBody = await graphql<{ createTask: { id: string } }>(
+        `mutation {createTask(listId: "${listId}", title: "Test task"){id}}`,
+        owner,
+      );
+
+      const acceptedInvite = await graphql<{
+        acceptInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+          user: { id: string };
+        };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+              user {id}
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      const body = await graphql<{ removeCollaborator: boolean }>(
+        `mutation {removeCollaborator(listId: "${listId}", targetUserId: "${acceptedInvite.data?.acceptInvite.user.id}")}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.removeCollaborator).toBe(true);
+
+      const list = await graphql<{ list: { id: string } }>(
+        `query {list(id: "${listId}"){id}}`,
+        collaboratorA,
+      );
+
+      expect(list.data).toBeNull();
+      expect(list.errors).toBeDefined();
+
+      const toggleTaskDoneBody = await graphql<{
+        toggleTaskDone: { done: boolean };
+      }>(
+        `mutation {toggleTaskDone(id: "${taskBody.data?.createTask.id}"){done}}`,
+        collaboratorA,
+      );
+
+      expect(toggleTaskDoneBody.data).toBeNull();
+      expect(toggleTaskDoneBody.errors).toBeDefined();
+    });
+
+    it('denies removeCollaborator for a non-owner', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+      const collaboratorB = asUser('collaborator-b', 'b@example.com');
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const acceptedInvite = await graphql<{
+        acceptInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+          user: { id: string };
+        };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+              user {id}
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      const body = await graphql<{ removeCollaborator: boolean }>(
+        `mutation {removeCollaborator(listId: "${listId}", targetUserId: "${acceptedInvite.data?.acceptInvite.user.id}")}`,
+        collaboratorB,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors).toBeDefined();
+    });
+
+    it('removing one collaborator does not affect another collaborator on the same list', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+      const collaboratorB = asUser('collaborator-b', 'b@example.com');
+
+      const taskBody = await graphql<{ createTask: { id: string } }>(
+        `mutation {createTask(listId: "${listId}", title: "Test task"){id}}`,
+        owner,
+      );
+
+      const listShareA = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const listShareB = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorB['x-user-id']}",
+          email: "${collaboratorB['x-user-email']}",
+          name: "B",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const acceptedInviteA = await graphql<{
+        acceptInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+          user: { id: string };
+        };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShareA.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+              user {id}
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      await graphql<{
+        acceptInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+          user: { id: string };
+        };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShareB.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+              user {id}
+            }
+          }
+        `,
+        collaboratorB,
+      );
+
+      await graphql<{ removeCollaborator: boolean }>(
+        `mutation {removeCollaborator(listId: "${listId}", targetUserId: "${acceptedInviteA.data?.acceptInvite.user.id}")}`,
+        owner,
+      );
+
+      const body = await graphql<{
+        toggleTaskDone: { done: boolean };
+      }>(
+        `mutation {toggleTaskDone(id: "${taskBody.data?.createTask.id}"){done}}`,
+        collaboratorB,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.toggleTaskDone.done).toBeTruthy();
+    });
+
+    it("leaveList removes the caller's own ListShare row", async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const taskBody = await graphql<{ createTask: { id: string } }>(
+        `mutation {createTask(listId: "${listId}", title: "Test task"){id}}`,
+        owner,
+      );
+
+      const listShare = await graphql<{
+        inviteToList: { id: string; status: ListShareStatus };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaboratorA['x-user-id']}",
+          email: "${collaboratorA['x-user-email']}",
+          name: "A",
+          image: null
+        }) {id status}}`,
+        owner,
+      );
+
+      const acceptedInvite = await graphql<{
+        acceptInvite: {
+          id: string;
+          status: ListShareStatus;
+          respondedAt: string;
+          user: { id: string };
+        };
+      }>(
+        `
+          mutation {
+            acceptInvite(shareId: "${listShare.data!.inviteToList.id}") {
+              id
+              status
+              respondedAt
+              user {id}
+            }
+          }
+        `,
+        collaboratorA,
+      );
+
+      expect(acceptedInvite.errors).toBeUndefined();
+      expect(acceptedInvite.data?.acceptInvite.status).toBe(
+        ListShareStatus.accepted,
+      );
+
+      const leaveListBody = await graphql<{ leaveList: boolean }>(
+        `mutation {leaveList(listId: "${listId}")}`,
+        collaboratorA,
+      );
+
+      expect(leaveListBody.errors).toBeUndefined();
+      expect(leaveListBody.data?.leaveList).toBe(true);
+
+      const toggleTaskBody = await graphql<{
+        toggleTaskDone: { done: boolean };
+      }>(
+        `mutation {toggleTaskDone(id: "${taskBody.data?.createTask.id}"){done}}`,
+        collaboratorA,
+      );
+
+      expect(toggleTaskBody.data).toBeNull();
+      expect(toggleTaskBody.errors).toBeDefined();
+    });
+
+    it('denies leaveList for a user with no share on the list', async () => {
+      const { listId } = await getOwnerAndList();
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+
+      const leaveListBody = await graphql<{ leaveList: boolean }>(
+        `mutation {leaveList(listId: "${listId}")}`,
+        collaboratorA,
+      );
+
+      expect(leaveListBody.data).toBeNull();
+      expect(leaveListBody.errors).toBeDefined();
+    });
+  });
+
   describe('collaborator permission boundary', () => {
     async function inviteAndAccept(
       owner: Record<string, string>,
@@ -818,6 +1107,20 @@ describe('List Sharing (GraphQL)', () => {
         owner,
       );
       expect(inviteBody.errors).toBeUndefined();
+
+      const acceptedInvite = await graphql<{
+        acceptInvite: { user: { id: string } };
+      }>(
+        `mutation {acceptInvite(shareId: "${inviteBody.data!.inviteToList.id}") {user {id}}}`,
+        collaboratorA,
+      );
+
+      const removeBody = await graphql<{ removeCollaborator: boolean }>(
+        `mutation {removeCollaborator(listId: "${listId}", targetUserId: "${acceptedInvite.data?.acceptInvite.user.id}")}`,
+        owner,
+      );
+      expect(removeBody.errors).toBeUndefined();
+      expect(removeBody.data?.removeCollaborator).toBe(true);
 
       const deleteTaskBody = await graphql<{ deleteTask: boolean }>(
         `mutation {deleteTask(id: "${taskId}")}`,
@@ -914,6 +1217,13 @@ describe('List Sharing (GraphQL)', () => {
       );
       expect(inviteBody.data).toBeNull();
       expect(inviteBody.errors).toBeDefined();
+
+      const removeBody = await graphql<{ removeCollaborator: boolean }>(
+        `mutation {removeCollaborator(listId: "${listId}", targetUserId: "${collaboratorA['x-user-id']}")}`,
+        collaboratorA,
+      );
+      expect(removeBody.data).toBeNull();
+      expect(removeBody.errors).toBeDefined();
 
       const searchBody = await graphql<{ searchShareCandidates: unknown[] }>(
         `query {searchShareCandidates(listId: "${listId}", q: "a"){hubUserId}}`,
