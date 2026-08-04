@@ -179,5 +179,8 @@ jobs:
             echo "COOLIFY_WEBHOOK_URL not set yet (todolist isn't registered in Coolify - see docs/TODO.md) - skipping."
             exit 0
           fi
-          curl --fail --request GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+          # Coolify's /deploy route (routes/api.php) explicitly rejects GET
+          # (routes it to a "use POST instead" handler) - only POST triggers
+          # a real deployment, despite what some of Coolify's own docs show.
+          curl --fail --request POST "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}"
