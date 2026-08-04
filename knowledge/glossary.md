@@ -67,6 +67,27 @@ may move it from `pending` to `accepted`/`declined`.
 
 ---
 
+### ListTemplate
+
+A reusable, editable recipe, owned by one User, that spawns a brand-new List every time its
+recurrence rule fires: a fixed checklist of Task titles, a recurrence rule (daily / weekly on chosen
+weekdays / monthly on a chosen day / every N days), a timezone anchoring what "day" means for it, an
+`active`/`paused` status, and a set of default Collaborators auto-shared onto every List it spawns.
+Editing a ListTemplate only affects its future Occurrences — Lists it already spawned are untouched.
+Distinct from a **List** itself — a ListTemplate never holds Tasks directly, it only produces Lists.
+_Avoid_: Recurring List (conflates the template with the Lists it produces — they're different
+things with different lifecycles)
+
+---
+
+### Occurrence
+
+A single scheduled firing of a ListTemplate's recurrence rule, producing exactly one new List.
+"Next occurrence" means the next date/time (in the template's own timezone) a new List will be
+spawned.
+
+---
+
 ### Comment
 
 A free-text note attached either to a specific Task or to a List as a whole. Any User with access to

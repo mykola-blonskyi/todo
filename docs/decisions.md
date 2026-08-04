@@ -395,3 +395,49 @@ No caching layer for now. Reads go straight to Postgres via Prisma, as they alre
   `knowledge/business-rules.md` throughout)
 - This ADR itself is the record that this was considered and declined - don't re-propose it without
   a concrete driver this entry doesn't already address
+
+---
+
+## ADR-013: Recurring ListTemplates spawn independent Lists per Occurrence — not a single List reset in place
+
+Date: 2026-08-04
+
+Status: Accepted
+
+### Context
+Recurring todo lists (e.g. a weekly groceries checklist) could be modeled two ways: (a) one List
+whose Tasks get reset/un-done on a schedule, staying the same `id` forever, or (b) a separate
+`ListTemplate` entity that spawns a brand-new, independent List every time its recurrence rule
+fires, with old Lists left behind as history.
+
+### Decision
+Model (b): a `ListTemplate` holds a fixed checklist of Task titles, a recurrence rule
+(daily/weekly/monthly/every-N-days), its own `timezone`, an `active`/`paused` status, and a
+`TemplateCollaborator` set. Each Occurrence creates a new List (fresh Tasks from the current
+checklist, no carryover of unfinished items) with the template's TemplateCollaborators auto-shared
+as already-`accepted` ListShares. Deleting the template does not cascade-delete Lists it already
+spawned — only the `templateId` back-reference is cleared; those Lists remain intact, ordinary
+Lists. See `knowledge/domain-model.md` (`ListTemplate`, `TemplateCollaborator`) and
+`knowledge/business-rules.md` Rules 12–19.
+
+### Alternatives Considered
+- **Same List reset in place** — rejected: destroys the ability to see what did/didn't get done in
+  a previous cycle unless a separate history/log entity were built anyway, which would just be this
+  same design under a different name.
+- **Re-inviting Collaborators on every spawned List** (`pending`, requiring re-acceptance each
+  cycle) — rejected: a Collaborator agreeing to be on a recurring series shouldn't have to
+  re-confirm every single Occurrence; that's busywork, not a meaningful consent event.
+- **Cascade-deleting spawned Lists when the template is deleted** — rejected: it would silently
+  destroy exactly the history this design exists to preserve; "stop generating new ones" and "erase
+  everything that ever happened" are different intents and shouldn't share one action.
+- **Skipping or rolling over months without the picked day** (for `monthly`) — rejected in favor of
+  clamping to the month's last day: skipping means some months silently have no list at all; rolling
+  to next month makes the spawn date jump unpredictably between adjacent months.
+
+### Consequences
+- A spawned List is an ordinary List in every respect (same Task/ListShare/Comment/CalendarSync
+  rules apply) — no new permission model was needed, only the `templateId` provenance field
+- Recurrence scheduling needs its own timezone concept (`ListTemplate.timezone`) since User has none
+  — this is new schema surface scoped only to templates, not the User entity
+- A background scheduler (checking due Occurrences and spawning Lists) is required — not yet
+  designed; this ADR covers the data model and cascade semantics, not the job-running mechanism

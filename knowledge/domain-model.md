@@ -44,12 +44,68 @@ Responsibilities:
 Fields:
 - `id`, `title`, `createdAt`, `updatedAt`
 - `ownerId` (→ User)
+- `templateId` (→ ListTemplate, nullable) — set only if this List was spawned by a ListTemplate
+  Occurrence; otherwise null for a manually-created List. Provenance only: a spawned List is an
+  ordinary List in every other respect (same Task/ListShare/Comment/CalendarSync rules apply). If
+  the ListTemplate is later deleted, this is cleared (`SetNull`), not cascaded — see
+  [business-rules.md](business-rules.md) Rule 17.
 
 Relationships:
 - N:1 with **User** (owner)
+- N:0..1 with **ListTemplate** (the template that spawned it, if any)
 - 1:N with **Task**
 - 1:N with **ListShare**
 - 1:N with **Comment** (list-level)
+
+---
+
+### ListTemplate
+
+Responsibilities:
+- A reusable recipe that spawns a new, independent List each time its recurrence rule fires. Owns
+  the fixed checklist of Task titles and the default-Collaborator set every spawned List starts
+  with. Never holds Tasks itself.
+
+Fields:
+- `id`, `title` (used as the title for each spawned List), `createdAt`, `updatedAt`
+- `ownerId` (→ User) — same sole-authority pattern as List ownership (Rule 12)
+- `taskTitles` (ordered string array) — the fixed checklist copied onto every spawned List as
+  `done: false` Tasks with no due date
+- `recurrenceType` (enum: `daily` / `weekly` / `monthly` / `everyNDays`)
+- `weekDays` (nullable set of weekdays — only meaningful when `recurrenceType = weekly`)
+- `dayOfMonth` (nullable, 1–31 — only meaningful when `recurrenceType = monthly`; clamped to a
+  given month's last day at occurrence time if that month is shorter, see Rule 16)
+- `intervalDays` (nullable positive integer — only meaningful when `recurrenceType = everyNDays`)
+- `timezone` (IANA string, e.g. `Europe/Kyiv`) — captured once at creation; anchors what "day"
+  means for this template's Occurrences, independent of the owner's own profile (see Rule 15)
+- `status` (enum: `active` / `paused`) — a paused template spawns nothing until resumed, but keeps
+  its full configuration (Rule 18)
+- `lastSpawnedAt` (nullable) — used to compute the next Occurrence
+
+Relationships:
+- N:1 with **User** (owner)
+- 1:N with **TemplateCollaborator** (the default-Collaborator set)
+- 1:N with **List** (every List it has ever spawned — survives the template's own deletion, see
+  Rule 17)
+
+---
+
+### TemplateCollaborator
+
+Responsibilities:
+- One User in a ListTemplate's default-Collaborator set. Existence here means "auto-share every
+  spawned List with this User, pre-accepted" — see Rule 14. Carries no status of its own; there is
+  no pending/declined state at the template level, only at the per-spawned-List **ListShare** level.
+
+Fields:
+- `id`, `addedAt`
+- `templateId` (→ ListTemplate), `userId` (→ User)
+
+Relationships:
+- N:1 with **ListTemplate**
+- N:1 with **User**
+
+Constraints: unique on (`templateId`, `userId`) — a User is listed at most once per template.
 
 ---
 
