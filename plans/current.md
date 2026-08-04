@@ -113,6 +113,20 @@ Ticket breakdown: issues #20–#24
 
 ---
 
+## Phase 8 — Recurring templates, categories, installable PWA
+
+Specs/tickets from the templates/categories/PWA grilling session (issues #36–#48) — not yet
+sequenced against Phases 5–6, tracked here as it lands.
+
+- [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color
+      (issues #38/#48) — manual install verification on real devices still outstanding
+- [ ] Recurring ListTemplates: schema, CRUD, occurrence-spawning engine, cron wiring, frontend
+      (issues #36/#39–#43)
+- [ ] List categories + filtering: schema, CRUD, per-user filter, frontend, ListTemplate
+      auto-categorization (issues #37/#44–#47)
+
+---
+
 ## Risks
 
 - Calendar sync correctness is only verified against a mocked Google API until real dogfooding

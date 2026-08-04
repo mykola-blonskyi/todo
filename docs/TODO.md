@@ -72,3 +72,5 @@ tickets.
       requireAccessToTask), removeCollaborator/leaveList (issues #14–#18) — frontend still open
 - [x] Dockerfiles for backend/frontend + root `docker-compose.yml` for Coolify (issue #55) — no
       Postgres service (shared VPS instance, ADR-002), backend stays internal-only (ADR-003)
+- [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color
+      (issues #38/#48) — manual install verification on real devices still outstanding
