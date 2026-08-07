@@ -2,6 +2,10 @@
 
 The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
 
+Labels live as Plane project labels (see [issue-tracker.md](issue-tracker.md)) rather than GitHub
+labels. Only `ready-for-agent` exists today (created during the GitHub→Plane migration); create
+the others via `POST /api/v1/workspaces/blonskyi/project-labels/` the first time a skill needs one.
+
 | Label in mattpocock/skills | Label in our tracker | Meaning                                  |
 | --------------------------- | --------------------- | ----------------------------------------- |
 | `needs-triage`              | `needs-triage`        | Maintainer needs to evaluate this issue  |
