@@ -85,6 +85,29 @@ grouping/progress tracking, `parent` is the actual hierarchy. A ticket that does
 any one spec (cross-cutting infra, e.g. `TODO-35` Dockerfiles/deployment) is left out of every
 module and keeps `parent: null` rather than being forced into a spec it doesn't belong to.
 
+## Dependencies (`blocked_by`) and priority
+
+Many tickets' `description_html` carry a migrated `Blocked by <old-number> (<name>)` line from the
+pre-migration (GitHub-era) numbering — the number does **not** match the ticket's current Plane
+`sequence_id`. Resolve the real blocker by matching the `(<name>)` text against current ticket
+names, never the number. `Blocked by None — can start immediately` means no relation call is
+needed for that ticket. Check this text before assuming a ticket has no dependencies — the field
+isn't always populated (e.g. it was missing across all of `TODO-6`–`TODO-21` until backfilled from
+this text on 2026-08-07).
+
+- **Set blocking**: `POST .../work-items/{id}/relations/` with
+  `{"relation_type": "blocked_by", "issues": ["<blocker-id>", ...]}` (bulk; pass every blocker in
+  one call).
+- **Read blockers**: `GET .../work-items/{id}/relations/` → `blocked_by` (see Wayfinding below for
+  the unblocked-check pattern).
+
+Priority (`urgent`/`high`/`medium`/`low`/`none`) is never present in the migrated text — set it by
+judgment when triaging a batch of tickets: the true critical-path bottleneck (nothing else can
+start until it's done) is `urgent`; the rest of the original MVP-scope phases are `high`; post-MVP
+feature phases are `medium`; pure polish/distribution tickets (e.g. installable-PWA packaging) are
+`low`. Specs stay `none` — they're reference docs, not actionable work (matches the `spec` label's
+own description). `PATCH .../work-items/{id}/` with `{"priority": "<value>"}`.
+
 ## Markdown → description_html gotcha
 
 `description_html` must be actual HTML, not raw markdown — the API silently ignores a plain
