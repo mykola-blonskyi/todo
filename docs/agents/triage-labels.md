@@ -6,6 +6,9 @@ Labels live as Plane project labels (see [issue-tracker.md](issue-tracker.md)) r
 labels. Only `ready-for-agent` exists today (created during the GitHub→Plane migration); create
 the others via `POST /api/v1/workspaces/blonskyi/project-labels/` the first time a skill needs one.
 
+Separately, a `spec` label (not a triage role) marks the 9 PRD-style work items as reference docs
+rather than actionable tickets — see "Specs vs. tickets" in issue-tracker.md.
+
 | Label in mattpocock/skills | Label in our tracker | Meaning                                  |
 | --------------------------- | --------------------- | ----------------------------------------- |
 | `needs-triage`              | `needs-triage`        | Maintainer needs to evaluate this issue  |
