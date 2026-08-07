@@ -12,6 +12,28 @@ All operations go through the Plane REST API (`/api/v1/...`), authenticated with
 commit it. Every write in this doc is a `curl` call; wrap the boilerplate (base URL, workspace,
 project id, auth header) in a shell function or small script rather than repeating it.
 
+## Specs vs. tickets
+
+Specs (PRD-style, e.g. `Spec: Sharing & Collaboration`) and implementation tickets are both work
+items in the TODO project — there's no separate "docs" surface. Plane's Pages feature would be the
+better conceptual fit (reference doc, not a lifecycle-driven unit of work), but this instance is
+self-hosted Community Edition v1.4.0, whose public API doesn't yet mount the Pages/features
+endpoints (`GET/POST .../pages/` and `.../features/` both 404, unlike work-items/labels/states/
+relations which all work) — confirmed 2026-08-07. Until that changes, specs are distinguished from
+tickets by the `spec` label rather than by living in a different resource type. Re-check the
+`/features/` endpoint after any Plane version bump; if `pages: true` shows up, it's worth migrating
+specs to real Pages then.
+
+## Markdown → description_html gotcha
+
+`description_html` must be actual HTML, not raw markdown — the API silently ignores a plain
+`description` field. Acceptance-criteria checklists (`- [ ] ...`) need Tiptap's task-list shape, not
+whatever a generic markdown-to-HTML pass produces:
+`<ul data-type="taskList"><li data-checked="false"><label><input type="checkbox"><span></span></label><div><p>...</p></div></li></ul>`
+(verified by round-tripping a PATCH and reading it back unchanged). A plain markdown converter turns
+`- [ ] foo` into a literal bullet reading "[ ] foo" instead of a checkbox — check for that pattern
+before trusting a fresh conversion pipeline.
+
 ## States
 
 Default states for the TODO project (fetch fresh via
