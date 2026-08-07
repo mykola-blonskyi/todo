@@ -60,6 +60,31 @@ as a manual, human, UI-only step. Don't re-propose webhook/n8n/DB-write automati
 a new, concrete driver this entry doesn't already address (e.g. upstream actually shipping a public
 Pages API).
 
+## Modules
+
+**Every `spec`-labeled ticket gets a Plane Module — always, as part of creating the spec, not a
+later/optional step.** The module groups the spec with its related implementation tickets and is
+how progress against the spec is tracked in the UI, on top of the `spec` label that distinguishes
+it in the API. Module name is the spec's title with the `Spec: ` prefix stripped (e.g.
+`Spec: Sharing & Collaboration` → module `Sharing & Collaboration`). If a spec is created before
+its implementation tickets exist yet, still create the (initially spec-only) module immediately —
+add related tickets to it as they're created rather than batching the module creation for later.
+
+- **Create a module**: `POST .../modules/` with `{"name": "..."}`.
+- **Add tickets to a module**: `POST .../modules/{module_id}/module-issues/` with
+  `{"issues": ["<work-item-id>", ...]}` (bulk; include the spec ticket itself plus every related
+  ticket).
+- **List a module's tickets**: `GET .../modules/{module_id}/module-issues/`. `GET .../modules/`
+  returns `total_issues` per module, cheaper than hitting each module individually when just
+  checking counts.
+
+Related tickets also get the spec ticket set as their `parent` (`PATCH .../work-items/{id}/` with
+`{"parent": "<spec-id>"}`) — the same mechanism as Wayfinding child tickets below, not module
+membership. Module and `parent` are independent and both get set: the module is for
+grouping/progress tracking, `parent` is the actual hierarchy. A ticket that doesn't map cleanly to
+any one spec (cross-cutting infra, e.g. `TODO-35` Dockerfiles/deployment) is left out of every
+module and keeps `parent: null` rather than being forced into a spec it doesn't belong to.
+
 ## Markdown → description_html gotcha
 
 `description_html` must be actual HTML, not raw markdown — the API silently ignores a plain
@@ -102,7 +127,8 @@ Default states for the TODO project (fetch fresh via
 
 ## When a skill says "publish to the issue tracker"
 
-Create a Plane work item in the TODO project.
+Create a Plane work item in the TODO project. If it's a spec (`spec` label), also create its
+Module in the same operation — see Modules above; this is not optional.
 
 ## When a skill says "fetch the relevant ticket"
 
