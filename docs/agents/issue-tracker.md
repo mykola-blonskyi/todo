@@ -148,6 +148,32 @@ Default states for the TODO project (fetch fresh via
   (list of label ids — fetch/create labels via `.../project-labels/`).
 - **Close**: `PATCH .../work-items/{id}/` with `{"state": "<Done-or-Cancelled-id>"}`.
 
+## Working a ticket
+
+The standard flow for picking up and finishing an implementation ticket (specs aren't "worked" —
+see Specs vs. tickets; Wayfinding child tickets follow their own flow below instead of this one).
+
+1. **Eligibility**: only take a ticket whose state is **Todo** (`state.group: unstarted`). Never
+   `Backlog` — that means it hasn't been triaged/promoted yet — and never a ticket already
+   `In Progress`/`Done`/`Cancelled`, since `In Progress` may mean someone (or some other agent
+   session) is already on it.
+2. **Claim**: `PATCH .../work-items/{id}/` with `{"state": "<In-Progress-id>"}` (see States above)
+   before writing any code, so the ticket's state reflects reality for anyone else looking.
+3. **Branch**: `git checkout -b TODO-<n> main` — the bare ticket id as the entire branch name
+   (e.g. `TODO-43`), not this repo's usual `type/description` pattern (`feat/...`, `fix/...`,
+   `docs/...`). Ticket branches are the one deliberate exception to that convention.
+4. **Implement** the ticket, applying this doc's other conventions along the way (Modules,
+   `blocked_by`, priority) for anything Plane-side the work itself touches.
+5. **Ship**: commit, push, `gh pr create`. Wait for CI (`.github/workflows/ci.yml`) to pass before
+   treating the PR as ready.
+6. **Stop — do not merge it yourself.** This repo has no server-side branch protection to fall
+   back on (private repo, no GitHub Pro), and every PR merged here so far has been merged by a
+   human. Open the PR, confirm CI is green, and report it as ready; merging stays a deliberate
+   human action, not an automated one.
+7. **Close out**: only after the PR is actually merged into `main` — confirmed either because the
+   user says so, or by checking `gh pr view <number> --json state,mergedAt` — `PATCH` the ticket
+   to **Done**. Never mark a ticket Done before its code has actually landed on `main`.
+
 ## When a skill says "publish to the issue tracker"
 
 Create a Plane work item in the TODO project. If it's a spec (`spec` label), also create its
