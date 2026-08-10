@@ -4,3 +4,12 @@ export interface ShareCandidate {
   name: string | null;
   image: string | null;
 }
+
+export interface PendingInvite {
+  id: string;
+  invitedAt: string;
+  list: {
+    id: string;
+    title: string;
+  };
+}

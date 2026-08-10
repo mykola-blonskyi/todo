@@ -34,6 +34,9 @@
     "searchPlaceholder": "Search by name or email",
     "noResults": "No matches for “{query}”",
     "searchError": "Couldn't search right now. Try again in a moment.",
-    "invited": "Invited"
+    "invited": "Invited",
+    "pendingInvitesTitle": "Pending invites",
+    "acceptButton": "Accept",
+    "declineButton": "Decline"
   }
 }

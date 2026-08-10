@@ -34,6 +34,9 @@
     "searchPlaceholder": "Поиск по имени или email",
     "noResults": "Совпадений для «{query}» не найдено",
     "searchError": "Не удалось выполнить поиск. Попробуйте ещё раз через момент.",
-    "invited": "Приглашён"
+    "invited": "Приглашён",
+    "pendingInvitesTitle": "Ожидающие приглашения",
+    "acceptButton": "Принять",
+    "declineButton": "Отклонить"
   }
 }

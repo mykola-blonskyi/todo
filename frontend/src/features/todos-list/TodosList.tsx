@@ -2,16 +2,20 @@
 
 import { ListSummary } from '@shared/types/lists';
 import { useTranslations } from 'next-intl';
+import { PendingInvites, type PendingInvite } from '@features/list-sharing';
 import { ListRow } from './ListRow';
 import { CreateListForm } from './CreateListForm';
 
 interface TodosListProps {
   lists: ListSummary[];
+  pendingInvites: PendingInvite[];
 }
-export const TodosList = ({ lists }: TodosListProps) => {
+export const TodosList = ({ lists, pendingInvites }: TodosListProps) => {
   const t = useTranslations('Lists');
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-8">
+      <PendingInvites invites={pendingInvites} />
+
       <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
 
       <CreateListForm />

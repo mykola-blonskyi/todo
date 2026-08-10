@@ -34,6 +34,9 @@
     "searchPlaceholder": "Buscar por nombre o email",
     "noResults": "Sin coincidencias para “{query}”",
     "searchError": "No se pudo buscar en este momento. Inténtalo de nuevo enseguida.",
-    "invited": "Invitado"
+    "invited": "Invitado",
+    "pendingInvitesTitle": "Invitaciones pendientes",
+    "acceptButton": "Aceptar",
+    "declineButton": "Rechazar"
   }
 }
