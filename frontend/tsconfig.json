@@ -20,6 +20,7 @@
     ],
     "paths": {
       "@features/*": ["./src/features/*"],
+      "@ui/*": ["./src/shared/ui/*"],
       "@shared/*": ["./src/shared/*"],
       "@/*": ["./src/*"]
     }

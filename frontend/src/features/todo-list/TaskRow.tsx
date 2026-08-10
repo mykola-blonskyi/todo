@@ -4,13 +4,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/shared/ui/components/button';
 import { Checkbox } from '@/shared/ui/components/checkbox';
 import { Input } from '@/shared/ui/components/input';
-
-interface Task {
-  id: string;
-  title: string;
-  done: boolean;
-  dueDate: string | null;
-}
+import type { Task } from './types';
 
 interface TaskRowLabels {
   editButton: string;

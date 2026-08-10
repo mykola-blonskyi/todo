@@ -4,10 +4,12 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ThemeProvider } from '@/shared/ui/theme-provider';
+import { QueryProvider } from '@/shared/ui/query-provider';
 import { ServiceWorkerRegistration } from '@/shared/ui/service-worker-registration';
 import { locales, type Locale } from '@shared/lib/i18n/config';
 import { THEME_COLOR } from '@shared/lib/pwa';
 import '../globals.css';
+import { Header } from '@ui/header';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -60,7 +62,10 @@ export default async function LocaleLayout({
           disableTransitionOnChange
         >
           <NextIntlClientProvider messages={messages}>
-            {children}
+            <QueryProvider>
+              <Header locale={locale} />
+              {children}
+            </QueryProvider>
           </NextIntlClientProvider>
           <ServiceWorkerRegistration />
         </ThemeProvider>

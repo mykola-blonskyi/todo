@@ -17,4 +17,9 @@ export class List {
 
   @Field(() => [Task])
   tasks?: Task[];
+
+  @Field(() => Boolean)
+  isOwner?: boolean;
+
+  ownerId: string;
 }

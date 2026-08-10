@@ -27,6 +27,12 @@ export class ListsResolver {
     return this.tasksService.tasksForList(list.id);
   }
 
+  @ResolveField(() => Boolean)
+  async isOwner(@Parent() list: List, @CurrentUser() identity: Identity) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return list.ownerId === user.id;
+  }
+
   @Mutation(() => List)
   async createList(
     @CurrentUser() identity: Identity,
