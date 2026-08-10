@@ -42,3 +42,21 @@ export async function inviteToListAction(
 
   revalidatePath('/[locale]/lists/[id]', 'page');
 }
+
+export async function acceptInviteAction(shareId: string) {
+  await graphqlFetch(
+    `mutation AcceptInvite($shareId: ID!) { acceptInvite(shareId: $shareId) { id } }`,
+    { shareId },
+  );
+
+  revalidatePath('/[locale]', 'page');
+}
+
+export async function declineInviteAction(shareId: string) {
+  await graphqlFetch(
+    `mutation DeclineInvite($shareId: ID!) { declineInvite(shareId: $shareId) { id } }`,
+    { shareId },
+  );
+
+  revalidatePath('/[locale]', 'page');
+}

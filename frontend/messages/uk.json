@@ -34,6 +34,9 @@
     "searchPlaceholder": "Пошук за іменем або email",
     "noResults": "Збігів для «{query}» не знайдено",
     "searchError": "Не вдалося виконати пошук. Спробуйте ще раз за мить.",
-    "invited": "Запрошено"
+    "invited": "Запрошено",
+    "pendingInvitesTitle": "Очікувані запрошення",
+    "acceptButton": "Прийняти",
+    "declineButton": "Відхилити"
   }
 }
