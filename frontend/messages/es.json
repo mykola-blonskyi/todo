@@ -27,5 +27,13 @@
     "moveUp": "Subir",
     "moveDown": "Bajar",
     "dueDateLabel": "Vence"
+  },
+  "Sharing": {
+    "title": "Compartir",
+    "searchLabel": "Buscar a alguien para invitar",
+    "searchPlaceholder": "Buscar por nombre o email",
+    "noResults": "Sin coincidencias para “{query}”",
+    "searchError": "No se pudo buscar en este momento. Inténtalo de nuevo enseguida.",
+    "invited": "Invitado"
   }
 }
