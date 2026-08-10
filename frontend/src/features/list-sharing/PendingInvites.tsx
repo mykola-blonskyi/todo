@@ -14,7 +14,7 @@ interface PendingInvitesProps {
 export function PendingInvites({ invites }: PendingInvitesProps) {
   const t = useTranslations('Sharing');
 
-  if (invites.length === 0) {
+  if (invites?.length === 0) {
     return null;
   }
 
