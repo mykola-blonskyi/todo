@@ -10,7 +10,8 @@ export const testDb = new PrismaClient({
 export async function resetDb() {
   await testDb.$executeRawUnsafe(`
     TRUNCATE TABLE
-      calendar_syncs, google_calendar_connections, comments, list_shares, tasks, lists, users
+      calendar_syncs, google_calendar_connections, comments, list_shares, tasks,
+      template_collaborators, list_templates, lists, users
     RESTART IDENTITY CASCADE
   `);
 }
