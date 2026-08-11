@@ -37,6 +37,9 @@
     "invited": "Приглашён",
     "pendingInvitesTitle": "Ожидающие приглашения",
     "acceptButton": "Принять",
-    "declineButton": "Отклонить"
+    "declineButton": "Отклонить",
+    "collaboratorsTitle": "Участники",
+    "removeButton": "Удалить",
+    "leaveButton": "Покинуть"
   }
 }

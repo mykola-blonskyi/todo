@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Task } from '../tasks/task.model';
+import { User } from '../users/user.model';
 
 @ObjectType()
 export class List {
@@ -20,6 +21,9 @@ export class List {
 
   @Field(() => Boolean)
   isOwner?: boolean;
+
+  @Field(() => [User])
+  collaborators?: User[];
 
   ownerId: string;
 }

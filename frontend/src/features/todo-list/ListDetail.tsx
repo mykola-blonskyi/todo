@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@shared/lib/i18n/navigation';
 import { Button } from '@/shared/ui/components/button';
 import { Input } from '@/shared/ui/components/input';
-import { ShareSearch } from '@features/list-sharing';
+import { ShareSearch, CollaboratorsList } from '@features/list-sharing';
 import {
   renameListAction,
   deleteListAction,
@@ -18,9 +18,10 @@ import type { ListDetailData } from './types';
 
 interface ListDetailProps {
   list: ListDetailData;
+  myUserId: string;
 }
 
-export async function ListDetail({ list }: ListDetailProps) {
+export async function ListDetail({ list, myUserId }: ListDetailProps) {
   const t = await getTranslations('Lists');
   const tTasks = await getTranslations('Tasks');
   const tSharing = await getTranslations('Sharing');
@@ -105,6 +106,13 @@ export async function ListDetail({ list }: ListDetailProps) {
           <ShareSearch listId={list.id} />
         </section>
       ) : null}
+
+      <CollaboratorsList
+        listId={list.id}
+        collaborators={list.collaborators}
+        isOwner={list.isOwner}
+        myUserId={myUserId}
+      />
 
       <DeleteListButton
         action={deleteWithId}

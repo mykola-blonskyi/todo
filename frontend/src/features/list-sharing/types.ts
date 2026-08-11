@@ -13,3 +13,10 @@ export interface PendingInvite {
     title: string;
   };
 }
+
+export interface Collaborator {
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+}

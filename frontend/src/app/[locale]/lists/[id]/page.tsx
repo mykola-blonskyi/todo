@@ -10,19 +10,26 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
   const { id } = await params;
 
   let list: ListDetailData;
+  let myUserId: string;
   try {
-    const data = await graphqlFetch<{ list: ListDetailData }>(
+    const data = await graphqlFetch<{
+      me: { id: string };
+      list: ListDetailData;
+    }>(
       `query ListDetail($id: ID!) {
+        me { id }
         list(id: $id) {
           id
           title
           isOwner
           tasks { id title done dueDate }
+          collaborators { id email name image }
         }
       }`,
       { id },
     );
     list = data.list;
+    myUserId = data.me.id;
   } catch (error) {
     if (error instanceof GraphQLRequestError) {
       notFound();
@@ -30,5 +37,5 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
     throw error;
   }
 
-  return <ListDetail list={list} />;
+  return <ListDetail list={list} myUserId={myUserId} />;
 }
