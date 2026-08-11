@@ -37,6 +37,9 @@
     "invited": "Запрошено",
     "pendingInvitesTitle": "Очікувані запрошення",
     "acceptButton": "Прийняти",
-    "declineButton": "Відхилити"
+    "declineButton": "Відхилити",
+    "collaboratorsTitle": "Учасники",
+    "removeButton": "Видалити",
+    "leaveButton": "Покинути"
   }
 }

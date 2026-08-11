@@ -37,6 +37,9 @@
     "invited": "Invitado",
     "pendingInvitesTitle": "Invitaciones pendientes",
     "acceptButton": "Aceptar",
-    "declineButton": "Rechazar"
+    "declineButton": "Rechazar",
+    "collaboratorsTitle": "Colaboradores",
+    "removeButton": "Eliminar",
+    "leaveButton": "Salir"
   }
 }

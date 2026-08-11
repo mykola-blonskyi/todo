@@ -33,6 +33,11 @@ export class ListsResolver {
     return list.ownerId === user.id;
   }
 
+  @ResolveField()
+  collaborators(@Parent() list: List) {
+    return this.listsService.acceptedCollaborators(list.id);
+  }
+
   @Mutation(() => List)
   async createList(
     @CurrentUser() identity: Identity,

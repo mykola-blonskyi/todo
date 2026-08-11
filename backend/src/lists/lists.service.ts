@@ -61,6 +61,18 @@ export class ListsService {
     return this.prisma.list.findUnique({ where: { id } });
   }
 
+  // Lives here (not ListSharesService) to avoid a circular module dependency:
+  // ListSharesModule already imports ListsModule for ownership checks, so the
+  // reverse import isn't available without forwardRef(). ListsService already
+  // has direct Prisma access, so no cross-module call is needed anyway.
+  async acceptedCollaborators(listId: string) {
+    const shares = await this.prisma.listShare.findMany({
+      where: { listId, status: ListShareStatus.accepted },
+      include: { user: true },
+    });
+    return shares.map((share) => share.user);
+  }
+
   private requireTitle(title: string): string {
     const trimmed = title.trim();
     if (!trimmed) {

@@ -1,3 +1,5 @@
+import type { Collaborator } from '@features/list-sharing';
+
 export interface Task {
   id: string;
   title: string;
@@ -10,4 +12,5 @@ export interface ListDetailData {
   title: string;
   isOwner: boolean;
   tasks: Task[];
+  collaborators: Collaborator[];
 }
