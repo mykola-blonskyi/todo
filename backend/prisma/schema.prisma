@@ -28,20 +28,22 @@ enum UserTheme {
 }
 
 model User {
-  id         String     @id @default(uuid())
-  hubUserId  String     @unique
-  email      String     @unique
-  name       String?
-  image      String?
-  locale     UserLocale @default(en)
-  theme      UserTheme  @default(light)
-  createdAt  DateTime   @default(now())
+  id        String     @id @default(uuid())
+  hubUserId String     @unique
+  email     String     @unique
+  name      String?
+  image     String?
+  locale    UserLocale @default(en)
+  theme     UserTheme  @default(light)
+  createdAt DateTime   @default(now())
 
-  ownedLists            List[]
-  listShares            ListShare[]
-  comments              Comment[]
-  calendarSyncs         CalendarSync[]
+  ownedLists               List[]
+  listShares               ListShare[]
+  comments                 Comment[]
+  calendarSyncs            CalendarSync[]
   googleCalendarConnection GoogleCalendarConnection?
+  ownedListTemplates       ListTemplate[]
+  templateCollaborations   TemplateCollaborator[]
 
   @@map("users")
 }
@@ -57,9 +59,15 @@ model List {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  tasks   Task[]
-  shares  ListShare[]
-  comments Comment[] @relation("ListComments")
+  // Provenance only, if this List was spawned by a ListTemplate Occurrence -
+  // see knowledge/domain-model.md List.templateId and business-rules.md
+  // Rule 17 (cleared, not cascaded, if the template is later deleted).
+  templateId String?
+  template   ListTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  tasks    Task[]
+  shares   ListShare[]
+  comments Comment[]   @relation("ListComments")
 
   @@map("lists")
 }
@@ -136,10 +144,10 @@ model Comment {
 // per user, per business-rules.md Rule 8.
 
 model CalendarSync {
-  id              String   @id @default(uuid())
-  googleEventId   String
+  id               String   @id @default(uuid())
+  googleEventId    String
   googleCalendarId String
-  syncedAt        DateTime @default(now())
+  syncedAt         DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -168,4 +176,67 @@ model GoogleCalendarConnection {
   user   User   @relation(fields: [userId], references: [id])
 
   @@map("google_calendar_connections")
+}
+
+// ─── ListTemplate ────────────────────────────────────────────────────────────
+// A reusable recipe that spawns a new, independent List each time its
+// recurrence rule fires - see knowledge/domain-model.md ListTemplate and
+// business-rules.md Rules 13, 15-19. Schema/migration only in this ticket -
+// no GraphQL/API surface yet.
+
+enum ListTemplateRecurrenceType {
+  daily
+  weekly
+  monthly
+  everyNDays
+}
+
+enum ListTemplateStatus {
+  active
+  paused
+}
+
+model ListTemplate {
+  id             String                     @id @default(uuid())
+  title          String
+  taskTitles     String[]                   @default([])
+  recurrenceType ListTemplateRecurrenceType
+  // Only meaningful for the matching recurrenceType (weekly/monthly/
+  // everyNDays respectively) - enforced at the application layer, not a DB
+  // constraint, same pattern as Comment's taskId/listId. weekDays: 0=Sunday
+  // .. 6=Saturday (JS Date#getDay() convention), empty when not weekly.
+  weekDays       Int[]                      @default([])
+  dayOfMonth     Int?
+  intervalDays   Int?
+  timezone       String
+  status         ListTemplateStatus         @default(active)
+  lastSpawnedAt  DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  templateCollaborators TemplateCollaborator[]
+  spawnedLists          List[]
+
+  @@map("list_templates")
+}
+
+// ─── TemplateCollaborator ────────────────────────────────────────────────────
+// A ListTemplate's default-Collaborator set, auto-shared as accepted on every
+// spawned List - see business-rules.md Rule 14.
+
+model TemplateCollaborator {
+  id      String   @id @default(uuid())
+  addedAt DateTime @default(now())
+
+  templateId String
+  template   ListTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([templateId, userId])
+  @@map("template_collaborators")
 }
