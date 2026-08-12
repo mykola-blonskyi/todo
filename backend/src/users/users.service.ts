@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Identity } from '../identity/identity.types';
+import { UserLocale, UserTheme } from '@prisma/client';
 
 interface Candidate {
   hubUserId: string;
@@ -62,5 +63,19 @@ export class UsersService {
 
   async userById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  // userId is always the caller's own id (resolved via findOrCreateByIdentity
+  // in the resolver, same as every other mutation) - a User only ever
+  // updates their own theme/locale, no separate authorization check needed.
+  updateTheme(userId: string, theme: UserTheme) {
+    return this.prisma.user.update({ where: { id: userId }, data: { theme } });
+  }
+
+  updateLocale(userId: string, locale: UserLocale) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { locale },
+    });
   }
 }
