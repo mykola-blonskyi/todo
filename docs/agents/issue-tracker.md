@@ -171,8 +171,20 @@ see Specs vs. tickets; Wayfinding child tickets follow their own flow below inst
    human. Open the PR, confirm CI is green, and report it as ready; merging stays a deliberate
    human action, not an automated one.
 7. **Close out**: only after the PR is actually merged into `main` — confirmed either because the
-   user says so, or by checking `gh pr view <number> --json state,mergedAt` — `PATCH` the ticket
-   to **Done**. Never mark a ticket Done before its code has actually landed on `main`.
+   user says so, or by checking `gh pr view <number> --json state,mergedAt`:
+   1. **Check off every satisfied acceptance-criteria checkbox** in the ticket's description
+      (Tiptap task-list markup — see the Markdown → description_html gotcha above for the exact
+      shape). Do this every time, even when nothing about the ticket felt unusual — this step has
+      been silently skipped more than once (TODO-38/42/43/44, then again TODO-27/28/29) despite
+      being a known standing rule, precisely because it's easy to jump straight from "PR merged" to
+      "PATCH state to Done" and forget the box-checking in between. Treat it as the mandatory first
+      half of closing a ticket, not an optional followup.
+      Then re-`GET` the ticket and verify the checkboxes actually round-tripped
+      (`data-checked="true"` on every satisfied `<li>`) — a malformed hand-written patch can
+      silently degrade the list into plain bullets instead of checkboxes.
+   2. Only then `PATCH` the ticket to **Done**. Never mark a ticket Done before its code has
+      actually landed on `main`, and never mark it Done with unchecked boxes still sitting in the
+      description.
 
 ## When a skill says "publish to the issue tracker"
 
