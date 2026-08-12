@@ -13,4 +13,5 @@ export interface ListDetailData {
   isOwner: boolean;
   tasks: Task[];
   collaborators: Collaborator[];
+  templateId: string | null;
 }

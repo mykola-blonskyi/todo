@@ -16,6 +16,7 @@ import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
 import { ListTemplateRecurrenceType } from '@prisma/client';
 import { ShareCandidateInput } from '../list-shares/share-candidate.input';
+import { ShareCandidate } from '../list-shares/share-candidate.model';
 
 @Resolver(() => ListTemplate)
 export class ListTemplatesResolver {
@@ -33,6 +34,29 @@ export class ListTemplatesResolver {
   async myListTemplates(@CurrentUser() identity: Identity) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listTemplatesService.myListTemplates(user.id);
+  }
+
+  @Query(() => ListTemplate)
+  async listTemplate(
+    @CurrentUser() identity: Identity,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listTemplatesService.listTemplate(user.id, id);
+  }
+
+  @Query(() => [ShareCandidate])
+  async searchTemplateCandidates(
+    @CurrentUser() identity: Identity,
+    @Args('templateId', { type: () => ID }) templateId: string,
+    @Args('q', { type: () => String }) q: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listTemplatesService.searchTemplateCandidates(
+      user.id,
+      templateId,
+      q,
+    );
   }
 
   @Mutation(() => ListTemplate)

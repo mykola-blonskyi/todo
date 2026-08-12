@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@shared/lib/i18n/navigation';
 import { Button } from '@/shared/ui/components/button';
 import { Input } from '@/shared/ui/components/input';
+import { Badge } from '@/shared/ui/components/badge';
 import { ShareSearch, CollaboratorsList } from '@features/list-sharing';
 import {
   renameListAction,
@@ -60,6 +61,12 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
         />
         <Button type="submit">{t('saveButton')}</Button>
       </form>
+
+      {list.templateId ? (
+        <Badge variant="secondary" className="self-start">
+          {t('generatedFromTemplate')}
+        </Badge>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium text-muted-foreground">

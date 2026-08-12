@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { HubClientService } from '../hub/hub-client.service';
 import { ListTemplateRecurrenceType, ListTemplateStatus } from '@prisma/client';
 import type { ShareCandidateInput } from '../list-shares/share-candidate.input';
 
@@ -33,13 +34,27 @@ export class ListTemplatesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
+    private readonly hubClientService: HubClientService,
   ) {}
+
+  async searchTemplateCandidates(
+    ownerId: string,
+    templateId: string,
+    q: string,
+  ) {
+    await this.requireOwned(ownerId, templateId);
+    return this.hubClientService.searchProjectMembers(q);
+  }
 
   myListTemplates(ownerId: string) {
     return this.prisma.listTemplate.findMany({
       where: { ownerId },
       orderBy: { createdAt: 'asc' },
     });
+  }
+
+  async listTemplate(ownerId: string, id: string) {
+    return this.requireOwned(ownerId, id);
   }
 
   createListTemplate(ownerId: string, input: ListTemplateInput) {

@@ -80,10 +80,11 @@ describe('Occurrence spawning (GraphQL)', () => {
     return graphql<{
       spawnDueOccurrence: {
         id: string;
+        templateId: string | null;
         tasks: { title: string; done: boolean; dueDate: string | null }[];
       } | null;
     }>(
-      `mutation { spawnDueOccurrence(templateId: "${templateId}", now: "${now}") { id tasks { title done dueDate } } }`,
+      `mutation { spawnDueOccurrence(templateId: "${templateId}", now: "${now}") { id templateId tasks { title done dueDate } } }`,
       headers,
     );
   }
@@ -211,6 +212,7 @@ describe('Occurrence spawning (GraphQL)', () => {
       ]);
       expect(spawned.tasks.every((t) => t.done === false)).toBe(true);
       expect(spawned.tasks.every((t) => t.dueDate === null)).toBe(true);
+      expect(spawned.templateId).toBe(id);
     });
 
     it('does not carry over unfinished Tasks from a previous Occurrence', async () => {
