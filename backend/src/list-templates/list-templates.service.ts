@@ -125,7 +125,7 @@ export class ListTemplatesService {
   ) {
     await this.requireOwned(ownerId, templateId);
 
-    const collaborator = await this.usersService.findOrCreateByIdentity({
+    const collaborator = await this.usersService.findOrCreateCandidate({
       hubUserId: candidate.hubUserId,
       email: candidate.email,
       name: candidate.name ?? undefined,

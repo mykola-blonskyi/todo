@@ -323,6 +323,28 @@ describe('ListTemplate (GraphQL)', () => {
     expect(afterRemove.data?.myListTemplates[0].collaborators).toEqual([]);
   });
 
+  it("does not overwrite an existing user's real profile with a spoofed candidate", async () => {
+    // Plant the victim's real profile the normal way - any authenticated
+    // request upserts the caller's own shadow row via findOrCreateByIdentity.
+    const victim = asUser('victim-1', 'victim@example.com');
+    await createListTemplate(victim, 'Victims own template');
+
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+    const body = await graphql<{ addTemplateCollaborator: { id: string } }>(
+      `mutation { addTemplateCollaborator(templateId: "${id}", candidate: { hubUserId: "victim-1", email: "attacker-controlled@evil.example.com", name: "Spoofed Name", image: null }) { id } }`,
+      owner,
+    );
+    expect(body.errors).toBeUndefined();
+
+    const victimRow = await testDb.user.findUniqueOrThrow({
+      where: { hubUserId: 'victim-1' },
+    });
+    expect(victimRow.email).toBe('victim@example.com');
+    expect(victimRow.name).toBeNull();
+  });
+
   it('adding the same collaborator twice does not error (idempotent)', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
     const id = await createListTemplate(owner, 'Weekly Cleaning');
