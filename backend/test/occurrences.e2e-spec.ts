@@ -1,0 +1,283 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { App } from 'supertest/types';
+import { AppModule } from '../src/app.module';
+import { testDb } from './setup/db';
+
+interface GraphQLResponse<T> {
+  data: T | null;
+  errors?: { extensions: { code: string } }[];
+}
+
+describe('Occurrence spawning (GraphQL)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  function asUser(hubUserId: string, email: string) {
+    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  }
+
+  async function graphql<T>(query: string, headers: Record<string, string>) {
+    const res = await request(app.getHttpServer())
+      .post('/graphql')
+      .set(headers)
+      .send({ query });
+    return res.body as GraphQLResponse<T>;
+  }
+
+  interface CreateTemplateArgs {
+    title?: string;
+    taskTitles?: string[];
+    recurrenceType: 'daily' | 'weekly' | 'monthly' | 'everyNDays';
+    weekDays?: number[];
+    dayOfMonth?: number;
+    intervalDays?: number;
+    timezone?: string;
+  }
+
+  async function createListTemplate(
+    headers: Record<string, string>,
+    args: CreateTemplateArgs,
+  ) {
+    const taskTitles = args.taskTitles ?? ['Vacuum', 'Dishes'];
+    const parts = [
+      `title: "${args.title ?? 'Weekly Cleaning'}"`,
+      `taskTitles: [${taskTitles.map((t) => `"${t}"`).join(', ')}]`,
+      `recurrenceType: ${args.recurrenceType}`,
+      `timezone: "${args.timezone ?? 'UTC'}"`,
+    ];
+    if (args.weekDays) parts.push(`weekDays: [${args.weekDays.join(', ')}]`);
+    if (args.dayOfMonth !== undefined)
+      parts.push(`dayOfMonth: ${args.dayOfMonth}`);
+    if (args.intervalDays !== undefined)
+      parts.push(`intervalDays: ${args.intervalDays}`);
+
+    const body = await graphql<{ createListTemplate: { id: string } }>(
+      `mutation { createListTemplate(${parts.join(', ')}) { id } }`,
+      headers,
+    );
+    return body.data!.createListTemplate.id;
+  }
+
+  async function spawn(
+    headers: Record<string, string>,
+    templateId: string,
+    now: string,
+  ) {
+    return graphql<{
+      spawnDueOccurrence: {
+        id: string;
+        tasks: { title: string; done: boolean; dueDate: string | null }[];
+      } | null;
+    }>(
+      `mutation { spawnDueOccurrence(templateId: "${templateId}", now: "${now}") { id tasks { title done dueDate } } }`,
+      headers,
+    );
+  }
+
+  describe('daily', () => {
+    it('is due every day and never spawns twice on the same day', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, { recurrenceType: 'daily' });
+
+      const first = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      expect(first.errors).toBeUndefined();
+      expect(first.data?.spawnDueOccurrence).not.toBeNull();
+
+      const secondSameDay = await spawn(owner, id, '2026-03-10T20:00:00.000Z');
+      expect(secondSameDay.data?.spawnDueOccurrence).toBeNull();
+
+      const nextDay = await spawn(owner, id, '2026-03-11T09:00:00.000Z');
+      expect(nextDay.data?.spawnDueOccurrence).not.toBeNull();
+    });
+  });
+
+  describe('weekly', () => {
+    it('fires only on the configured weekdays', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      // 2026-03-10 is a Tuesday (weekday 2).
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'weekly',
+        weekDays: [2],
+      });
+
+      const wrongDay = await spawn(owner, id, '2026-03-09T09:00:00.000Z');
+      expect(wrongDay.data?.spawnDueOccurrence).toBeNull();
+
+      const rightDay = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      expect(rightDay.data?.spawnDueOccurrence).not.toBeNull();
+    });
+  });
+
+  describe('monthly', () => {
+    it('fires on the configured day of month', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'monthly',
+        dayOfMonth: 15,
+      });
+
+      const wrongDay = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      expect(wrongDay.data?.spawnDueOccurrence).toBeNull();
+
+      const rightDay = await spawn(owner, id, '2026-03-15T09:00:00.000Z');
+      expect(rightDay.data?.spawnDueOccurrence).not.toBeNull();
+    });
+
+    it('clamps a dayOfMonth beyond the month length to the last day, without skipping or rolling over', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'monthly',
+        dayOfMonth: 31,
+      });
+
+      // April has 30 days - the 30th should fire, the 1st of May should not
+      // (it must not roll over into the next month).
+      const notYet = await spawn(owner, id, '2026-04-29T09:00:00.000Z');
+      expect(notYet.data?.spawnDueOccurrence).toBeNull();
+
+      const clampedDay = await spawn(owner, id, '2026-04-30T09:00:00.000Z');
+      expect(clampedDay.data?.spawnDueOccurrence).not.toBeNull();
+
+      const nextMonthFirst = await spawn(owner, id, '2026-05-01T09:00:00.000Z');
+      expect(nextMonthFirst.data?.spawnDueOccurrence).toBeNull();
+    });
+  });
+
+  describe('everyNDays', () => {
+    it('fires immediately, then not again until the interval elapses', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'everyNDays',
+        intervalDays: 3,
+      });
+
+      const firstEver = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      expect(firstEver.data?.spawnDueOccurrence).not.toBeNull();
+
+      const tooSoon = await spawn(owner, id, '2026-03-12T09:00:00.000Z');
+      expect(tooSoon.data?.spawnDueOccurrence).toBeNull();
+
+      const afterInterval = await spawn(owner, id, '2026-03-13T09:00:00.000Z');
+      expect(afterInterval.data?.spawnDueOccurrence).not.toBeNull();
+    });
+  });
+
+  describe('timezone anchoring', () => {
+    it('evaluates the weekday in the template timezone, not UTC', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      // 2026-01-05T23:30:00Z is a Monday (weekday 1) in UTC, but already
+      // Tuesday (weekday 2) 13:30 local in Pacific/Kiritimati (UTC+14).
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'weekly',
+        weekDays: [2],
+        timezone: 'Pacific/Kiritimati',
+      });
+
+      const body = await spawn(owner, id, '2026-01-05T23:30:00.000Z');
+      expect(body.data?.spawnDueOccurrence).not.toBeNull();
+    });
+  });
+
+  describe('spawned List contents', () => {
+    it('creates exactly one List with fresh, undone Tasks matching current taskTitles', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'daily',
+        taskTitles: ['Vacuum', 'Dishes', 'Laundry'],
+      });
+
+      const body = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      const spawned = body.data!.spawnDueOccurrence!;
+
+      expect(spawned.tasks).toHaveLength(3);
+      expect(spawned.tasks.map((t) => t.title)).toEqual([
+        'Vacuum',
+        'Dishes',
+        'Laundry',
+      ]);
+      expect(spawned.tasks.every((t) => t.done === false)).toBe(true);
+      expect(spawned.tasks.every((t) => t.dueDate === null)).toBe(true);
+    });
+
+    it('does not carry over unfinished Tasks from a previous Occurrence', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, { recurrenceType: 'daily' });
+
+      const first = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      const firstListId = first.data!.spawnDueOccurrence!.id;
+
+      // Leave the first Occurrence's Tasks undone, then spawn the next one.
+      const second = await spawn(owner, id, '2026-03-11T09:00:00.000Z');
+      const secondSpawned = second.data!.spawnDueOccurrence!;
+
+      expect(secondSpawned.id).not.toBe(firstListId);
+      expect(secondSpawned.tasks.map((t) => t.title)).toEqual([
+        'Vacuum',
+        'Dishes',
+      ]);
+    });
+
+    it('gives every TemplateCollaborator an accepted ListShare on the spawned List', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, { recurrenceType: 'daily' });
+
+      const addCollaborator = await graphql<{
+        addTemplateCollaborator: { id: string };
+      }>(
+        `mutation { addTemplateCollaborator(templateId: "${id}", candidate: { hubUserId: "hub-2", email: "collab@example.com", name: "Collab" }) { id } }`,
+        owner,
+      );
+      expect(addCollaborator.errors).toBeUndefined();
+
+      const body = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      const spawned = body.data!.spawnDueOccurrence!;
+
+      const listShare = await testDb.listShare.findFirst({
+        where: { listId: spawned.id },
+        include: { user: true },
+      });
+      expect(listShare?.user.hubUserId).toBe('hub-2');
+      expect(listShare?.status).toBe('accepted');
+      expect(listShare?.respondedAt).not.toBeNull();
+    });
+  });
+
+  describe('paused templates', () => {
+    it('never spawns while status is paused', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, { recurrenceType: 'daily' });
+
+      await graphql(
+        `mutation { pauseListTemplate(id: "${id}") { id } }`,
+        owner,
+      );
+
+      const body = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      expect(body.data?.spawnDueOccurrence).toBeNull();
+    });
+  });
+
+  it('denies spawning for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const stranger = asUser('hub-2', 'stranger@example.com');
+    const id = await createListTemplate(owner, { recurrenceType: 'daily' });
+
+    const body = await spawn(stranger, id, '2026-03-10T09:00:00.000Z');
+    expect(body.data?.spawnDueOccurrence).toBeNull();
+    expect(body.errors).toBeDefined();
+  });
+});
