@@ -1,17 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ListShareStatus, ListTemplateStatus } from '@prisma/client';
+import {
+  List,
+  ListShareStatus,
+  ListTemplate,
+  ListTemplateStatus,
+  TemplateCollaborator,
+} from '@prisma/client';
 import { isDue } from './recurrence';
+
+type TemplateWithCollaborators = ListTemplate & {
+  templateCollaborators: TemplateCollaborator[];
+};
 
 @Injectable()
 export class OccurrencesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Rule 13/14: spawns an independent List (with fresh Tasks and accepted
-  // ListShares for the template's TemplateCollaborators) if the template is
-  // active and its recurrence rule is due at `now`. No cron here - `now` is
-  // an explicit parameter so this can be driven directly, by tests or by a
-  // future scheduler (TODO-28), without faking system time.
+  // GraphQL-facing entry point (owner-authorized) - see spawnForTemplate for
+  // the actual Rule 13/14 spawning logic, shared with the cron-driven
+  // spawnAllDueOccurrences below.
   async spawnDueOccurrence(ownerId: string, templateId: string, now: Date) {
     const template = await this.prisma.listTemplate.findUnique({
       where: { id: templateId },
@@ -21,6 +29,39 @@ export class OccurrencesService {
       throw new NotFoundException('ListTemplate not found');
     }
 
+    return this.spawnForTemplate(template, now);
+  }
+
+  // Cron-facing entry point (TODO-28) - no owner to authorize against, since
+  // this runs as the system itself on a schedule, not on behalf of a caller.
+  // Only fetches active templates; spawnForTemplate's own status check is
+  // still the source of truth for "paused templates spawn nothing" (Rule 18),
+  // this is just an optimization to avoid loading paused templates at all.
+  async spawnAllDueOccurrences(now: Date) {
+    const templates = await this.prisma.listTemplate.findMany({
+      where: { status: ListTemplateStatus.active },
+      include: { templateCollaborators: true },
+    });
+
+    const spawned: List[] = [];
+    for (const template of templates) {
+      const list = await this.spawnForTemplate(template, now);
+      if (list) {
+        spawned.push(list);
+      }
+    }
+    return spawned;
+  }
+
+  // Rule 13/14: spawns an independent List (with fresh Tasks and accepted
+  // ListShares for the template's TemplateCollaborators) if the template is
+  // active and its recurrence rule is due at `now`. `now` is an explicit
+  // parameter, not read from the system clock here, so both entry points
+  // above (and tests) can drive it directly without faking system time.
+  private async spawnForTemplate(
+    template: TemplateWithCollaborators,
+    now: Date,
+  ) {
     if (template.status !== ListTemplateStatus.active) {
       return null;
     }
