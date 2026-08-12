@@ -31,7 +31,7 @@ export class ListSharesService {
   ) {
     await this.listsService.requireOwned(ownerId, listId);
 
-    const invitee = await this.usersService.findOrCreateByIdentity({
+    const invitee = await this.usersService.findOrCreateCandidate({
       hubUserId: candidate.hubUserId,
       email: candidate.email,
       name: candidate.name ?? undefined,

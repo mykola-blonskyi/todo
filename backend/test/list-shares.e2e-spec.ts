@@ -181,6 +181,32 @@ describe('List Sharing (GraphQL)', () => {
       expect(body.data!.inviteToList.status).toBe(ListShareStatus.pending);
     });
 
+    it('does not overwrite an existing users real profile with a spoofed candidate', async () => {
+      // Plant the victim's real profile the normal way - any authenticated
+      // request upserts the caller's own shadow row via findOrCreateByIdentity.
+      const victim = asUser('victim-1', 'victim@example.com');
+      await createList(victim, 'Victims own list');
+
+      const { owner, listId } = await getOwnerAndList();
+
+      const body = await graphql<{ inviteToList: { id: string } }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "victim-1",
+          email: "attacker-controlled@evil.example.com",
+          name: "Spoofed Name",
+          image: null
+        } ) {id}}`,
+        owner,
+      );
+      expect(body.errors).toBeUndefined();
+
+      const victimRow = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'victim-1' },
+      });
+      expect(victimRow.email).toBe('victim@example.com');
+      expect(victimRow.name).toBeNull();
+    });
+
     it('denies inviteToList for a non-owner', async () => {
       const { listId } = await getOwnerAndList();
       const stranger = asUser('stranger-1', 'stranger@example.com');
