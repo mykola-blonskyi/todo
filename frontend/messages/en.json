@@ -2,6 +2,19 @@
   "Common": {
     "appName": "todolist"
   },
+  "ThemeSwitcher": {
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "rose": "Rose"
+  },
+  "LocaleSwitcher": {
+    "label": "Switch language",
+    "en": "English",
+    "ru": "Русский",
+    "uk": "Українська",
+    "es": "Español"
+  },
   "Lists": {
     "title": "Your Lists",
     "createPlaceholder": "New list title",
