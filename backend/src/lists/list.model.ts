@@ -25,5 +25,12 @@ export class List {
   @Field(() => [User])
   collaborators?: User[];
 
+  // Provenance only - set if this List was spawned by a ListTemplate
+  // Occurrence (knowledge/domain-model.md List.templateId), null for a
+  // manually-created List. Cleared, not cascaded, if the template is later
+  // deleted (business-rules.md Rule 17).
+  @Field(() => ID, { nullable: true })
+  templateId: string | null;
+
   ownerId: string;
 }

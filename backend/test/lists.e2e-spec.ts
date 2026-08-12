@@ -46,12 +46,15 @@ describe('List (GraphQL)', () => {
   }
 
   it('creates a List for the calling user', async () => {
-    const body = await graphql<{ createList: { id: string; title: string } }>(
+    const body = await graphql<{
+      createList: { id: string; title: string; templateId: string | null };
+    }>(
       `
         mutation {
           createList(title: "Groceries") {
             id
             title
+            templateId
           }
         }
       `,
@@ -60,6 +63,7 @@ describe('List (GraphQL)', () => {
 
     expect(body.errors).toBeUndefined();
     expect(body.data?.createList.title).toBe('Groceries');
+    expect(body.data?.createList.templateId).toBeNull();
   });
 
   it('rejects an empty or blank title', async () => {

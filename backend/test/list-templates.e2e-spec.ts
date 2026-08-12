@@ -137,6 +137,33 @@ describe('ListTemplate (GraphQL)', () => {
     expect(body.data?.myListTemplates).toEqual([{ title: 'Mine' }]);
   });
 
+  it('listTemplate returns a single template for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+    const body = await graphql<{ listTemplate: { id: string; title: string } }>(
+      `query { listTemplate(id: "${id}") { id title } }`,
+      owner,
+    );
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.listTemplate).toEqual({ id, title: 'Weekly Cleaning' });
+  });
+
+  it('denies listTemplate for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const other = asUser('hub-2', 'other@example.com');
+    const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+    const body = await graphql<{ listTemplate: unknown }>(
+      `query { listTemplate(id: "${id}") { id } }`,
+      other,
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
   it('updates only the provided fields, leaving the rest untouched', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
     const id = await createListTemplate(owner, 'Weekly Cleaning');
@@ -411,5 +438,53 @@ describe('ListTemplate (GraphQL)', () => {
 
     expect(body.data).toBeNull();
     expect(body.errors?.[0]).toBeDefined();
+  });
+
+  describe('searching for template candidates (searchTemplateCandidates)', () => {
+    const hubPayload = [
+      {
+        hubUserId: 'hub-user-1',
+        email: 'a@example.com',
+        name: 'A',
+        image: null,
+      },
+    ];
+
+    beforeEach(() => {
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns the candidates the hub returns', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+      const body = await graphql<{ searchTemplateCandidates: unknown[] }>(
+        `query {searchTemplateCandidates(templateId: "${id}", q: "a") {hubUserId email name image}}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data!.searchTemplateCandidates).toEqual(hubPayload);
+    });
+
+    it('denies searchTemplateCandidates for a non-owner', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const other = asUser('hub-2', 'other@example.com');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+      const body = await graphql<{ searchTemplateCandidates: unknown[] }>(
+        `query {searchTemplateCandidates(templateId: "${id}", q: "a") {hubUserId email name image}}`,
+        other,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
   });
 });

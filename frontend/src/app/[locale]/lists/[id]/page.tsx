@@ -24,6 +24,7 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
           isOwner
           tasks { id title done dueDate }
           collaborators { id email name image }
+          templateId
         }
       }`,
       { id },
