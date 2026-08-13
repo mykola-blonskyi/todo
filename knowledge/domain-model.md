@@ -75,12 +75,21 @@ Fields:
 - `weekDays` (nullable set of weekdays — only meaningful when `recurrenceType = weekly`)
 - `dayOfMonth` (nullable, 1–31 — only meaningful when `recurrenceType = monthly`; clamped to a
   given month's last day at occurrence time if that month is shorter, see Rule 16)
-- `intervalDays` (nullable positive integer — only meaningful when `recurrenceType = everyNDays`)
+- `streakDays` (nullable positive integer, default `1` — only meaningful when
+  `recurrenceType = everyNDays`) — how many consecutive days a Streak fires for (see Rule 25 and
+  [glossary.md](glossary.md))
+- `intervalDays` (nullable positive integer — only meaningful when `recurrenceType = everyNDays`) —
+  how many consecutive rest days follow each Streak before the next one starts (Rule 25)
+- `streakStartDate` (nullable date, defaults to `createdAt` — only meaningful when
+  `recurrenceType = everyNDays`) — anchors day zero of the Streak/rest cycle; pure calendar
+  arithmetic from this date determines which days are ON, independent of `lastSpawnedAt` (Rule 25)
 - `timezone` (IANA string, e.g. `Europe/Kyiv`) — captured once at creation; anchors what "day"
   means for this template's Occurrences, independent of the owner's own profile (see Rule 15)
 - `status` (enum: `active` / `paused`) — a paused template spawns nothing until resumed, but keeps
   its full configuration (Rule 18)
-- `lastSpawnedAt` (nullable) — used to compute the next Occurrence
+- `lastSpawnedAt` (nullable) — used only to enforce "never spawn twice on the same calendar day,"
+  uniformly across every `recurrenceType`; does **not** drive Streak position for `everyNDays`
+  (that's pure calendar math from `streakStartDate`, see Rule 25)
 
 Relationships:
 - N:1 with **User** (owner)

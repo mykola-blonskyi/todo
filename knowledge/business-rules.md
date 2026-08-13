@@ -209,3 +209,31 @@ A ListTemplate's optional default Category (see Rule 14 for the analogous Templa
 auto-share) is applied as the *owner's own* ListCategoryAssignment on every List the template
 spawns — never for TemplateCollaborators, consistent with categorization being per-User (Rule 22).
 A Collaborator on a spawned List always starts uncategorized for themselves.
+
+---
+
+## Rule 25 — `everyNDays` fires in Streaks, not single-day pulses
+
+A `recurrenceType = everyNDays` ListTemplate fires for `streakDays` consecutive days (a **Streak**,
+see [glossary.md](glossary.md)), then goes quiet for `intervalDays` consecutive days (the rest
+period), then repeats — each ON day within a Streak spawns its own independent Occurrence (Rule 13
+still applies per-day, not per-Streak). `streakDays = 1` is the degenerate case: a single-day pulse
+repeated every `1 + intervalDays` days, which is the entire behavior this recurrence type had before
+Streaks existed.
+
+Streak position is computed as pure calendar arithmetic anchored to `streakStartDate` (defaults to
+the template's `createdAt`, in the template's own `timezone` per Rule 15) — `daysSince(streakStartDate)
+mod (streakDays + intervalDays) < streakDays` means due. This is deliberately **not** self-healing:
+unlike a `lastSpawnedAt`-anchored check, if the spawn cron doesn't run during what should have been an
+ON day (e.g. a deploy outage), that day's Occurrence is gone for good — the next run just continues
+the calendar-position calculation, it doesn't detect or catch up a missed day. This matches how
+`weekly`/`monthly` already work (pure calendar position, no rolling state) rather than the older,
+now-superseded `lastSpawnedAt`-rolling approach `everyNDays` used before Streaks — a deliberate
+trade-off for determinism and consistency with its sibling recurrence types over resilience against
+scheduler downtime.
+
+Existing `everyNDays` templates created before Streaks shipped are **not** migrated: `intervalDays`
+changed meaning (it now means rest-days-only, not full cycle length) with no backfill, so a
+template's firing cadence may shift once this ships. Accepted as low-impact given how few templates
+exist at this stage of the project — not a precedent for skipping migrations on future breaking
+field-meaning changes.

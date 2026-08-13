@@ -88,10 +88,11 @@ that User specifically — not a repo-wide state.
 
 A reusable, editable recipe, owned by one User, that spawns a brand-new List every time its
 recurrence rule fires: a fixed checklist of Task titles, a recurrence rule (daily / weekly on chosen
-weekdays / monthly on a chosen day / every N days), a timezone anchoring what "day" means for it, an
-`active`/`paused` status, and a set of default Collaborators auto-shared onto every List it spawns.
-Editing a ListTemplate only affects its future Occurrences — Lists it already spawned are untouched.
-Distinct from a **List** itself — a ListTemplate never holds Tasks directly, it only produces Lists.
+weekdays / monthly on a chosen day / every N days, the last of which fires in **Streaks** — see
+below), a timezone anchoring what "day" means for it, an `active`/`paused` status, and a set of
+default Collaborators auto-shared onto every List it spawns. Editing a ListTemplate only affects its
+future Occurrences — Lists it already spawned are untouched. Distinct from a **List** itself — a
+ListTemplate never holds Tasks directly, it only produces Lists.
 _Avoid_: Recurring List (conflates the template with the Lists it produces — they're different
 things with different lifecycles)
 
@@ -101,7 +102,20 @@ things with different lifecycles)
 
 A single scheduled firing of a ListTemplate's recurrence rule, producing exactly one new List.
 "Next occurrence" means the next date/time (in the template's own timezone) a new List will be
-spawned.
+spawned. Within a Streak, each ON day is still its own Occurrence — a 2-day Streak produces two
+Occurrences, not one.
+
+---
+
+### Streak
+
+For an `everyNDays` ListTemplate, a run of consecutive ON days (`streakDays` long) during which the
+template fires once per day, followed by a run of consecutive rest days (`intervalDays` long) during
+which it doesn't fire — the whole ON-then-rest span repeats indefinitely from `streakStartDate`. A
+plain "every 3 days" pulse is the degenerate case where the Streak is 1 day long. See Rule 25 in
+[business-rules.md](business-rules.md) for the exact firing math.
+_Avoid_: Cycle (used informally above to mean "one Streak + its following rest period," but not
+established as its own glossary term — don't introduce it as a formal noun without a reason to)
 
 ---
 
