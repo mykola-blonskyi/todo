@@ -15,6 +15,14 @@
     "uk": "Українська",
     "es": "Español"
   },
+  "Settings": {
+    "title": "Налаштування",
+    "googleCalendarTitle": "Google Календар",
+    "connectButton": "Підключити Google Календар",
+    "connected": "Підключено",
+    "connectSuccess": "Google Календар підключено.",
+    "connectError": "Не вдалося підключити Google Календар. Спробуйте ще раз."
+  },
   "Lists": {
     "title": "Ваші списки",
     "createPlaceholder": "Назва нового списку",

@@ -16,6 +16,7 @@ import { ListTemplatesModule } from './list-templates/list-templates.module';
 import { OccurrencesModule } from './occurrences/occurrences.module';
 import { HubModule } from './hub/hub.module';
 import { CommentsModule } from './comments/comments.module';
+import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
 @Module({
@@ -52,6 +53,7 @@ import { GraphQLError, GraphQLFormattedError } from 'graphql';
     OccurrencesModule,
     HubModule,
     CommentsModule,
+    GoogleCalendarModule,
   ],
   controllers: [AppController],
   providers: [

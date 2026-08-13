@@ -237,3 +237,18 @@ changed meaning (it now means rest-days-only, not full cycle length) with no bac
 template's firing cadence may shift once this ships. Accepted as low-impact given how few templates
 exist at this stage of the project — not a precedent for skipping migrations on future breaking
 field-meaning changes.
+
+---
+
+## Rule 26 — GoogleCalendarConnection tokens are encrypted at rest with AES-256-GCM
+
+`GoogleCalendarConnection.accessToken`/`refreshToken` are never stored in plaintext (ADR-004). Each
+value is encrypted individually with AES-256-GCM, a fresh random IV per encryption, keyed by the
+`TOKEN_ENCRYPTION_KEY` env var (32 raw bytes, base64-encoded). The key is generated per environment
+(dev/prod each get their own) and is never derived from or shared with the hub's own secrets — only
+`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are reused from the hub (ADR-004); the encryption key is
+todolist's own.
+
+Google only re-issues a `refresh_token` when the consent screen is forced (`prompt=consent`, which
+the connect flow always sets) — a reconnect that omits one from Google's response keeps the
+previously-stored (still encrypted) `refreshToken` rather than overwriting it with nothing.
