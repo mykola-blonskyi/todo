@@ -61,7 +61,7 @@ export default async function LocaleLayout({
           themes={['light', 'dark', 'theme-rose']}
           disableTransitionOnChange
         >
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <QueryProvider>
               <Header locale={locale} />
               {children}
