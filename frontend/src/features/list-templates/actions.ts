@@ -14,13 +14,15 @@ export interface TemplateFormInput {
   weekDays?: number[];
   dayOfMonth?: number | null;
   intervalDays?: number | null;
+  streakDays?: number | null;
+  streakStartDate?: string | null;
   timezone: string;
 }
 
 export async function createListTemplateAction(input: TemplateFormInput) {
   const data = await graphqlFetch<{ createListTemplate: { id: string } }>(
-    `mutation CreateListTemplate($title: String!, $taskTitles: [String!]!, $recurrenceType: ListTemplateRecurrenceType!, $timezone: String!, $weekDays: [Int!], $dayOfMonth: Int, $intervalDays: Int) {
-      createListTemplate(title: $title, taskTitles: $taskTitles, recurrenceType: $recurrenceType, timezone: $timezone, weekDays: $weekDays, dayOfMonth: $dayOfMonth, intervalDays: $intervalDays) { id }
+    `mutation CreateListTemplate($title: String!, $taskTitles: [String!]!, $recurrenceType: ListTemplateRecurrenceType!, $timezone: String!, $weekDays: [Int!], $dayOfMonth: Int, $intervalDays: Int, $streakDays: Int, $streakStartDate: DateTime) {
+      createListTemplate(title: $title, taskTitles: $taskTitles, recurrenceType: $recurrenceType, timezone: $timezone, weekDays: $weekDays, dayOfMonth: $dayOfMonth, intervalDays: $intervalDays, streakDays: $streakDays, streakStartDate: $streakStartDate) { id }
     }`,
     { ...input },
   );
@@ -35,8 +37,8 @@ export async function updateListTemplateAction(
   input: TemplateFormInput,
 ) {
   await graphqlFetch(
-    `mutation UpdateListTemplate($id: ID!, $title: String, $taskTitles: [String!], $recurrenceType: ListTemplateRecurrenceType, $timezone: String, $weekDays: [Int!], $dayOfMonth: Int, $intervalDays: Int) {
-      updateListTemplate(id: $id, title: $title, taskTitles: $taskTitles, recurrenceType: $recurrenceType, timezone: $timezone, weekDays: $weekDays, dayOfMonth: $dayOfMonth, intervalDays: $intervalDays) { id }
+    `mutation UpdateListTemplate($id: ID!, $title: String, $taskTitles: [String!], $recurrenceType: ListTemplateRecurrenceType, $timezone: String, $weekDays: [Int!], $dayOfMonth: Int, $intervalDays: Int, $streakDays: Int, $streakStartDate: DateTime) {
+      updateListTemplate(id: $id, title: $title, taskTitles: $taskTitles, recurrenceType: $recurrenceType, timezone: $timezone, weekDays: $weekDays, dayOfMonth: $dayOfMonth, intervalDays: $intervalDays, streakDays: $streakDays, streakStartDate: $streakStartDate) { id }
     }`,
     { ...input, id },
   );

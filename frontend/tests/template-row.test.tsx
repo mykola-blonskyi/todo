@@ -24,6 +24,8 @@ const activeTemplate: ListTemplate = {
   weekDays: [],
   dayOfMonth: null,
   intervalDays: null,
+  streakDays: null,
+  streakStartDate: null,
   timezone: 'UTC',
   status: 'active',
   collaborators: [],

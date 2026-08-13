@@ -5,8 +5,11 @@ interface RecurrenceTemplate {
   weekDays: number[];
   dayOfMonth: number | null;
   intervalDays: number | null;
+  streakDays: number | null;
+  streakStartDate: Date | null;
   timezone: string;
   lastSpawnedAt: Date | null;
+  createdAt: Date;
 }
 
 interface YMD {
@@ -77,10 +80,23 @@ export function isDue(template: RecurrenceTemplate, now: Date): boolean {
       );
       return today.day === clampedDay;
     }
-    case ListTemplateRecurrenceType.everyNDays:
-      return (
-        !lastSpawned ||
-        daysBetween(lastSpawned, today) >= (template.intervalDays ?? 1)
+    case ListTemplateRecurrenceType.everyNDays: {
+      // Rule 25 (business-rules.md): fires for `streakDays` consecutive days,
+      // then rests for `intervalDays` days, repeating from `streakStartDate`
+      // - pure calendar arithmetic, deliberately independent of
+      // `lastSpawnedAt` (that's only used above for the same-day guard).
+      const streakLength = template.streakDays ?? 1;
+      const restLength = template.intervalDays ?? 0;
+      const cycleLength = streakLength + restLength;
+      const anchor = zonedYMD(
+        template.streakStartDate ?? template.createdAt,
+        template.timezone,
       );
+      const daysSinceAnchor = daysBetween(anchor, today);
+      if (daysSinceAnchor < 0) {
+        return false;
+      }
+      return daysSinceAnchor % cycleLength < streakLength;
+    }
   }
 }

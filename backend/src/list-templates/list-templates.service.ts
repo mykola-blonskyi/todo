@@ -16,6 +16,8 @@ interface ListTemplateInput {
   weekDays?: number[];
   dayOfMonth?: number | null;
   intervalDays?: number | null;
+  streakDays?: number | null;
+  streakStartDate?: Date | null;
   timezone: string;
 }
 
@@ -26,6 +28,8 @@ interface ListTemplateUpdate {
   weekDays?: number[];
   dayOfMonth?: number | null;
   intervalDays?: number | null;
+  streakDays?: number | null;
+  streakStartDate?: Date | null;
   timezone?: string;
 }
 
@@ -67,6 +71,8 @@ export class ListTemplatesService {
         weekDays: input.weekDays ?? [],
         dayOfMonth: input.dayOfMonth ?? null,
         intervalDays: input.intervalDays ?? null,
+        streakDays: this.requireStreakDays(input.streakDays),
+        streakStartDate: input.streakStartDate ?? null,
         timezone: input.timezone,
       },
     });
@@ -97,6 +103,12 @@ export class ListTemplatesService {
         }),
         ...(updates.intervalDays !== undefined && {
           intervalDays: updates.intervalDays,
+        }),
+        ...(updates.streakDays !== undefined && {
+          streakDays: this.requireStreakDays(updates.streakDays),
+        }),
+        ...(updates.streakStartDate !== undefined && {
+          streakStartDate: updates.streakStartDate,
         }),
         ...(updates.timezone !== undefined && { timezone: updates.timezone }),
       },
@@ -186,6 +198,18 @@ export class ListTemplatesService {
       throw new BadRequestException('ListTemplate title must not be empty');
     }
     return trimmed;
+  }
+
+  private requireStreakDays(
+    streakDays: number | null | undefined,
+  ): number | null {
+    if (streakDays == null) {
+      return null;
+    }
+    if (!Number.isInteger(streakDays) || streakDays < 1) {
+      throw new BadRequestException('streakDays must be a positive integer');
+    }
+    return streakDays;
   }
 
   private async requireOwned(ownerId: string, id: string) {

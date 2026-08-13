@@ -15,12 +15,15 @@ describe('TemplateForm', () => {
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
   });
 
-  it('does not show weekday/day-of-month/interval fields by default (daily)', () => {
+  it('does not show weekday/day-of-month/streak fields by default (daily)', () => {
     renderWithIntl(<TemplateForm onSubmit={vi.fn()} submitLabel="Create" />);
 
     expect(screen.queryByText('On these days')).not.toBeInTheDocument();
     expect(screen.queryByText('Day of month')).not.toBeInTheDocument();
-    expect(screen.queryByText('Interval (days)')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Rest days between streaks'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Days in a row')).not.toBeInTheDocument();
   });
 
   it('shows the weekday picker when editing a weekly template', () => {
@@ -60,7 +63,7 @@ describe('TemplateForm', () => {
     expect(screen.getByText('Day of month')).toBeInTheDocument();
   });
 
-  it('shows the interval field when editing an every-N-days template', () => {
+  it('shows the streak fields when editing an every-N-days template', () => {
     renderWithIntl(
       <TemplateForm
         onSubmit={vi.fn()}
@@ -70,12 +73,37 @@ describe('TemplateForm', () => {
           taskTitles: ['Water plants'],
           recurrenceType: 'everyNDays',
           intervalDays: 3,
+          streakDays: 2,
+          streakStartDate: '2026-03-10T00:00:00.000Z',
           timezone: 'UTC',
         }}
       />,
     );
 
-    expect(screen.getByLabelText('Interval (days)')).toHaveValue(3);
+    expect(screen.getByLabelText('Rest days between streaks')).toHaveValue(3);
+    expect(screen.getByLabelText('Days in a row')).toHaveValue(2);
+    expect(screen.getByLabelText('Start date (optional)')).toHaveValue(
+      '2026-03-10',
+    );
+  });
+
+  it('defaults streakDays to 1 and leaves the start date blank for a new every-N-days template', () => {
+    renderWithIntl(
+      <TemplateForm
+        onSubmit={vi.fn()}
+        submitLabel="Create"
+        initialValues={{
+          title: 'Watering',
+          taskTitles: ['Water plants'],
+          recurrenceType: 'everyNDays',
+          intervalDays: 0,
+          timezone: 'UTC',
+        }}
+      />,
+    );
+
+    expect(screen.getByLabelText('Days in a row')).toHaveValue(1);
+    expect(screen.getByLabelText('Start date (optional)')).toHaveValue('');
   });
 
   it('adds and removes task title rows', async () => {
@@ -109,7 +137,43 @@ describe('TemplateForm', () => {
       weekDays: undefined,
       dayOfMonth: undefined,
       intervalDays: undefined,
+      streakDays: undefined,
+      streakStartDate: undefined,
       timezone: 'Europe/Kyiv',
     });
+  });
+
+  it('submits streakDays/intervalDays/streakStartDate for an every-N-days template', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderWithIntl(
+      <TemplateForm
+        onSubmit={onSubmit}
+        submitLabel="Save"
+        initialValues={{
+          title: 'Watering',
+          taskTitles: ['Water plants'],
+          recurrenceType: 'everyNDays',
+          intervalDays: 2,
+          streakDays: 2,
+          timezone: 'UTC',
+        }}
+      />,
+    );
+
+    await user.type(
+      screen.getByLabelText('Start date (optional)'),
+      '2026-03-10',
+    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recurrenceType: 'everyNDays',
+        streakDays: 2,
+        intervalDays: 2,
+        streakStartDate: '2026-03-10',
+      }),
+    );
   });
 });

@@ -19,7 +19,7 @@ type Translate = (
 export function recurrenceSummary(
   template: Pick<
     ListTemplate,
-    'recurrenceType' | 'weekDays' | 'dayOfMonth' | 'intervalDays'
+    'recurrenceType' | 'weekDays' | 'dayOfMonth' | 'intervalDays' | 'streakDays'
   >,
   locale: string,
   t: Translate,
@@ -34,9 +34,16 @@ export function recurrenceSummary(
     }
     case 'monthly':
       return t('recurrenceSummaryMonthly', { day: template.dayOfMonth ?? 1 });
-    case 'everyNDays':
-      return t('recurrenceSummaryEveryNDays', {
-        interval: template.intervalDays ?? 1,
-      });
+    case 'everyNDays': {
+      const streakDays = template.streakDays ?? 1;
+      const restDays = template.intervalDays ?? 0;
+      // A 1-day Streak is the plain "every N days" pulse (Rule 25) - N is
+      // the full cycle length (the Streak day plus its rest days), not the
+      // raw rest-day count alone.
+      if (streakDays <= 1) {
+        return t('recurrenceSummaryEveryNDays', { interval: 1 + restDays });
+      }
+      return t('recurrenceSummaryStreak', { on: streakDays, off: restDays });
+    }
   }
 }

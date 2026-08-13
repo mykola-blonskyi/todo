@@ -45,6 +45,8 @@ describe('Occurrence spawning (GraphQL)', () => {
     weekDays?: number[];
     dayOfMonth?: number;
     intervalDays?: number;
+    streakDays?: number;
+    streakStartDate?: string;
     timezone?: string;
   }
 
@@ -64,6 +66,10 @@ describe('Occurrence spawning (GraphQL)', () => {
       parts.push(`dayOfMonth: ${args.dayOfMonth}`);
     if (args.intervalDays !== undefined)
       parts.push(`intervalDays: ${args.intervalDays}`);
+    if (args.streakDays !== undefined)
+      parts.push(`streakDays: ${args.streakDays}`);
+    if (args.streakStartDate !== undefined)
+      parts.push(`streakStartDate: "${args.streakStartDate}"`);
 
     const body = await graphql<{ createListTemplate: { id: string } }>(
       `mutation { createListTemplate(${parts.join(', ')}) { id } }`,
@@ -159,11 +165,15 @@ describe('Occurrence spawning (GraphQL)', () => {
   });
 
   describe('everyNDays', () => {
-    it('fires immediately, then not again until the interval elapses', async () => {
+    it('with streakDays=1 (default), fires on the anchor day then not again until the rest period elapses', async () => {
       const owner = asUser('hub-1', 'owner@example.com');
+      // Rule 25: intervalDays is rest-days-only. streakDays defaults to 1,
+      // so cycle length = 1 + 3 = 4 days: due on day 0, then not again
+      // until day 4.
       const id = await createListTemplate(owner, {
         recurrenceType: 'everyNDays',
         intervalDays: 3,
+        streakStartDate: '2026-03-10',
       });
 
       const firstEver = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
@@ -172,8 +182,90 @@ describe('Occurrence spawning (GraphQL)', () => {
       const tooSoon = await spawn(owner, id, '2026-03-12T09:00:00.000Z');
       expect(tooSoon.data?.spawnDueOccurrence).toBeNull();
 
-      const afterInterval = await spawn(owner, id, '2026-03-13T09:00:00.000Z');
-      expect(afterInterval.data?.spawnDueOccurrence).not.toBeNull();
+      const stillTooSoon = await spawn(owner, id, '2026-03-13T09:00:00.000Z');
+      expect(stillTooSoon.data?.spawnDueOccurrence).toBeNull();
+
+      const nextCycle = await spawn(owner, id, '2026-03-14T09:00:00.000Z');
+      expect(nextCycle.data?.spawnDueOccurrence).not.toBeNull();
+    });
+
+    it('fires nothing before the streakStartDate', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'everyNDays',
+        intervalDays: 3,
+        streakStartDate: '2026-03-10',
+      });
+
+      const beforeAnchor = await spawn(owner, id, '2026-03-09T09:00:00.000Z');
+      expect(beforeAnchor.data?.spawnDueOccurrence).toBeNull();
+    });
+
+    it('with a multi-day streakDays, fires on each ON day and stays silent on each rest day across a full cycle', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      // 2 days on, 2 days off, starting 2026-03-10 (Tue): Tue+Wed ON,
+      // Thu+Fri OFF, Sat+Sun ON again.
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'everyNDays',
+        streakDays: 2,
+        intervalDays: 2,
+        streakStartDate: '2026-03-10',
+      });
+
+      const day0 = await spawn(owner, id, '2026-03-10T09:00:00.000Z'); // Tue - ON
+      expect(day0.data?.spawnDueOccurrence).not.toBeNull();
+
+      const day1 = await spawn(owner, id, '2026-03-11T09:00:00.000Z'); // Wed - ON
+      expect(day1.data?.spawnDueOccurrence).not.toBeNull();
+
+      const day2 = await spawn(owner, id, '2026-03-12T09:00:00.000Z'); // Thu - OFF
+      expect(day2.data?.spawnDueOccurrence).toBeNull();
+
+      const day3 = await spawn(owner, id, '2026-03-13T09:00:00.000Z'); // Fri - OFF
+      expect(day3.data?.spawnDueOccurrence).toBeNull();
+
+      const day4 = await spawn(owner, id, '2026-03-14T09:00:00.000Z'); // Sat - ON (next cycle)
+      expect(day4.data?.spawnDueOccurrence).not.toBeNull();
+
+      const day5 = await spawn(owner, id, '2026-03-15T09:00:00.000Z'); // Sun - ON
+      expect(day5.data?.spawnDueOccurrence).not.toBeNull();
+    });
+
+    it('never spawns twice on the same calendar day, even mid-streak', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'everyNDays',
+        streakDays: 2,
+        intervalDays: 2,
+        streakStartDate: '2026-03-10',
+      });
+
+      const morning = await spawn(owner, id, '2026-03-11T09:00:00.000Z');
+      expect(morning.data?.spawnDueOccurrence).not.toBeNull();
+
+      const evening = await spawn(owner, id, '2026-03-11T20:00:00.000Z');
+      expect(evening.data?.spawnDueOccurrence).toBeNull();
+    });
+
+    it('does not self-heal a skipped calendar day - a missed ON day is never caught up later', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      // streakDays=1, intervalDays=2 -> cycle 3: ON day 0, OFF days 1-2,
+      // ON day 3. Skip straight past day 3 (never call spawn for it) to
+      // simulate a missed cron run, then check day 4 - which should be OFF
+      // (day 4 % 3 = 1), proving day 3's ON-ness wasn't carried forward.
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'everyNDays',
+        intervalDays: 2,
+        streakStartDate: '2026-03-10',
+      });
+
+      const day0 = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      expect(day0.data?.spawnDueOccurrence).not.toBeNull();
+
+      // Day 3 (2026-03-13) is skipped entirely - never called.
+
+      const day4 = await spawn(owner, id, '2026-03-14T09:00:00.000Z');
+      expect(day4.data?.spawnDueOccurrence).toBeNull();
     });
   });
 
