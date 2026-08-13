@@ -441,3 +441,57 @@ Lists. See `knowledge/domain-model.md` (`ListTemplate`, `TemplateCollaborator`) 
   — this is new schema surface scoped only to templates, not the User entity
 - A background scheduler (checking due Occurrences and spawning Lists) is required — not yet
   designed; this ADR covers the data model and cascade semantics, not the job-running mechanism
+
+---
+
+## ADR-014: `everyNDays` fires in Streaks (consecutive ON days), computed as pure calendar math
+
+Date: 2026-08-13
+
+Status: Accepted
+
+### Context
+A ListTemplate's `everyNDays` recurrence originally fired a single day, then waited `intervalDays`
+days, then fired again — anchored to `lastSpawnedAt` (self-healing: a missed cron run just meant the
+next run correctly measured "days since we last actually fired"). A request came in for a pattern
+like "on for 2 days, off for 2 days, repeat" (e.g. an alternating-days chore schedule) — which the
+existing single-day-pulse model can't express at all.
+
+### Decision
+Generalize `everyNDays` rather than add a fifth `recurrenceType`: a new `streakDays` field (default
+`1`) says how many consecutive days the template fires for — a **Streak** (see
+`knowledge/glossary.md`) — before going quiet for `intervalDays` consecutive rest days and
+repeating. `intervalDays` is redefined to mean rest-days-only (previously: full cycle length); the
+old single-pulse behavior is exactly `streakDays = 1`. A new `streakStartDate` field (defaults to
+`createdAt`) anchors day zero of the Streak/rest cycle. Firing becomes pure calendar arithmetic —
+`daysSince(streakStartDate) mod (streakDays + intervalDays) < streakDays` — matching how
+`weekly`/`monthly` already work, rather than the old `lastSpawnedAt`-rolling approach. See
+`knowledge/domain-model.md` (`ListTemplate`) and `knowledge/business-rules.md` Rule 25.
+
+### Alternatives Considered
+- **New `recurrenceType` (e.g. `cyclic`) alongside the untouched `everyNDays`** — rejected: the
+  existing single-day pulse is structurally just `streakDays = 1` of the same pattern; a separate
+  type would duplicate the due-check logic for what's really one concept, and grows the public enum
+  for no behavioral gain.
+- **Keep `intervalDays` meaning "full cycle length"** (so `streakDays=2, intervalDays=4` reads as "2
+  on out of every 4") — rejected: reads backwards against the field's own name once a Streak can be
+  longer than one day, and forcing `intervalDays ≥ streakDays` as a validation constraint is more
+  surprising than just letting `intervalDays` mean what it says (rest days).
+- **Migrate existing `everyNDays` templates' `intervalDays` down by one** to preserve their exact
+  original cycle length under the new meaning — rejected for now: judged not worth a backfill
+  migration given how few templates exist at this stage of the project. Explicitly not a precedent
+  for skipping migrations once real user data is at stake.
+- **Keep the `lastSpawnedAt`-rolling, self-healing due-check** (catches up a Streak day missed by
+  scheduler downtime) — rejected in favor of deterministic calendar math: simpler to reason about,
+  consistent with the other three recurrence types, and a missed-cron edge case is judged rarer and
+  lower-stakes than the complexity of merging two different anchoring strategies in one due-check.
+
+### Consequences
+- `intervalDays`'s meaning changes for every already-existing `everyNDays` template with no data
+  migration — their firing cadence may shift the moment this ships (accepted, see above)
+- `everyNDays` no longer depends on `lastSpawnedAt` for its due-check (only the universal
+  same-calendar-day dedup guard still reads it) — a missed cron run silently skips that Streak day
+  rather than catching it up later, a real (accepted) reliability trade-off
+- `streakStartDate` is genuinely new schema surface with no equivalent in the other three
+  recurrence types, which anchor purely off the calendar (today's weekday/day-of-month) with no
+  stored "day zero" of their own
