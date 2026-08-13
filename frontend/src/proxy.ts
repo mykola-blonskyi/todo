@@ -110,27 +110,23 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const intlResponse = intlMiddleware(request);
+  // Mutate the request's own headers before handing off to next-intl's
+  // middleware, rather than building a fresh NextResponse afterwards from
+  // request.headers - next-intl's middleware carries the locale it resolved
+  // forward via a header on the NextResponse *it* constructs internally,
+  // which isn't readable back out. Rebuilding a response afterward (the
+  // previous approach here) silently dropped that header on every request,
+  // so getRequestConfig always fell back to the default locale downstream -
+  // confirmed via raw SSR HTML: non-default-locale URLs rendered English
+  // content despite the correct NEXT_LOCALE cookie being set (TODO-48).
+  // Mutating request.headers here, before intlMiddleware reads them, means
+  // next-intl's own header ends up in the same response it returns, and
+  // that response (redirect or next()) can just be returned directly - no
+  // separate rebuild or manual cookie-copying required.
+  request.headers.set('x-user-id', identity.userId);
+  request.headers.set('x-user-email', identity.email);
 
-  // A redirect (locale-prefix correction) never reaches a Server Component -
-  // nothing to forward identity into, return it as-is.
-  if (!intlResponse.ok) {
-    return intlResponse;
-  }
-
-  // The documented mechanism for making middleware-derived data visible to
-  // Server Components via headers(). Carries over any cookies next-intl's
-  // own response set (e.g. NEXT_LOCALE) so that side effect isn't lost.
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-user-id', identity.userId);
-  requestHeaders.set('x-user-email', identity.email);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  intlResponse.cookies.getAll().forEach((cookie) => {
-    response.cookies.set(cookie);
-  });
-
-  return response;
+  return intlMiddleware(request);
 }
 
 export const config = {
