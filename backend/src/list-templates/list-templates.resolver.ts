@@ -73,6 +73,10 @@ export class ListTemplatesResolver {
     dayOfMonth?: number,
     @Args('intervalDays', { type: () => Int, nullable: true })
     intervalDays?: number,
+    @Args('streakDays', { type: () => Int, nullable: true })
+    streakDays?: number,
+    @Args('streakStartDate', { type: () => Date, nullable: true })
+    streakStartDate?: Date,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listTemplatesService.createListTemplate(user.id, {
@@ -83,6 +87,8 @@ export class ListTemplatesResolver {
       weekDays,
       dayOfMonth,
       intervalDays,
+      streakDays,
+      streakStartDate,
     });
   }
 
@@ -104,6 +110,10 @@ export class ListTemplatesResolver {
     dayOfMonth?: number,
     @Args('intervalDays', { type: () => Int, nullable: true })
     intervalDays?: number,
+    @Args('streakDays', { type: () => Int, nullable: true })
+    streakDays?: number,
+    @Args('streakStartDate', { type: () => Date, nullable: true })
+    streakStartDate?: Date,
     @Args('timezone', { nullable: true }) timezone?: string,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
@@ -114,6 +124,8 @@ export class ListTemplatesResolver {
       weekDays,
       dayOfMonth,
       intervalDays,
+      streakDays,
+      streakStartDate,
       timezone,
     });
   }

@@ -49,6 +49,12 @@ export function TemplateForm({
   const [intervalDays, setIntervalDays] = useState(
     initialValues?.intervalDays ?? 1,
   );
+  const [streakDays, setStreakDays] = useState(initialValues?.streakDays ?? 1);
+  const [streakStartDate, setStreakStartDate] = useState(
+    initialValues?.streakStartDate
+      ? initialValues.streakStartDate.slice(0, 10)
+      : '',
+  );
   const [timezone, setTimezone] = useState(
     initialValues?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
@@ -84,6 +90,11 @@ export function TemplateForm({
         dayOfMonth: recurrenceType === 'monthly' ? dayOfMonth : undefined,
         intervalDays:
           recurrenceType === 'everyNDays' ? intervalDays : undefined,
+        streakDays: recurrenceType === 'everyNDays' ? streakDays : undefined,
+        streakStartDate:
+          recurrenceType === 'everyNDays' && streakStartDate
+            ? streakStartDate
+            : undefined,
         timezone,
       });
     });
@@ -199,19 +210,46 @@ export function TemplateForm({
       ) : null}
 
       {recurrenceType === 'everyNDays' ? (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="template-interval-days">
-            {t('intervalDaysLabel')}
-          </Label>
-          <Input
-            id="template-interval-days"
-            type="number"
-            min={1}
-            value={intervalDays}
-            onChange={(event) => setIntervalDays(Number(event.target.value))}
-            className="w-24"
-          />
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="template-streak-days">{t('streakDaysLabel')}</Label>
+            <Input
+              id="template-streak-days"
+              type="number"
+              min={1}
+              value={streakDays}
+              onChange={(event) => setStreakDays(Number(event.target.value))}
+              className="w-24"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="template-interval-days">
+              {t('intervalDaysLabel')}
+            </Label>
+            <Input
+              id="template-interval-days"
+              type="number"
+              min={0}
+              value={intervalDays}
+              onChange={(event) => setIntervalDays(Number(event.target.value))}
+              className="w-24"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="template-streak-start-date">
+              {t('streakStartDateLabel')}
+            </Label>
+            <Input
+              id="template-streak-start-date"
+              type="date"
+              value={streakStartDate}
+              onChange={(event) => setStreakStartDate(event.target.value)}
+              className="w-48"
+            />
+          </div>
+        </>
       ) : null}
 
       <div className="flex flex-col gap-2">

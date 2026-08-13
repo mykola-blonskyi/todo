@@ -29,6 +29,12 @@ export class ListTemplate {
   @Field(() => Int, { nullable: true })
   intervalDays: number | null;
 
+  @Field(() => Int, { nullable: true })
+  streakDays: number | null;
+
+  @Field(() => Date, { nullable: true })
+  streakStartDate: Date | null;
+
   @Field()
   timezone: string;
 

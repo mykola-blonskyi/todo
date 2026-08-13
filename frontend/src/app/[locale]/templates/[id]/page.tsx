@@ -32,6 +32,8 @@ export default async function TemplateDetailPage({
           weekDays
           dayOfMonth
           intervalDays
+          streakDays
+          streakStartDate
           timezone
           status
           collaborators { id email name image }

@@ -11,6 +11,8 @@ export interface ListTemplate {
   weekDays: number[];
   dayOfMonth: number | null;
   intervalDays: number | null;
+  streakDays: number | null;
+  streakStartDate: string | null;
   timezone: string;
   status: TemplateStatus;
   collaborators: Collaborator[];

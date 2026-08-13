@@ -197,22 +197,28 @@ enum ListTemplateStatus {
 }
 
 model ListTemplate {
-  id             String                     @id @default(uuid())
-  title          String
-  taskTitles     String[]                   @default([])
-  recurrenceType ListTemplateRecurrenceType
+  id              String                     @id @default(uuid())
+  title           String
+  taskTitles      String[]                   @default([])
+  recurrenceType  ListTemplateRecurrenceType
   // Only meaningful for the matching recurrenceType (weekly/monthly/
   // everyNDays respectively) - enforced at the application layer, not a DB
   // constraint, same pattern as Comment's taskId/listId. weekDays: 0=Sunday
   // .. 6=Saturday (JS Date#getDay() convention), empty when not weekly.
-  weekDays       Int[]                      @default([])
-  dayOfMonth     Int?
-  intervalDays   Int?
-  timezone       String
-  status         ListTemplateStatus         @default(active)
-  lastSpawnedAt  DateTime?
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
+  weekDays        Int[]                      @default([])
+  dayOfMonth      Int?
+  // everyNDays only (Rule 25): fires `streakDays` consecutive days, rests
+  // `intervalDays` days, repeats from `streakStartDate` (defaults to
+  // createdAt when null) - streakDays=1 reproduces the old single-pulse
+  // behavior. intervalDays means rest-days-only here, not full cycle length.
+  intervalDays    Int?
+  streakDays      Int?
+  streakStartDate DateTime?
+  timezone        String
+  status          ListTemplateStatus         @default(active)
+  lastSpawnedAt   DateTime?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
