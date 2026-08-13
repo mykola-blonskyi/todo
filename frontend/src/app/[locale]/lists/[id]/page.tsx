@@ -22,9 +22,16 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
           id
           title
           isOwner
-          tasks { id title done dueDate }
+          tasks {
+            id
+            title
+            done
+            dueDate
+            comments { id body createdAt author { id email name } }
+          }
           collaborators { id email name image }
           templateId
+          comments { id body createdAt author { id email name } }
         }
       }`,
       { id },

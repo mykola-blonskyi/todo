@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/shared/ui/components/button';
 import { Checkbox } from '@/shared/ui/components/checkbox';
 import { Input } from '@/shared/ui/components/input';
+import { TaskCommentsToggle } from '@features/comments';
 import type { Task } from './types';
 
 interface TaskRowLabels {
@@ -30,6 +31,7 @@ interface TaskRowProps {
   ) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onMove: (id: string, direction: 'up' | 'down') => Promise<void>;
+  onAddComment: (id: string, formData: FormData) => Promise<void>;
 }
 
 export function TaskRow({
@@ -41,6 +43,7 @@ export function TaskRow({
   onUpdate,
   onDelete,
   onMove,
+  onAddComment,
 }: TaskRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -93,67 +96,73 @@ export function TaskRow({
   }
 
   return (
-    <li className="flex items-center gap-3">
-      <Checkbox
-        checked={task.done}
-        disabled={isPending}
-        onCheckedChange={() => {
-          startTransition(() => {
-            void onToggleDone(task.id);
-          });
-        }}
-      />
-      <span
-        className={
-          task.done ? 'flex-1 text-muted-foreground line-through' : 'flex-1'
-        }
-      >
-        {task.title}
-        {task.dueDate ? (
-          <span className="ml-2 text-xs text-muted-foreground">
-            {labels.dueDateLabel} {task.dueDate.slice(0, 10)}
-          </span>
-        ) : null}
-      </span>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isFirst || isPending}
-        onClick={() => startTransition(() => void onMove(task.id, 'up'))}
-      >
-        ↑<span className="sr-only">{labels.moveUp}</span>
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isLast || isPending}
-        onClick={() => startTransition(() => void onMove(task.id, 'down'))}
-      >
-        ↓<span className="sr-only">{labels.moveDown}</span>
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => setIsEditing(true)}
-      >
-        {labels.editButton}
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isPending}
-        onClick={() => {
-          if (window.confirm(labels.deleteConfirm)) {
-            startTransition(() => void onDelete(task.id));
+    <li className="flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <Checkbox
+          checked={task.done}
+          disabled={isPending}
+          onCheckedChange={() => {
+            startTransition(() => {
+              void onToggleDone(task.id);
+            });
+          }}
+        />
+        <span
+          className={
+            task.done ? 'flex-1 text-muted-foreground line-through' : 'flex-1'
           }
-        }}
-      >
-        {labels.deleteButton}
-      </Button>
+        >
+          {task.title}
+          {task.dueDate ? (
+            <span className="ml-2 text-xs text-muted-foreground">
+              {labels.dueDateLabel} {task.dueDate.slice(0, 10)}
+            </span>
+          ) : null}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={isFirst || isPending}
+          onClick={() => startTransition(() => void onMove(task.id, 'up'))}
+        >
+          ↑<span className="sr-only">{labels.moveUp}</span>
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={isLast || isPending}
+          onClick={() => startTransition(() => void onMove(task.id, 'down'))}
+        >
+          ↓<span className="sr-only">{labels.moveDown}</span>
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsEditing(true)}
+        >
+          {labels.editButton}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={isPending}
+          onClick={() => {
+            if (window.confirm(labels.deleteConfirm)) {
+              startTransition(() => void onDelete(task.id));
+            }
+          }}
+        >
+          {labels.deleteButton}
+        </Button>
+      </div>
+      <TaskCommentsToggle
+        comments={task.comments}
+        onSubmit={(formData) => onAddComment(task.id, formData)}
+      />
     </li>
   );
 }

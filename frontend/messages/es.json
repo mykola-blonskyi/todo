@@ -56,6 +56,14 @@
     "removeButton": "Eliminar",
     "leaveButton": "Salir"
   },
+  "Comments": {
+    "title": "Comentarios",
+    "emptyState": "Aún no hay comentarios.",
+    "addPlaceholder": "Escribe un comentario...",
+    "addButton": "Publicar",
+    "showButton": "Comentarios ({count})",
+    "hideButton": "Ocultar comentarios"
+  },
   "ListTemplates": {
     "title": "Plantillas recurrentes",
     "createButton": "Nueva plantilla",

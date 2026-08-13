@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Task } from '../tasks/task.model';
 import { User } from '../users/user.model';
+import { Comment } from '../comments/comment.model';
 
 @ObjectType()
 export class List {
@@ -24,6 +25,9 @@ export class List {
 
   @Field(() => [User])
   collaborators?: User[];
+
+  @Field(() => [Comment])
+  comments?: Comment[];
 
   // Provenance only - set if this List was spawned by a ListTemplate
   // Occurrence (knowledge/domain-model.md List.templateId), null for a
