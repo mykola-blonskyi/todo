@@ -79,6 +79,12 @@ jobs:
       # reached. Values are dummies, never dereferenced over the network.
       HUB_URL: http://hub.test
       PROJECT_SLUG: todolist-ci
+      # AES-256-GCM key for GoogleCalendarConnection token encryption
+      # (backend/src/google-calendar/token-encryption.ts) - only needs to be
+      # a syntactically valid 32-byte base64 key for tests to run, never a
+      # real per-environment secret (CI never talks to real Google Calendar
+      # data).
+      TOKEN_ENCRYPTION_KEY: y6pTgWQY7Sl4qAIAYKKubuJjYOXMxr0yfPWWBHNCsRQ=
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
