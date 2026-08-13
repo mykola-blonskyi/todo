@@ -23,4 +23,7 @@ export class User {
 
   @Field(() => UserTheme)
   theme: UserTheme;
+
+  @Field(() => Boolean)
+  googleCalendarConnected?: boolean;
 }
