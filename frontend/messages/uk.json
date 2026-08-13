@@ -56,6 +56,14 @@
     "removeButton": "Видалити",
     "leaveButton": "Покинути"
   },
+  "Comments": {
+    "title": "Коментарі",
+    "emptyState": "Поки що немає коментарів.",
+    "addPlaceholder": "Написати коментар...",
+    "addButton": "Надіслати",
+    "showButton": "Коментарі ({count})",
+    "hideButton": "Сховати коментарі"
+  },
   "ListTemplates": {
     "title": "Повторювані шаблони",
     "createButton": "Новий шаблон",

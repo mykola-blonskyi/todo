@@ -15,6 +15,7 @@ import { ListSharesModule } from './list-shares/list-shares.module';
 import { ListTemplatesModule } from './list-templates/list-templates.module';
 import { OccurrencesModule } from './occurrences/occurrences.module';
 import { HubModule } from './hub/hub.module';
+import { CommentsModule } from './comments/comments.module';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
 @Module({
@@ -50,6 +51,7 @@ import { GraphQLError, GraphQLFormattedError } from 'graphql';
     ListTemplatesModule,
     OccurrencesModule,
     HubModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [

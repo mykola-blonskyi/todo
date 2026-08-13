@@ -11,6 +11,7 @@ import { List } from './list.model';
 import { ListsService } from './lists.service';
 import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
+import { CommentsService } from '../comments/comments.service';
 import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
 
@@ -20,6 +21,7 @@ export class ListsResolver {
     private readonly listsService: ListsService,
     private readonly usersService: UsersService,
     private readonly tasksService: TasksService,
+    private readonly commentsService: CommentsService,
   ) {}
 
   @ResolveField()
@@ -36,6 +38,11 @@ export class ListsResolver {
   @ResolveField()
   collaborators(@Parent() list: List) {
     return this.listsService.acceptedCollaborators(list.id);
+  }
+
+  @ResolveField()
+  comments(@Parent() list: List) {
+    return this.commentsService.commentsForList(list.id);
   }
 
   @Mutation(() => List)

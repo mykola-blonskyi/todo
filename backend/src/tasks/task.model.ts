@@ -1,4 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Comment } from '../comments/comment.model';
 
 @ObjectType()
 export class Task {
@@ -22,4 +23,7 @@ export class Task {
 
   @Field()
   updatedAt: Date;
+
+  @Field(() => [Comment])
+  comments?: Comment[];
 }

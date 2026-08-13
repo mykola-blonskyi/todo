@@ -1,10 +1,12 @@
 import type { Collaborator } from '@features/list-sharing';
+import type { Comment } from '@features/comments';
 
 export interface Task {
   id: string;
   title: string;
   done: boolean;
   dueDate: string | null;
+  comments: Comment[];
 }
 
 export interface ListDetailData {
@@ -14,4 +16,5 @@ export interface ListDetailData {
   tasks: Task[];
   collaborators: Collaborator[];
   templateId: string | null;
+  comments: Comment[];
 }

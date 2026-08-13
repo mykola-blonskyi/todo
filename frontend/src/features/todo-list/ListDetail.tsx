@@ -5,6 +5,11 @@ import { Input } from '@/shared/ui/components/input';
 import { Badge } from '@/shared/ui/components/badge';
 import { ShareSearch, CollaboratorsList } from '@features/list-sharing';
 import {
+  CommentThread,
+  addListCommentAction,
+  addTaskCommentAction,
+} from '@features/comments';
+import {
   renameListAction,
   deleteListAction,
   createTaskAction,
@@ -26,11 +31,13 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
   const t = await getTranslations('Lists');
   const tTasks = await getTranslations('Tasks');
   const tSharing = await getTranslations('Sharing');
+  const tComments = await getTranslations('Comments');
 
   const renameWithId = renameListAction.bind(null, list.id);
   const deleteWithId = deleteListAction.bind(null, list.id);
   const createTaskWithId = createTaskAction.bind(null, list.id);
   const moveTaskInList = moveTaskAction.bind(null, list.id);
+  const addListComment = addListCommentAction.bind(null, list.id);
 
   const taskRowLabels = {
     editButton: tTasks('editButton'),
@@ -99,10 +106,18 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
                 onUpdate={updateTaskAction}
                 onDelete={deleteTaskAction}
                 onMove={moveTaskInList}
+                onAddComment={addTaskCommentAction}
               />
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {tComments('title')}
+        </h2>
+        <CommentThread comments={list.comments} onSubmit={addListComment} />
       </section>
 
       {list.isOwner ? (

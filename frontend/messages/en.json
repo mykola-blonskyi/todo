@@ -56,6 +56,14 @@
     "removeButton": "Remove",
     "leaveButton": "Leave"
   },
+  "Comments": {
+    "title": "Comments",
+    "emptyState": "No comments yet.",
+    "addPlaceholder": "Write a comment...",
+    "addButton": "Post",
+    "showButton": "Comments ({count})",
+    "hideButton": "Hide comments"
+  },
   "ListTemplates": {
     "title": "Recurring Templates",
     "createButton": "New template",

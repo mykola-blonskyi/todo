@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithIntl } from './setup/render';
 import { TaskRow } from '@/features/todo-list/TaskRow';
 import type { Task } from '@/features/todo-list/types';
 
@@ -20,6 +21,7 @@ const task: Task = {
   title: 'Buy milk',
   done: false,
   dueDate: null,
+  comments: [],
 };
 
 function renderTaskRow(overrides: Partial<Task> = {}) {
@@ -27,8 +29,9 @@ function renderTaskRow(overrides: Partial<Task> = {}) {
   const onUpdate = vi.fn().mockResolvedValue(undefined);
   const onDelete = vi.fn().mockResolvedValue(undefined);
   const onMove = vi.fn().mockResolvedValue(undefined);
+  const onAddComment = vi.fn().mockResolvedValue(undefined);
 
-  render(
+  renderWithIntl(
     <TaskRow
       task={{ ...task, ...overrides }}
       isFirst={false}
@@ -38,10 +41,11 @@ function renderTaskRow(overrides: Partial<Task> = {}) {
       onUpdate={onUpdate}
       onDelete={onDelete}
       onMove={onMove}
+      onAddComment={onAddComment}
     />,
   );
 
-  return { onToggleDone, onUpdate, onDelete, onMove };
+  return { onToggleDone, onUpdate, onDelete, onMove, onAddComment };
 }
 
 describe('TaskRow', () => {
@@ -77,8 +81,9 @@ describe('TaskRow', () => {
     const onUpdate = vi.fn();
     const onDelete = vi.fn();
     const onMove = vi.fn();
+    const onAddComment = vi.fn();
 
-    render(
+    renderWithIntl(
       <TaskRow
         task={task}
         isFirst
@@ -88,6 +93,7 @@ describe('TaskRow', () => {
         onUpdate={onUpdate}
         onDelete={onDelete}
         onMove={onMove}
+        onAddComment={onAddComment}
       />,
     );
 
@@ -123,5 +129,32 @@ describe('TaskRow', () => {
     expect(onDelete).toHaveBeenCalledWith('task-1');
 
     confirmSpy.mockRestore();
+  });
+
+  it('toggles the comment thread and submits a new comment for the task', async () => {
+    const user = userEvent.setup();
+    const { onAddComment } = renderTaskRow({
+      comments: [
+        {
+          id: 'comment-1',
+          body: 'Get 2%',
+          createdAt: '2026-08-14T00:00:00.000Z',
+          author: { id: 'user-1', email: 'a@example.com', name: 'A' },
+        },
+      ],
+    });
+
+    expect(screen.queryByText('Get 2%')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Comments (1)' }));
+    expect(screen.getByText('Get 2%')).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText('Write a comment...'),
+      'New comment',
+    );
+    await user.click(screen.getByRole('button', { name: 'Post' }));
+
+    expect(onAddComment).toHaveBeenCalledWith('task-1', expect.any(FormData));
   });
 });

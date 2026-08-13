@@ -56,6 +56,14 @@
     "removeButton": "Удалить",
     "leaveButton": "Покинуть"
   },
+  "Comments": {
+    "title": "Комментарии",
+    "emptyState": "Пока нет комментариев.",
+    "addPlaceholder": "Написать комментарий...",
+    "addButton": "Отправить",
+    "showButton": "Комментарии ({count})",
+    "hideButton": "Скрыть комментарии"
+  },
   "ListTemplates": {
     "title": "Повторяющиеся шаблоны",
     "createButton": "Новый шаблон",
