@@ -2,8 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { ShareCandidate } from '../list-shares/share-candidate.model';
 import z from 'zod';
 
-const shareCandidateSchema = z.object({
-  hubUserId: z.string(),
+// The hub's own wire shape (ADR-009: `{ userId, email, name, image }[]`) -
+// its `userId` maps to our `hubUserId` naming (User.hubUserId, Identity),
+// so the mapping happens right after parsing, not by renaming this schema
+// to match us.
+const hubMemberSchema = z.object({
+  userId: z.string(),
   email: z.string(),
   name: z.string().nullable(),
   image: z.string().nullable(),
@@ -29,6 +33,10 @@ export class HubClientService {
     }
 
     const data: unknown = await res.json();
-    return z.array(shareCandidateSchema).parse(data);
+    const members = z.array(hubMemberSchema).parse(data);
+    return members.map(({ userId, ...rest }) => ({
+      hubUserId: userId,
+      ...rest,
+    }));
   }
 }
