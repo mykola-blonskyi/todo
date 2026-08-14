@@ -77,6 +77,8 @@ export class ListTemplatesResolver {
     streakDays?: number,
     @Args('streakStartDate', { type: () => Date, nullable: true })
     streakStartDate?: Date,
+    @Args('defaultCategoryId', { type: () => ID, nullable: true })
+    defaultCategoryId?: string,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listTemplatesService.createListTemplate(user.id, {
@@ -89,6 +91,7 @@ export class ListTemplatesResolver {
       intervalDays,
       streakDays,
       streakStartDate,
+      defaultCategoryId,
     });
   }
 
@@ -115,6 +118,8 @@ export class ListTemplatesResolver {
     @Args('streakStartDate', { type: () => Date, nullable: true })
     streakStartDate?: Date,
     @Args('timezone', { nullable: true }) timezone?: string,
+    @Args('defaultCategoryId', { type: () => ID, nullable: true })
+    defaultCategoryId?: string | null,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.listTemplatesService.updateListTemplate(user.id, id, {
@@ -127,6 +132,7 @@ export class ListTemplatesResolver {
       streakDays,
       streakStartDate,
       timezone,
+      defaultCategoryId,
     });
   }
 

@@ -232,6 +232,14 @@ model ListTemplate {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
+  // Auto-categorizes every spawned List for the template's own owner only -
+  // never for TemplateCollaborators (business-rules.md Rule 24). Must be a
+  // Category owned by the same User, validated at the application layer.
+  // Cleared (not blocked), not cascaded, if the Category is later deleted -
+  // same SetNull pattern as List.templateId.
+  defaultCategoryId String?
+  defaultCategory   Category? @relation(fields: [defaultCategoryId], references: [id], onDelete: SetNull)
+
   templateCollaborators TemplateCollaborator[]
   spawnedLists          List[]
 
@@ -268,7 +276,8 @@ model Category {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  assignments ListCategoryAssignment[]
+  assignments      ListCategoryAssignment[]
+  defaultForTemplates ListTemplate[]
 
   @@unique([ownerId, name])
   @@map("categories")
