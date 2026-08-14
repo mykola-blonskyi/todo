@@ -34,7 +34,8 @@
     "saveButton": "Guardar",
     "deleteButton": "Eliminar",
     "deleteConfirm": "¿Eliminar esta lista? Esta acción no se puede deshacer.",
-    "generatedFromTemplate": "Generada a partir de una plantilla recurrente"
+    "generatedFromTemplate": "Generada a partir de una plantilla recurrente",
+    "dueDateLabel": "Fecha límite"
   },
   "Tasks": {
     "title": "Tareas",

@@ -11,6 +11,11 @@ export class List {
   @Field()
   title: string;
 
+  // Date-only semantics, no time-of-day - same convention as Task.dueDate.
+  // Used only to gate/date Google Calendar sync (business-rules.md Rule 8).
+  @Field(() => Date, { nullable: true })
+  dueDate: Date | null;
+
   @Field()
   createdAt: Date;
 

@@ -51,10 +51,14 @@ model User {
 // ─── List ────────────────────────────────────────────────────────────────────
 
 model List {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Date-only semantics, no time-of-day - same convention as Task.dueDate.
+  // Owner-only to set (mirrors title), used only to gate/date Google
+  // Calendar sync (TODO-52/knowledge/business-rules.md).
+  dueDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])

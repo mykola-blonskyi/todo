@@ -215,6 +215,52 @@ describe('List (GraphQL)', () => {
     expect(body.errors?.[0]).toBeDefined();
   });
 
+  it('sets a due date on a List for its owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const body = await graphql<{ updateListDueDate: { dueDate: string } }>(
+      `mutation { updateListDueDate(id: "${id}", dueDate: "2026-09-01T00:00:00.000Z") { dueDate } }`,
+      owner,
+    );
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.updateListDueDate.dueDate).toBe(
+      '2026-09-01T00:00:00.000Z',
+    );
+  });
+
+  it('clears a List due date by passing null', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    await graphql(
+      `mutation { updateListDueDate(id: "${id}", dueDate: "2026-09-01T00:00:00.000Z") { id } }`,
+      owner,
+    );
+
+    const body = await graphql<{ updateListDueDate: { dueDate: null } }>(
+      `mutation { updateListDueDate(id: "${id}", dueDate: null) { dueDate } }`,
+      owner,
+    );
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.updateListDueDate.dueDate).toBeNull();
+  });
+
+  it('denies updateListDueDate for a non-owner', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const id = await createList(owner, 'Groceries');
+
+    const body = await graphql<{ updateListDueDate: unknown }>(
+      `mutation { updateListDueDate(id: "${id}", dueDate: "2026-09-01T00:00:00.000Z") { id } }`,
+      asUser('hub-2', 'other@example.com'),
+    );
+
+    expect(body.data).toBeNull();
+    expect(body.errors?.[0]).toBeDefined();
+  });
+
   it('deletes a List for its owner', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
     const id = await createList(owner, 'Groceries');

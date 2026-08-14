@@ -79,6 +79,17 @@ export class ListsResolver {
     return this.listsService.renameList(user.id, id, title);
   }
 
+  @Mutation(() => List)
+  async updateListDueDate(
+    @CurrentUser() identity: Identity,
+    @Args('id', { type: () => ID }) id: string,
+    @Args('dueDate', { type: () => Date, nullable: true })
+    dueDate?: Date | null,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listsService.updateListDueDate(user.id, id, dueDate ?? null);
+  }
+
   @Mutation(() => Boolean)
   async deleteList(
     @CurrentUser() identity: Identity,

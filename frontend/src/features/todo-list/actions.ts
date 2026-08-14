@@ -21,6 +21,19 @@ export async function renameListAction(id: string, formData: FormData) {
   revalidatePath('/[locale]/lists/[id]', 'page');
 }
 
+export async function updateListDueDateAction(id: string, formData: FormData) {
+  const dueDate = formData.get('dueDate');
+
+  await graphqlFetch(
+    `mutation UpdateListDueDate($id: ID!, $dueDate: DateTime) {
+      updateListDueDate(id: $id, dueDate: $dueDate) { id }
+    }`,
+    { id, dueDate: typeof dueDate === 'string' && dueDate ? dueDate : null },
+  );
+
+  revalidatePath('/[locale]/lists/[id]', 'page');
+}
+
 export async function deleteListAction(id: string) {
   await graphqlFetch(`mutation DeleteList($id: ID!) { deleteList(id: $id) }`, {
     id,

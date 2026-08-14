@@ -12,6 +12,7 @@ export interface Task {
 export interface ListDetailData {
   id: string;
   title: string;
+  dueDate: string | null;
   isOwner: boolean;
   tasks: Task[];
   collaborators: Collaborator[];

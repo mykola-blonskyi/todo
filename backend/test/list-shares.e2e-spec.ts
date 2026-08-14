@@ -1111,6 +1111,17 @@ describe('List Sharing (GraphQL)', () => {
       expect(renameBody.errors).toBeUndefined();
       expect(renameBody.data?.renameList.title).toBe('Groceries 2');
 
+      const dueDateBody = await graphql<{
+        updateListDueDate: { dueDate: string };
+      }>(
+        `mutation {updateListDueDate(id: "${listId}", dueDate: "2026-09-01T00:00:00.000Z"){dueDate}}`,
+        owner,
+      );
+      expect(dueDateBody.errors).toBeUndefined();
+      expect(dueDateBody.data?.updateListDueDate.dueDate).toBe(
+        '2026-09-01T00:00:00.000Z',
+      );
+
       jest
         .spyOn(global, 'fetch')
         .mockResolvedValueOnce(new Response(JSON.stringify([])));
@@ -1222,6 +1233,15 @@ describe('List Sharing (GraphQL)', () => {
       );
       expect(renameBody.data).toBeNull();
       expect(renameBody.errors).toBeDefined();
+
+      const dueDateBody = await graphql<{
+        updateListDueDate: { dueDate: string };
+      }>(
+        `mutation {updateListDueDate(id: "${listId}", dueDate: "2026-09-01T00:00:00.000Z"){dueDate}}`,
+        collaboratorA,
+      );
+      expect(dueDateBody.data).toBeNull();
+      expect(dueDateBody.errors).toBeDefined();
 
       const deleteListBody = await graphql<{ deleteList: boolean }>(
         `mutation {deleteList(id: "${listId}")}`,
