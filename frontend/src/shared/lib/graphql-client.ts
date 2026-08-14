@@ -28,10 +28,15 @@ export async function graphqlFetch<T>(
 ): Promise<T> {
   let userId: string | null = identity?.userId ?? null;
   let email: string | null = identity?.email ?? null;
+  let cookie: string | null = null;
   if (!identity) {
     const headerList = await headers();
     userId = headerList.get('x-user-id');
     email = headerList.get('x-user-email');
+    // Forwarded on to the hub by searchShareCandidates - that one call
+    // needs the caller's actual .blonskyi.dev session, not just the
+    // locally-trusted identity headers above (see TODO-54).
+    cookie = headerList.get('cookie');
   }
 
   const res = await fetch(process.env.BACKEND_URL!, {
@@ -40,6 +45,7 @@ export async function graphqlFetch<T>(
       'Content-Type': 'application/json',
       ...(userId ? { 'x-user-id': userId } : {}),
       ...(email ? { 'x-user-email': email } : {}),
+      ...(cookie ? { cookie } : {}),
     },
     body: JSON.stringify({ query, variables }),
     cache: 'no-store',

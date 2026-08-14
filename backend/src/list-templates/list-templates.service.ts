@@ -47,9 +47,10 @@ export class ListTemplatesService {
     ownerId: string,
     templateId: string,
     q: string,
+    sessionCookie: string,
   ) {
     await this.requireOwned(ownerId, templateId);
-    return this.hubClientService.searchProjectMembers(q);
+    return this.hubClientService.searchProjectMembers(q, sessionCookie);
   }
 
   myListTemplates(ownerId: string) {

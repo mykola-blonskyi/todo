@@ -21,9 +21,14 @@ export class ListSharesService {
     private readonly calendarSyncService: CalendarSyncService,
   ) {}
 
-  async searchShareCandidates(ownerId: string, listId: string, q: string) {
+  async searchShareCandidates(
+    ownerId: string,
+    listId: string,
+    q: string,
+    sessionCookie: string,
+  ) {
     await this.listsService.requireOwned(ownerId, listId);
-    return this.hubClientService.searchProjectMembers(q);
+    return this.hubClientService.searchProjectMembers(q, sessionCookie);
   }
 
   async invite(
