@@ -56,6 +56,24 @@ export class GoogleCalendarApiClient {
     const data = (await res.json()) as { id: string };
     return { eventId: data.id, calendarId };
   }
+
+  async deleteEvent(accessToken: string, eventId: string): Promise<void> {
+    const calendarId = 'primary';
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+      {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+
+    // 410 Gone means Google already considers the event deleted - treat as
+    // success, not an error, so a retry of an already-cleaned-up event
+    // doesn't get logged as a failure.
+    if (!res.ok && res.status !== 410) {
+      throw new Error(`Google Calendar event deletion failed: ${res.status}`);
+    }
+  }
 }
 
 function nextDay(isoDate: string): string {

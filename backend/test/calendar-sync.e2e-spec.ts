@@ -22,18 +22,20 @@ function mockTokenExchange(body: unknown, ok = true) {
 describe('Calendar sync (GraphQL)', () => {
   let app: INestApplication<App>;
   let upsertEvent: jest.Mock;
+  let deleteEvent: jest.Mock;
 
   beforeEach(async () => {
     upsertEvent = jest.fn().mockResolvedValue({
       eventId: 'event-1',
       calendarId: 'primary',
     });
+    deleteEvent = jest.fn().mockResolvedValue(undefined);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(GoogleCalendarApiClient)
-      .useValue({ upsertEvent })
+      .useValue({ upsertEvent, deleteEvent })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -107,6 +109,13 @@ describe('Calendar sync (GraphQL)', () => {
       headers,
     );
     jest.restoreAllMocks();
+  }
+
+  async function deleteList(headers: Record<string, string>, listId: string) {
+    return graphql<{ deleteList: boolean }>(
+      `mutation { deleteList(id: "${listId}") }`,
+      headers,
+    );
   }
 
   async function inviteAndAccept(
@@ -334,5 +343,87 @@ describe('Calendar sync (GraphQL)', () => {
       'refreshed-access-token',
       expect.anything(),
     );
+  });
+
+  describe('cascade cleanup on List deletion', () => {
+    it("deletes every user's synced Calendar event before deleting the List", async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      await setDueDate(owner, listId, '2026-09-01');
+
+      const collaborator = asUser('collaborator-1', 'collaborator@example.com');
+      await inviteAndAccept(owner, listId, collaborator);
+
+      await connectGoogleCalendar(owner);
+      upsertEvent.mockResolvedValueOnce({
+        eventId: 'owner-event',
+        calendarId: 'primary',
+      });
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        owner,
+      );
+
+      await connectGoogleCalendar(collaborator);
+      upsertEvent.mockResolvedValueOnce({
+        eventId: 'collaborator-event',
+        calendarId: 'primary',
+      });
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        collaborator,
+      );
+
+      const body = await deleteList(owner, listId);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteList).toBe(true);
+      expect(deleteEvent).toHaveBeenCalledTimes(2);
+      expect(deleteEvent).toHaveBeenCalledWith(
+        'plain-access-token',
+        'owner-event',
+      );
+      expect(deleteEvent).toHaveBeenCalledWith(
+        'plain-access-token',
+        'collaborator-event',
+      );
+
+      const list = await testDb.list.findUnique({ where: { id: listId } });
+      expect(list).toBeNull();
+      const syncs = await testDb.calendarSync.findMany({ where: { listId } });
+      expect(syncs).toHaveLength(0);
+    });
+
+    it('deletes the List even when the Calendar cleanup call fails', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      await setDueDate(owner, listId, '2026-09-01');
+      await connectGoogleCalendar(owner);
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        owner,
+      );
+
+      deleteEvent.mockRejectedValueOnce(new Error('Google API down'));
+
+      const body = await deleteList(owner, listId);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteList).toBe(true);
+
+      const list = await testDb.list.findUnique({ where: { id: listId } });
+      expect(list).toBeNull();
+    });
+
+    it('deleting a List with no synced events at all still succeeds', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+
+      const body = await deleteList(owner, listId);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteList).toBe(true);
+      expect(deleteEvent).not.toHaveBeenCalled();
+    });
   });
 });

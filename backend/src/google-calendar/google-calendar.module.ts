@@ -15,6 +15,10 @@ import { UsersModule } from '../users/users.module';
     CalendarSyncService,
     CalendarSyncResolver,
   ],
-  exports: [GoogleCalendarService, GoogleCalendarApiClient],
+  exports: [
+    GoogleCalendarService,
+    GoogleCalendarApiClient,
+    CalendarSyncService,
+  ],
 })
 export class GoogleCalendarModule {}
