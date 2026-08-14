@@ -49,6 +49,14 @@ describe('ListTemplate (GraphQL)', () => {
     return body.data!.createListTemplate.id;
   }
 
+  async function createCategory(headers: Record<string, string>, name: string) {
+    const body = await graphql<{ createCategory: { id: string } }>(
+      `mutation { createCategory(name: "${name}") { id } }`,
+      headers,
+    );
+    return body.data!.createCategory.id;
+  }
+
   it('creates a ListTemplate with the given fields', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
 
@@ -192,6 +200,99 @@ describe('ListTemplate (GraphQL)', () => {
 
     expect(body.data).toBeNull();
     expect(body.errors?.[0]).toBeDefined();
+  });
+
+  describe('defaultCategoryId', () => {
+    it('sets a default category on create', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const categoryId = await createCategory(owner, 'Home');
+
+      const body = await graphql<{
+        createListTemplate: { defaultCategoryId: string | null };
+      }>(
+        `mutation { createListTemplate(title: "Weekly Cleaning", taskTitles: [], recurrenceType: daily, timezone: "UTC", defaultCategoryId: "${categoryId}") { defaultCategoryId } }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.createListTemplate.defaultCategoryId).toBe(categoryId);
+    });
+
+    it('sets and clears a default category via updateListTemplate', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const categoryId = await createCategory(owner, 'Home');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+      const setBody = await graphql<{
+        updateListTemplate: { defaultCategoryId: string | null };
+      }>(
+        `mutation { updateListTemplate(id: "${id}", defaultCategoryId: "${categoryId}") { defaultCategoryId } }`,
+        owner,
+      );
+      expect(setBody.errors).toBeUndefined();
+      expect(setBody.data?.updateListTemplate.defaultCategoryId).toBe(
+        categoryId,
+      );
+
+      const clearBody = await graphql<{
+        updateListTemplate: { defaultCategoryId: string | null };
+      }>(
+        `mutation { updateListTemplate(id: "${id}", defaultCategoryId: null) { defaultCategoryId } }`,
+        owner,
+      );
+      expect(clearBody.errors).toBeUndefined();
+      expect(clearBody.data?.updateListTemplate.defaultCategoryId).toBeNull();
+    });
+
+    it("rejects a defaultCategoryId that isn't owned by the caller, on create", async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const other = asUser('hub-2', 'other@example.com');
+      const otherCategoryId = await createCategory(other, 'Their Category');
+
+      const body = await graphql<{ createListTemplate: unknown }>(
+        `mutation { createListTemplate(title: "Weekly Cleaning", taskTitles: [], recurrenceType: daily, timezone: "UTC", defaultCategoryId: "${otherCategoryId}") { id } }`,
+        owner,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it("rejects a defaultCategoryId that isn't owned by the caller, on update", async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const other = asUser('hub-2', 'other@example.com');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+      const otherCategoryId = await createCategory(other, 'Their Category');
+
+      const body = await graphql<{ updateListTemplate: unknown }>(
+        `mutation { updateListTemplate(id: "${id}", defaultCategoryId: "${otherCategoryId}") { id } }`,
+        owner,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it('is cleared, not blocked, when the referenced Category is later deleted', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const categoryId = await createCategory(owner, 'Home');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+      await graphql(
+        `mutation { updateListTemplate(id: "${id}", defaultCategoryId: "${categoryId}") { id } }`,
+        owner,
+      );
+
+      const deleteBody = await graphql<{ deleteCategory: boolean }>(
+        `mutation { deleteCategory(id: "${categoryId}") }`,
+        owner,
+      );
+      expect(deleteBody.errors).toBeUndefined();
+
+      const template = await testDb.listTemplate.findUniqueOrThrow({
+        where: { id },
+      });
+      expect(template.defaultCategoryId).toBeNull();
+    });
   });
 
   it('pauses and resumes a ListTemplate for its owner', async () => {

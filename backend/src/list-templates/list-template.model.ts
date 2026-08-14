@@ -44,6 +44,11 @@ export class ListTemplate {
   @Field(() => Date, { nullable: true })
   lastSpawnedAt: Date | null;
 
+  // Auto-categorizes every spawned List for the template's own owner only -
+  // never for TemplateCollaborators (business-rules.md Rule 24).
+  @Field(() => ID, { nullable: true })
+  defaultCategoryId: string | null;
+
   @Field()
   createdAt: Date;
 

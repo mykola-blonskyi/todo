@@ -19,6 +19,7 @@ interface ListTemplateInput {
   streakDays?: number | null;
   streakStartDate?: Date | null;
   timezone: string;
+  defaultCategoryId?: string | null;
 }
 
 interface ListTemplateUpdate {
@@ -31,6 +32,7 @@ interface ListTemplateUpdate {
   streakDays?: number | null;
   streakStartDate?: Date | null;
   timezone?: string;
+  defaultCategoryId?: string | null;
 }
 
 @Injectable()
@@ -61,7 +63,11 @@ export class ListTemplatesService {
     return this.requireOwned(ownerId, id);
   }
 
-  createListTemplate(ownerId: string, input: ListTemplateInput) {
+  async createListTemplate(ownerId: string, input: ListTemplateInput) {
+    if (input.defaultCategoryId) {
+      await this.requireOwnedCategory(ownerId, input.defaultCategoryId);
+    }
+
     return this.prisma.listTemplate.create({
       data: {
         ownerId,
@@ -74,6 +80,7 @@ export class ListTemplatesService {
         streakDays: this.requireStreakDays(input.streakDays),
         streakStartDate: input.streakStartDate ?? null,
         timezone: input.timezone,
+        defaultCategoryId: input.defaultCategoryId ?? null,
       },
     });
   }
@@ -84,6 +91,10 @@ export class ListTemplatesService {
     updates: ListTemplateUpdate,
   ) {
     await this.requireOwned(ownerId, id);
+
+    if (updates.defaultCategoryId) {
+      await this.requireOwnedCategory(ownerId, updates.defaultCategoryId);
+    }
 
     return this.prisma.listTemplate.update({
       where: { id },
@@ -111,6 +122,9 @@ export class ListTemplatesService {
           streakStartDate: updates.streakStartDate,
         }),
         ...(updates.timezone !== undefined && { timezone: updates.timezone }),
+        ...(updates.defaultCategoryId !== undefined && {
+          defaultCategoryId: updates.defaultCategoryId,
+        }),
       },
     });
   }
@@ -220,5 +234,15 @@ export class ListTemplatesService {
       throw new NotFoundException('ListTemplate not found');
     }
     return template;
+  }
+
+  private async requireOwnedCategory(ownerId: string, id: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
+    if (!category || category.ownerId !== ownerId) {
+      throw new NotFoundException('Category not found');
+    }
+    return category;
   }
 }

@@ -102,6 +102,19 @@ export class OccurrencesService {
         });
       }
 
+      // Auto-categorizes the spawned List for the template's own owner only
+      // - never for TemplateCollaborators, who categorize independently for
+      // themselves (business-rules.md Rule 24).
+      if (template.defaultCategoryId) {
+        await tx.listCategoryAssignment.create({
+          data: {
+            userId: template.ownerId,
+            listId: list.id,
+            categoryId: template.defaultCategoryId,
+          },
+        });
+      }
+
       await tx.listTemplate.update({
         where: { id: template.id },
         data: { lastSpawnedAt: now },

@@ -48,6 +48,7 @@ describe('Occurrence spawning (GraphQL)', () => {
     streakDays?: number;
     streakStartDate?: string;
     timezone?: string;
+    defaultCategoryId?: string;
   }
 
   async function createListTemplate(
@@ -70,12 +71,22 @@ describe('Occurrence spawning (GraphQL)', () => {
       parts.push(`streakDays: ${args.streakDays}`);
     if (args.streakStartDate !== undefined)
       parts.push(`streakStartDate: "${args.streakStartDate}"`);
+    if (args.defaultCategoryId !== undefined)
+      parts.push(`defaultCategoryId: "${args.defaultCategoryId}"`);
 
     const body = await graphql<{ createListTemplate: { id: string } }>(
       `mutation { createListTemplate(${parts.join(', ')}) { id } }`,
       headers,
     );
     return body.data!.createListTemplate.id;
+  }
+
+  async function createCategory(headers: Record<string, string>, name: string) {
+    const body = await graphql<{ createCategory: { id: string } }>(
+      `mutation { createCategory(name: "${name}") { id } }`,
+      headers,
+    );
+    return body.data!.createCategory.id;
   }
 
   async function spawn(
@@ -347,6 +358,72 @@ describe('Occurrence spawning (GraphQL)', () => {
       expect(listShare?.user.hubUserId).toBe('hub-2');
       expect(listShare?.status).toBe('accepted');
       expect(listShare?.respondedAt).not.toBeNull();
+    });
+
+    it('auto-categorizes the spawned List for the owner when defaultCategoryId is set', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const categoryId = await createCategory(owner, 'Home');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'daily',
+        defaultCategoryId: categoryId,
+      });
+
+      const body = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      const spawned = body.data!.spawnDueOccurrence!;
+
+      const ownerUser = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'hub-1' },
+      });
+      const assignment = await testDb.listCategoryAssignment.findUnique({
+        where: {
+          userId_listId: { userId: ownerUser.id, listId: spawned.id },
+        },
+      });
+      expect(assignment?.categoryId).toBe(categoryId);
+    });
+
+    it('does not categorize the spawned List when defaultCategoryId is unset', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, { recurrenceType: 'daily' });
+
+      const body = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      const spawned = body.data!.spawnDueOccurrence!;
+
+      const assignments = await testDb.listCategoryAssignment.findMany({
+        where: { listId: spawned.id },
+      });
+      expect(assignments).toHaveLength(0);
+    });
+
+    it('never auto-categorizes for TemplateCollaborators, only the owner', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const categoryId = await createCategory(owner, 'Home');
+      const id = await createListTemplate(owner, {
+        recurrenceType: 'daily',
+        defaultCategoryId: categoryId,
+      });
+
+      await graphql(
+        `mutation { addTemplateCollaborator(templateId: "${id}", candidate: { hubUserId: "hub-2", email: "collab@example.com", name: "Collab" }) { id } }`,
+        owner,
+      );
+
+      const body = await spawn(owner, id, '2026-03-10T09:00:00.000Z');
+      const spawned = body.data!.spawnDueOccurrence!;
+
+      const collaboratorUser = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'hub-2' },
+      });
+      const collaboratorAssignment =
+        await testDb.listCategoryAssignment.findUnique({
+          where: {
+            userId_listId: {
+              userId: collaboratorUser.id,
+              listId: spawned.id,
+            },
+          },
+        });
+      expect(collaboratorAssignment).toBeNull();
     });
   });
 
