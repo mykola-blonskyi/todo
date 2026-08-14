@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { CalendarSyncService } from '../google-calendar/calendar-sync.service';
 import { ListShareStatus } from '@prisma/client';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class ListsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
+    private readonly calendarSyncService: CalendarSyncService,
   ) {}
 
   createList(ownerId: string, title: string) {
@@ -61,6 +63,10 @@ export class ListsService {
 
   async deleteList(ownerId: string, id: string) {
     await this.requireOwned(ownerId, id);
+    // Best-effort Calendar cleanup ahead of the delete (business-rules.md
+    // Rule 10) - the CalendarSync rows themselves cascade-delete with the
+    // List; this only cleans up the real Google Calendar events first.
+    await this.calendarSyncService.deleteCalendarEventsForList(id);
     await this.prisma.list.delete({ where: { id } });
     return true;
   }

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -10,6 +11,8 @@ import { GoogleCalendarApiClient } from './google-calendar-api.client';
 
 @Injectable()
 export class CalendarSyncService {
+  private readonly logger = new Logger(CalendarSyncService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly googleCalendarService: GoogleCalendarService,
@@ -64,6 +67,30 @@ export class CalendarSyncService {
     });
 
     return true;
+  }
+
+  // Best-effort delete of every synced Calendar event for this List, one per
+  // user who'd synced it (business-rules.md Rule 10). Never throws - a
+  // failed Google API call is logged, not treated as a failure of the List
+  // deletion this runs ahead of. The CalendarSync rows themselves aren't
+  // deleted here; that's Prisma's cascade once the List row is gone.
+  async deleteCalendarEventsForList(listId: string): Promise<void> {
+    const syncs = await this.prisma.calendarSync.findMany({
+      where: { listId },
+    });
+
+    for (const sync of syncs) {
+      try {
+        const accessToken =
+          await this.googleCalendarService.getValidAccessToken(sync.userId);
+        await this.apiClient.deleteEvent(accessToken, sync.googleEventId);
+      } catch (error) {
+        this.logger.error(
+          `Failed to delete synced Calendar event for list ${listId}, user ${sync.userId}`,
+          error instanceof Error ? error.stack : error,
+        );
+      }
+    }
   }
 
   // Same owner-or-accepted-collaborator check duplicated across services -
