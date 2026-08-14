@@ -19,6 +19,9 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       HUB_URL: ${HUB_URL}
       PROJECT_SLUG: ${PROJECT_SLUG}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
       PORT: 4000
     restart: unless-stopped
     # No ports/domain: stays private on Coolify's network (ADR-003 - the
@@ -45,6 +48,7 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN}
       PROJECT_SLUG: ${PROJECT_SLUG}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       BACKEND_URL: http://backend:4000/graphql
       DEV_BYPASS_AUTH: 'false'
     depends_on:
