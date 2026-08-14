@@ -72,6 +72,11 @@
     "showButton": "Комментарии ({count})",
     "hideButton": "Скрыть комментарии"
   },
+  "CalendarSync": {
+    "syncButton": "Синхронизировать с Google Календарём",
+    "syncResult": "Синхронизировано задач: {count}.",
+    "syncError": "Не удалось синхронизировать с Google Календарём. Попробуйте ещё раз."
+  },
   "ListTemplates": {
     "title": "Повторяющиеся шаблоны",
     "createButton": "Новый шаблон",

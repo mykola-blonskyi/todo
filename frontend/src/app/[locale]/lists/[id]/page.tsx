@@ -11,13 +11,14 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
 
   let list: ListDetailData;
   let myUserId: string;
+  let googleCalendarConnected: boolean;
   try {
     const data = await graphqlFetch<{
-      me: { id: string };
+      me: { id: string; googleCalendarConnected: boolean };
       list: ListDetailData;
     }>(
       `query ListDetail($id: ID!) {
-        me { id }
+        me { id googleCalendarConnected }
         list(id: $id) {
           id
           title
@@ -38,6 +39,7 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
     );
     list = data.list;
     myUserId = data.me.id;
+    googleCalendarConnected = data.me.googleCalendarConnected;
   } catch (error) {
     if (error instanceof GraphQLRequestError) {
       notFound();
@@ -45,5 +47,11 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
     throw error;
   }
 
-  return <ListDetail list={list} myUserId={myUserId} />;
+  return (
+    <ListDetail
+      list={list}
+      myUserId={myUserId}
+      googleCalendarConnected={googleCalendarConnected}
+    />
+  );
 }

@@ -9,6 +9,7 @@ import {
   addListCommentAction,
   addTaskCommentAction,
 } from '@features/comments';
+import { SyncToCalendarButton } from '@features/google-calendar';
 import {
   renameListAction,
   deleteListAction,
@@ -25,9 +26,14 @@ import type { ListDetailData } from './types';
 interface ListDetailProps {
   list: ListDetailData;
   myUserId: string;
+  googleCalendarConnected: boolean;
 }
 
-export async function ListDetail({ list, myUserId }: ListDetailProps) {
+export async function ListDetail({
+  list,
+  myUserId,
+  googleCalendarConnected,
+}: ListDetailProps) {
   const t = await getTranslations('Lists');
   const tTasks = await getTranslations('Tasks');
   const tSharing = await getTranslations('Sharing');
@@ -112,6 +118,10 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
           </ul>
         )}
       </section>
+
+      {googleCalendarConnected ? (
+        <SyncToCalendarButton listId={list.id} />
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium text-muted-foreground">

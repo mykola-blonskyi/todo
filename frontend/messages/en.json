@@ -72,6 +72,11 @@
     "showButton": "Comments ({count})",
     "hideButton": "Hide comments"
   },
+  "CalendarSync": {
+    "syncButton": "Sync to Google Calendar",
+    "syncResult": "Synced {count} task(s) to Google Calendar.",
+    "syncError": "Couldn't sync to Google Calendar. Try again in a moment."
+  },
   "ListTemplates": {
     "title": "Recurring Templates",
     "createButton": "New template",
