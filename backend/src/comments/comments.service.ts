@@ -38,20 +38,43 @@ export class CommentsService {
     });
   }
 
-  commentsForTask(taskId: string) {
-    return this.prisma.comment.findMany({
-      where: { taskId },
+  // For the commentsByTaskId DataLoader (src/graphql/loaders.ts) - one
+  // query for every Task in a fan-out, grouped back into a Map.
+  async commentsByTaskIds(taskIds: string[]) {
+    const comments = await this.prisma.comment.findMany({
+      where: { taskId: { in: taskIds } },
       orderBy: { createdAt: 'asc' },
       include: { author: true },
     });
+    return this.groupBy(comments, (comment) => comment.taskId);
   }
 
-  commentsForList(listId: string) {
-    return this.prisma.comment.findMany({
-      where: { listId },
+  // For the commentsByListId DataLoader (src/graphql/loaders.ts) - one
+  // query for every List in a fan-out, grouped back into a Map.
+  async commentsByListIds(listIds: string[]) {
+    const comments = await this.prisma.comment.findMany({
+      where: { listId: { in: listIds } },
       orderBy: { createdAt: 'asc' },
       include: { author: true },
     });
+    return this.groupBy(comments, (comment) => comment.listId);
+  }
+
+  private groupBy<T>(rows: T[], keyOf: (row: T) => string | null) {
+    const byKey = new Map<string, T[]>();
+    for (const row of rows) {
+      const key = keyOf(row);
+      if (!key) {
+        continue;
+      }
+      const existing = byKey.get(key);
+      if (existing) {
+        existing.push(row);
+      } else {
+        byKey.set(key, [row]);
+      }
+    }
+    return byKey;
   }
 
   private requireBody(body: string): string {

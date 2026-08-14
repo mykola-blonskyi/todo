@@ -9,21 +9,21 @@ import {
 import { Task } from './task.model';
 import { TasksService } from './tasks.service';
 import { UsersService } from '../users/users.service';
-import { CommentsService } from '../comments/comments.service';
 import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
+import { Loaders } from '../graphql/loaders.decorator';
+import type { GqlLoaders } from '../graphql/loaders';
 
 @Resolver(() => Task)
 export class TasksResolver {
   constructor(
     private readonly tasksService: TasksService,
     private readonly usersService: UsersService,
-    private readonly commentsService: CommentsService,
   ) {}
 
   @ResolveField()
-  comments(@Parent() task: Task) {
-    return this.commentsService.commentsForTask(task.id);
+  comments(@Parent() task: Task, @Loaders() loaders: GqlLoaders) {
+    return loaders.commentsByTaskId.load(task.id);
   }
 
   @Mutation(() => Task)

@@ -21,9 +21,11 @@ import { ListTemplatesService } from './list-templates/list-templates.service';
 import { OccurrencesModule } from './occurrences/occurrences.module';
 import { HubModule } from './hub/hub.module';
 import { CommentsModule } from './comments/comments.module';
+import { CommentsService } from './comments/comments.service';
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ListCategoryAssignmentsModule } from './list-category-assignments/list-category-assignments.module';
+import { ListCategoryAssignmentsService } from './list-category-assignments/list-category-assignments.service';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { createLoaders } from './graphql/loaders';
 import type { Request } from 'express';
@@ -35,13 +37,29 @@ import type { Request } from 'express';
     PrismaModule,
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      imports: [UsersModule, TasksModule, ListsModule, ListTemplatesModule],
-      inject: [UsersService, TasksService, ListsService, ListTemplatesService],
+      imports: [
+        UsersModule,
+        TasksModule,
+        ListsModule,
+        ListTemplatesModule,
+        CommentsModule,
+        ListCategoryAssignmentsModule,
+      ],
+      inject: [
+        UsersService,
+        TasksService,
+        ListsService,
+        ListTemplatesService,
+        CommentsService,
+        ListCategoryAssignmentsService,
+      ],
       useFactory: (
         usersService: UsersService,
         tasksService: TasksService,
         listsService: ListsService,
         listTemplatesService: ListTemplatesService,
+        commentsService: CommentsService,
+        categoryAssignmentsService: ListCategoryAssignmentsService,
       ): ApolloDriverConfig => ({
         autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
         context: ({ req }: { req: Request }) => ({
@@ -51,6 +69,8 @@ import type { Request } from 'express';
             tasksService,
             listsService,
             listTemplatesService,
+            commentsService,
+            categoryAssignmentsService,
           }),
         }),
         formatError(

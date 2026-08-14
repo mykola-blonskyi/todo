@@ -54,6 +54,7 @@ describe('DataLoader batching (myLists fan-out)', () => {
   async function seedListWithTaskAndCollaborator(
     owner: Record<string, string>,
     collaborator: Record<string, string>,
+    categoryId: string,
     title: string,
   ) {
     const createBody = await graphql<{ createList: { id: string } }>(
@@ -64,6 +65,16 @@ describe('DataLoader batching (myLists fan-out)', () => {
 
     await graphql(
       `mutation {createTask(listId: "${listId}", title: "Task"){id}}`,
+      owner,
+    );
+
+    await graphql(
+      `mutation {addComment(listId: "${listId}", body: "Hello"){id}}`,
+      owner,
+    );
+
+    await graphql(
+      `mutation {assignListCategory(listId: "${listId}", categoryId: "${categoryId}")}`,
       owner,
     );
 
@@ -89,8 +100,10 @@ describe('DataLoader batching (myLists fan-out)', () => {
     query {
       myLists {
         id
-        tasks { id }
+        tasks { id comments { id } }
         collaborators { id }
+        comments { id }
+        myCategory { id }
         isOwner
       }
     }
@@ -100,7 +113,24 @@ describe('DataLoader batching (myLists fan-out)', () => {
     const owner = asUser('owner-1', 'owner@example.com');
     const collaborator = asUser('collab-1', 'collab@example.com');
 
-    await seedListWithTaskAndCollaborator(owner, collaborator, 'List 1');
+    const categoryBody = await graphql<{ createCategory: { id: string } }>(
+      `
+        mutation {
+          createCategory(name: "Work") {
+            id
+          }
+        }
+      `,
+      owner,
+    );
+    const categoryId = categoryBody.data!.createCategory.id;
+
+    await seedListWithTaskAndCollaborator(
+      owner,
+      collaborator,
+      categoryId,
+      'List 1',
+    );
 
     queryCount = 0;
     const singleListBody = await graphql<{ myLists: unknown[] }>(
@@ -111,8 +141,18 @@ describe('DataLoader batching (myLists fan-out)', () => {
     expect(singleListBody.data!.myLists).toHaveLength(1);
     const queryCountForOneList = queryCount;
 
-    await seedListWithTaskAndCollaborator(owner, collaborator, 'List 2');
-    await seedListWithTaskAndCollaborator(owner, collaborator, 'List 3');
+    await seedListWithTaskAndCollaborator(
+      owner,
+      collaborator,
+      categoryId,
+      'List 2',
+    );
+    await seedListWithTaskAndCollaborator(
+      owner,
+      collaborator,
+      categoryId,
+      'List 3',
+    );
 
     queryCount = 0;
     const threeListsBody = await graphql<{ myLists: unknown[] }>(
