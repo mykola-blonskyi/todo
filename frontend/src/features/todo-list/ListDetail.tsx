@@ -25,6 +25,7 @@ import {
 import { DeleteListButton } from './DeleteListButton';
 import { TaskRow } from './TaskRow';
 import { CategoryAssign } from './CategoryAssign';
+import { buildBackLinkHref } from './back-link';
 import type { ListDetailData } from './types';
 
 interface ListDetailProps {
@@ -66,7 +67,7 @@ export async function ListDetail({
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-8">
       <Link
-        href="/"
+        href={buildBackLinkHref(list.myCategory)}
         className="text-sm text-muted-foreground hover:text-foreground"
       >
         ← {t('backToLists')}
