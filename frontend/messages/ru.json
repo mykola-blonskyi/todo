@@ -34,7 +34,8 @@
     "saveButton": "Сохранить",
     "deleteButton": "Удалить",
     "deleteConfirm": "Удалить этот список? Это действие нельзя отменить.",
-    "generatedFromTemplate": "Создано из повторяющегося шаблона"
+    "generatedFromTemplate": "Создано из повторяющегося шаблона",
+    "dueDateLabel": "Срок выполнения"
   },
   "Tasks": {
     "title": "Задачи",

@@ -34,7 +34,8 @@
     "saveButton": "Save",
     "deleteButton": "Delete",
     "deleteConfirm": "Delete this list? This can't be undone.",
-    "generatedFromTemplate": "Generated from a recurring template"
+    "generatedFromTemplate": "Generated from a recurring template",
+    "dueDateLabel": "Due date"
   },
   "Tasks": {
     "title": "Tasks",

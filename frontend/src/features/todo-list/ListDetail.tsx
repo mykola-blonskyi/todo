@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@shared/lib/i18n/navigation';
 import { Button } from '@/shared/ui/components/button';
 import { Input } from '@/shared/ui/components/input';
+import { Label } from '@/shared/ui/components/label';
 import { Badge } from '@/shared/ui/components/badge';
 import { ShareSearch, CollaboratorsList } from '@features/list-sharing';
 import {
@@ -11,6 +12,7 @@ import {
 } from '@features/comments';
 import {
   renameListAction,
+  updateListDueDateAction,
   deleteListAction,
   createTaskAction,
   toggleTaskDoneAction,
@@ -34,6 +36,7 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
   const tComments = await getTranslations('Comments');
 
   const renameWithId = renameListAction.bind(null, list.id);
+  const updateDueDateWithId = updateListDueDateAction.bind(null, list.id);
   const deleteWithId = deleteListAction.bind(null, list.id);
   const createTaskWithId = createTaskAction.bind(null, list.id);
   const moveTaskInList = moveTaskAction.bind(null, list.id);
@@ -67,6 +70,25 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
           className="text-xl font-semibold"
         />
         <Button type="submit">{t('saveButton')}</Button>
+      </form>
+
+      <form action={updateDueDateWithId} className="flex items-center gap-2">
+        <Label
+          htmlFor="list-due-date"
+          className="text-sm text-muted-foreground"
+        >
+          {t('dueDateLabel')}
+        </Label>
+        <Input
+          id="list-due-date"
+          name="dueDate"
+          type="date"
+          defaultValue={list.dueDate ? list.dueDate.slice(0, 10) : ''}
+          className="w-40"
+        />
+        <Button type="submit" size="sm" variant="outline">
+          {t('saveButton')}
+        </Button>
       </form>
 
       {list.templateId ? (

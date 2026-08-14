@@ -21,6 +21,7 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
         list(id: $id) {
           id
           title
+          dueDate
           isOwner
           tasks {
             id

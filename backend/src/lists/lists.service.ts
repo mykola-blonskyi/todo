@@ -51,6 +51,14 @@ export class ListsService {
     });
   }
 
+  async updateListDueDate(ownerId: string, id: string, dueDate: Date | null) {
+    await this.requireOwned(ownerId, id);
+    return this.prisma.list.update({
+      where: { id },
+      data: { dueDate },
+    });
+  }
+
   async deleteList(ownerId: string, id: string) {
     await this.requireOwned(ownerId, id);
     await this.prisma.list.delete({ where: { id } });

@@ -34,7 +34,8 @@
     "saveButton": "Зберегти",
     "deleteButton": "Видалити",
     "deleteConfirm": "Видалити цей список? Це неможливо скасувати.",
-    "generatedFromTemplate": "Створено з повторюваного шаблону"
+    "generatedFromTemplate": "Створено з повторюваного шаблону",
+    "dueDateLabel": "Термін виконання"
   },
   "Tasks": {
     "title": "Завдання",
