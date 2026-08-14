@@ -17,6 +17,7 @@ import type { Identity } from '../identity/identity.types';
 import { ListTemplateRecurrenceType } from '@prisma/client';
 import { ShareCandidateInput } from '../list-shares/share-candidate.input';
 import { ShareCandidate } from '../list-shares/share-candidate.model';
+import { HubSessionCookie } from '../hub/hub-session-cookie.decorator';
 
 @Resolver(() => ListTemplate)
 export class ListTemplatesResolver {
@@ -48,6 +49,7 @@ export class ListTemplatesResolver {
   @Query(() => [ShareCandidate])
   async searchTemplateCandidates(
     @CurrentUser() identity: Identity,
+    @HubSessionCookie() sessionCookie: string,
     @Args('templateId', { type: () => ID }) templateId: string,
     @Args('q', { type: () => String }) q: string,
   ) {
@@ -56,6 +58,7 @@ export class ListTemplatesResolver {
       user.id,
       templateId,
       q,
+      sessionCookie,
     );
   }
 

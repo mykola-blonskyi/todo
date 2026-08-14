@@ -27,7 +27,15 @@ describe('ListTemplate (GraphQL)', () => {
   });
 
   function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+    return {
+      'x-user-id': hubUserId,
+      'x-user-email': email,
+      // A real browser always sends this on every request - only
+      // searchTemplateCandidates actually reads it (see HubSessionCookie,
+      // TODO-54), but every caller in this file gets one so the helper
+      // matches a real request shape.
+      cookie: `authjs.session-token=${hubUserId}-session`,
+    };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -586,6 +594,44 @@ describe('ListTemplate (GraphQL)', () => {
 
       expect(body.data).toBeNull();
       expect(body.errors?.[0]).toBeDefined();
+    });
+
+    it("forwards the caller's own session cookie to the hub (TODO-54)", async () => {
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+
+      await graphql<{ searchTemplateCandidates: unknown[] }>(
+        `query {searchTemplateCandidates(templateId: "${id}", q: "a") {hubUserId email name image}}`,
+        owner,
+      );
+
+      const calledInit = fetchSpy.mock.calls[0][1] as { headers: HeadersInit };
+
+      expect(calledInit.headers).toEqual({ cookie: owner.cookie });
+    });
+
+    it('rejects searchTemplateCandidates without a session cookie, never calling the hub', async () => {
+      const fetchSpy = jest.spyOn(global, 'fetch');
+
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, 'Weekly Cleaning');
+      const ownerWithoutCookie = {
+        'x-user-id': 'hub-1',
+        'x-user-email': 'owner@example.com',
+      };
+
+      const body = await graphql<{ searchTemplateCandidates: unknown[] }>(
+        `query {searchTemplateCandidates(templateId: "${id}", q: "a") {hubUserId email name image}}`,
+        ownerWithoutCookie,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 });

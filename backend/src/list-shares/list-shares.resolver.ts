@@ -15,6 +15,7 @@ import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
 import { ShareCandidateInput } from './share-candidate.input';
 import { ShareCandidate } from './share-candidate.model';
+import { HubSessionCookie } from '../hub/hub-session-cookie.decorator';
 
 @Resolver(() => ListShare)
 export class ListSharesResolver {
@@ -37,11 +38,17 @@ export class ListSharesResolver {
   @Query(() => [ShareCandidate])
   async searchShareCandidates(
     @CurrentUser() identity: Identity,
+    @HubSessionCookie() sessionCookie: string,
     @Args('listId', { type: () => ID }) listId: string,
     @Args('q', { type: () => String }) q: string,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
-    return this.listSharesService.searchShareCandidates(user.id, listId, q);
+    return this.listSharesService.searchShareCandidates(
+      user.id,
+      listId,
+      q,
+      sessionCookie,
+    );
   }
 
   @Mutation(() => ListShare)
