@@ -18,6 +18,8 @@ import { ListTemplateRecurrenceType } from '@prisma/client';
 import { ShareCandidateInput } from '../list-shares/share-candidate.input';
 import { ShareCandidate } from '../list-shares/share-candidate.model';
 import { HubSessionCookie } from '../hub/hub-session-cookie.decorator';
+import { Loaders } from '../graphql/loaders.decorator';
+import type { GqlLoaders } from '../graphql/loaders';
 
 @Resolver(() => ListTemplate)
 export class ListTemplatesResolver {
@@ -27,8 +29,11 @@ export class ListTemplatesResolver {
   ) {}
 
   @ResolveField(() => [User])
-  collaborators(@Parent() template: ListTemplate) {
-    return this.listTemplatesService.templateCollaborators(template.id);
+  collaborators(
+    @Parent() template: ListTemplate,
+    @Loaders() loaders: GqlLoaders,
+  ) {
+    return loaders.templateCollaboratorsByTemplateId.load(template.id);
   }
 
   @Query(() => [ListTemplate])

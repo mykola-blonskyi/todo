@@ -16,6 +16,8 @@ import type { Identity } from '../identity/identity.types';
 import { ShareCandidateInput } from './share-candidate.input';
 import { ShareCandidate } from './share-candidate.model';
 import { HubSessionCookie } from '../hub/hub-session-cookie.decorator';
+import { Loaders } from '../graphql/loaders.decorator';
+import type { GqlLoaders } from '../graphql/loaders';
 
 @Resolver(() => ListShare)
 export class ListSharesResolver {
@@ -26,13 +28,13 @@ export class ListSharesResolver {
   ) {}
 
   @ResolveField()
-  list(@Parent() listShare: ListShare) {
-    return this.listsService.listById(listShare.listId);
+  list(@Parent() listShare: ListShare, @Loaders() loaders: GqlLoaders) {
+    return loaders.listById.load(listShare.listId);
   }
 
   @ResolveField()
-  user(@Parent() listShare: ListShare) {
-    return this.usersService.userById(listShare.userId);
+  user(@Parent() listShare: ListShare, @Loaders() loaders: GqlLoaders) {
+    return loaders.userById.load(listShare.userId);
   }
 
   @Query(() => [ShareCandidate])

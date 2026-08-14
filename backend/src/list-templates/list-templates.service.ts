@@ -152,12 +152,25 @@ export class ListTemplatesService {
     return true;
   }
 
-  async templateCollaborators(templateId: string) {
+  // For the templateCollaboratorsByTemplateId DataLoader
+  // (src/graphql/loaders.ts) - one query for every ListTemplate in a
+  // fan-out, grouped back into a Map.
+  async templateCollaboratorsByTemplateIds(templateIds: string[]) {
     const rows = await this.prisma.templateCollaborator.findMany({
-      where: { templateId },
+      where: { templateId: { in: templateIds } },
       include: { user: true },
     });
-    return rows.map((row) => row.user);
+
+    const byTemplateId = new Map<string, (typeof rows)[number]['user'][]>();
+    for (const row of rows) {
+      const existing = byTemplateId.get(row.templateId);
+      if (existing) {
+        existing.push(row.user);
+      } else {
+        byTemplateId.set(row.templateId, [row.user]);
+      }
+    }
+    return byTemplateId;
   }
 
   async addTemplateCollaborator(

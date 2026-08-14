@@ -7,6 +7,7 @@ import {
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import type { Request } from 'express';
 import { Identity } from './identity.types';
+import { parseIdentity } from './parse-identity';
 
 // Reads the trusted identity headers the frontend forwards after validating
 // the session against the hub - the backend is internal-only (ADR-003) and
@@ -27,27 +28,10 @@ export class IdentityGuard implements CanActivate {
       req: Request;
     }>().req;
 
-    const hubUserId = req.headers['x-user-id'];
-    const email = req.headers['x-user-email'];
-
-    if (
-      typeof hubUserId !== 'string' ||
-      !hubUserId ||
-      typeof email !== 'string' ||
-      !email
-    ) {
+    const identity = parseIdentity(req);
+    if (!identity) {
       throw new UnauthorizedException('Missing trusted identity headers');
     }
-
-    const name = req.headers['x-user-name'];
-    const image = req.headers['x-user-image'];
-
-    const identity: Identity = {
-      hubUserId,
-      email,
-      name: typeof name === 'string' ? name : undefined,
-      image: typeof image === 'string' ? image : undefined,
-    };
 
     (req as Request & { identity: Identity }).identity = identity;
 

@@ -31,15 +31,18 @@ export class ListCategoryAssignmentsService {
     return true;
   }
 
-  // The caller's own Category for this List, if any - each User on a shared
-  // List categorizes independently (Rule 22), so this is always scoped to
-  // the resolving caller, never a List-wide value.
-  async myCategoryForList(userId: string, listId: string) {
-    const assignment = await this.prisma.listCategoryAssignment.findUnique({
-      where: { userId_listId: { userId, listId } },
+  // For the myCategoryByListId DataLoader (src/graphql/loaders.ts) - one
+  // query for every List in a fan-out, grouped back into a Map. Still
+  // scoped to a single caller (Rule 22) - userId is the loader's own
+  // resolved current-user id, not a batch dimension.
+  async myCategoriesByListIds(userId: string, listIds: string[]) {
+    const assignments = await this.prisma.listCategoryAssignment.findMany({
+      where: { userId, listId: { in: listIds } },
       include: { category: true },
     });
-    return assignment?.category ?? null;
+    return new Map(
+      assignments.map((assignment) => [assignment.listId, assignment.category]),
+    );
   }
 
   // Same owner-or-accepted-collaborator check duplicated across services -

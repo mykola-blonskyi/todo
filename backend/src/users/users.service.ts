@@ -61,8 +61,13 @@ export class UsersService {
     });
   }
 
-  async userById(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
+  // For the userById DataLoader (src/graphql/loaders.ts), used by
+  // ListShare.user.
+  async usersByIds(ids: string[]) {
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: ids } },
+    });
+    return new Map(users.map((user) => [user.id, user]));
   }
 
   // userId is always the caller's own id (resolved via findOrCreateByIdentity

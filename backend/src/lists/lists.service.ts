@@ -87,20 +87,38 @@ export class ListsService {
     return true;
   }
 
-  async listById(id: string) {
-    return this.prisma.list.findUnique({ where: { id } });
+  // For the listById DataLoader (src/graphql/loaders.ts), used by
+  // ListShare.list.
+  async listsByIds(ids: string[]) {
+    const lists = await this.prisma.list.findMany({
+      where: { id: { in: ids } },
+    });
+    return new Map(lists.map((list) => [list.id, list]));
   }
 
   // Lives here (not ListSharesService) to avoid a circular module dependency:
   // ListSharesModule already imports ListsModule for ownership checks, so the
   // reverse import isn't available without forwardRef(). ListsService already
   // has direct Prisma access, so no cross-module call is needed anyway.
-  async acceptedCollaborators(listId: string) {
+  //
+  // For the acceptedCollaboratorsByListId DataLoader (src/graphql/loaders.ts)
+  // - one query for every List in a fan-out, grouped back into a Map.
+  async acceptedCollaboratorsByListIds(listIds: string[]) {
     const shares = await this.prisma.listShare.findMany({
-      where: { listId, status: ListShareStatus.accepted },
+      where: { listId: { in: listIds }, status: ListShareStatus.accepted },
       include: { user: true },
     });
-    return shares.map((share) => share.user);
+
+    const byListId = new Map<string, (typeof shares)[number]['user'][]>();
+    for (const share of shares) {
+      const existing = byListId.get(share.listId);
+      if (existing) {
+        existing.push(share.user);
+      } else {
+        byListId.set(share.listId, [share.user]);
+      }
+    }
+    return byListId;
   }
 
   private requireTitle(title: string): string {
