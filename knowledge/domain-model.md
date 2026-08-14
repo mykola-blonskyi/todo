@@ -43,6 +43,9 @@ Responsibilities:
 
 Fields:
 - `id`, `title`, `createdAt`, `updatedAt`
+- `dueDate` (nullable, date-only semantics like `Task.dueDate`) — owner-only to set. Used only to
+  gate/date Google Calendar sync (business-rules.md Rule 8, ADR-015); has no effect on Task-level
+  due dates, which remain completely independent.
 - `ownerId` (→ User)
 - `templateId` (→ ListTemplate, nullable) — set only if this List was spawned by a ListTemplate
   Occurrence; otherwise null for a manually-created List. Provenance only: a spawned List is an
@@ -56,6 +59,7 @@ Relationships:
 - 1:N with **Task**
 - 1:N with **ListShare**
 - 1:N with **Comment** (list-level)
+- 1:N with **CalendarSync** (one row per User who has synced this List — ADR-015)
 
 ---
 
@@ -132,7 +136,10 @@ Fields:
 Relationships:
 - N:1 with **List**
 - 1:N with **Comment** (task-level)
-- 1:N with **CalendarSync** (only present for Tasks with a `dueDate` that someone chose to sync)
+
+`dueDate` and `done` are purely Task-management fields — neither participates in Google Calendar
+sync, which is List-level (see **List**.`dueDate`, ADR-015). `done` only shows up as a checklist
+marker the next time the List is synced/re-synced; it has no automatic effect on any Calendar event.
 
 ---
 
@@ -216,17 +223,20 @@ Relationships:
 ### CalendarSync
 
 Responsibilities:
-- Tracks that a specific User has pushed a specific Task to their own Google Calendar, so todolist
-  knows which `googleEventId` to update or delete later (e.g. on task completion, per
-  [business-rules.md](business-rules.md)).
+- Tracks that a specific User has pushed a specific List to their own Google Calendar as one event,
+  so todolist knows which `googleEventId` to update on re-sync or delete later (List deletion /
+  collaborator removal, [business-rules.md](business-rules.md) Rule 10). List-level, not per-Task
+  (ADR-015) — a resync updates the same event's checklist rather than creating a new one.
 
 Fields:
 - `id`, `googleEventId`, `googleCalendarId`, `syncedAt`
-- `userId` (→ User), `taskId` (→ Task)
+- `userId` (→ User), `listId` (→ List)
+
+Constraints: unique on (`userId`, `listId`) — one synced event per User per List.
 
 Relationships:
 - N:1 with **User**
-- N:1 with **Task**
+- N:1 with **List**
 
 Constraints: unique on (`userId`, `taskId`) — one calendar event per user per task.
 

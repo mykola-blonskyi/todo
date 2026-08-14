@@ -10,6 +10,7 @@ import {
   addListCommentAction,
   addTaskCommentAction,
 } from '@features/comments';
+import { SyncToCalendarButton } from '@features/google-calendar';
 import {
   renameListAction,
   updateListDueDateAction,
@@ -27,9 +28,14 @@ import type { ListDetailData } from './types';
 interface ListDetailProps {
   list: ListDetailData;
   myUserId: string;
+  googleCalendarConnected: boolean;
 }
 
-export async function ListDetail({ list, myUserId }: ListDetailProps) {
+export async function ListDetail({
+  list,
+  myUserId,
+  googleCalendarConnected,
+}: ListDetailProps) {
   const t = await getTranslations('Lists');
   const tTasks = await getTranslations('Tasks');
   const tSharing = await getTranslations('Sharing');
@@ -90,6 +96,10 @@ export async function ListDetail({ list, myUserId }: ListDetailProps) {
           {t('saveButton')}
         </Button>
       </form>
+
+      {googleCalendarConnected ? (
+        <SyncToCalendarButton listId={list.id} />
+      ) : null}
 
       {list.templateId ? (
         <Badge variant="secondary" className="self-start">
