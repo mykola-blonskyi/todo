@@ -550,7 +550,17 @@ describe('ListTemplate (GraphQL)', () => {
   });
 
   describe('searching for template candidates (searchTemplateCandidates)', () => {
-    const hubPayload = [
+    // The hub's own wire shape (ADR-009) - userId, not hubUserId. Mapped to
+    // our hubUserId naming inside HubClientService (TODO-54).
+    const hubWirePayload = [
+      {
+        userId: 'hub-user-1',
+        email: 'a@example.com',
+        name: 'A',
+        image: null,
+      },
+    ];
+    const expectedCandidates = [
       {
         hubUserId: 'hub-user-1',
         email: 'a@example.com',
@@ -562,7 +572,7 @@ describe('ListTemplate (GraphQL)', () => {
     beforeEach(() => {
       jest
         .spyOn(global, 'fetch')
-        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+        .mockResolvedValue(new Response(JSON.stringify(hubWirePayload)));
     });
 
     afterEach(() => {
@@ -579,7 +589,7 @@ describe('ListTemplate (GraphQL)', () => {
       );
 
       expect(body.errors).toBeUndefined();
-      expect(body.data!.searchTemplateCandidates).toEqual(hubPayload);
+      expect(body.data!.searchTemplateCandidates).toEqual(expectedCandidates);
     });
 
     it('denies searchTemplateCandidates for a non-owner', async () => {
@@ -599,7 +609,7 @@ describe('ListTemplate (GraphQL)', () => {
     it("forwards the caller's own session cookie to the hub (TODO-54)", async () => {
       const fetchSpy = jest
         .spyOn(global, 'fetch')
-        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+        .mockResolvedValue(new Response(JSON.stringify(hubWirePayload)));
 
       const owner = asUser('hub-1', 'owner@example.com');
       const id = await createListTemplate(owner, 'Weekly Cleaning');

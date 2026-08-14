@@ -66,7 +66,17 @@ describe('List Sharing (GraphQL)', () => {
   }
 
   describe('searching for list share candidates (searchShareCandidates)', () => {
-    const hubPayload = [
+    // The hub's own wire shape (ADR-009) - userId, not hubUserId. Mapped to
+    // our hubUserId naming inside HubClientService (TODO-54).
+    const hubWirePayload = [
+      {
+        userId: 'hub-user-1',
+        email: 'a@example.com',
+        name: 'A',
+        image: null,
+      },
+    ];
+    const expectedCandidates = [
       {
         hubUserId: 'hub-user-1',
         email: 'a@example.com',
@@ -78,7 +88,7 @@ describe('List Sharing (GraphQL)', () => {
     beforeEach(() => {
       jest
         .spyOn(global, 'fetch')
-        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+        .mockResolvedValue(new Response(JSON.stringify(hubWirePayload)));
     });
 
     afterEach(() => {
@@ -94,7 +104,7 @@ describe('List Sharing (GraphQL)', () => {
       );
 
       expect(body.errors).toBeUndefined();
-      expect(body.data!.searchShareCandidates).toEqual(hubPayload);
+      expect(body.data!.searchShareCandidates).toEqual(expectedCandidates);
     });
 
     it('resolves to an empty array when the hub finds nothing', async () => {
@@ -116,7 +126,7 @@ describe('List Sharing (GraphQL)', () => {
     it('sends listId and q as query params to the hub', async () => {
       const fetchSpy = jest
         .spyOn(global, 'fetch')
-        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+        .mockResolvedValue(new Response(JSON.stringify(hubWirePayload)));
 
       const { owner, listId } = await getOwnerAndList();
 
@@ -133,7 +143,7 @@ describe('List Sharing (GraphQL)', () => {
     it("forwards the caller's own session cookie to the hub (TODO-54)", async () => {
       const fetchSpy = jest
         .spyOn(global, 'fetch')
-        .mockResolvedValue(new Response(JSON.stringify(hubPayload)));
+        .mockResolvedValue(new Response(JSON.stringify(hubWirePayload)));
 
       const { owner, listId } = await getOwnerAndList();
 
@@ -183,7 +193,9 @@ describe('List Sharing (GraphQL)', () => {
       jest
         .spyOn(global, 'fetch')
         .mockResolvedValue(
-          new Response(JSON.stringify([{ ...hubPayload[0], hubUserId: null }])),
+          new Response(
+            JSON.stringify([{ ...hubWirePayload[0], userId: null }]),
+          ),
         );
       jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
