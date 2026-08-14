@@ -44,6 +44,7 @@ model User {
   googleCalendarConnection GoogleCalendarConnection?
   ownedListTemplates       ListTemplate[]
   templateCollaborations   TemplateCollaborator[]
+  ownedCategories          Category[]
 
   @@map("users")
 }
@@ -251,4 +252,21 @@ model TemplateCollaborator {
 
   @@unique([templateId, userId])
   @@map("template_collaborators")
+}
+
+// ─── Category ────────────────────────────────────────────────────────────────
+// A User's own private grouping for Lists - never shared, never visible to
+// anyone else (knowledge/domain-model.md, business-rules.md Rule 20).
+// ListCategoryAssignment (the join to List) doesn't exist yet - TODO-31.
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  @@unique([ownerId, name])
+  @@map("categories")
 }
