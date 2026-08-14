@@ -93,6 +93,40 @@ export class CalendarSyncService {
     }
   }
 
+  // Best-effort delete of one user's synced Calendar event for this List -
+  // used when that user loses access (removed by the owner, or leaves
+  // voluntarily), not when the whole List is deleted (business-rules.md
+  // Rule 10). Other users' CalendarSync rows/events for the same List are
+  // untouched. The row is removed locally regardless of whether the Google
+  // API call itself succeeds - matches the "removed regardless" wording the
+  // now-retired Rule 9 originally established for this same trade-off.
+  async deleteCalendarEventForUser(
+    userId: string,
+    listId: string,
+  ): Promise<void> {
+    const sync = await this.prisma.calendarSync.findUnique({
+      where: { userId_listId: { userId, listId } },
+    });
+    if (!sync) {
+      return;
+    }
+
+    try {
+      const accessToken =
+        await this.googleCalendarService.getValidAccessToken(userId);
+      await this.apiClient.deleteEvent(accessToken, sync.googleEventId);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete synced Calendar event for list ${listId}, user ${userId}`,
+        error instanceof Error ? error.stack : error,
+      );
+    }
+
+    await this.prisma.calendarSync.delete({
+      where: { userId_listId: { userId, listId } },
+    });
+  }
+
   // Same owner-or-accepted-collaborator check duplicated across services -
   // see CommentsService's identical private helper for why (avoids a
   // circular module dependency).

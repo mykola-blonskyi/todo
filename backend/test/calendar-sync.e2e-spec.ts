@@ -426,4 +426,183 @@ describe('Calendar sync (GraphQL)', () => {
       expect(deleteEvent).not.toHaveBeenCalled();
     });
   });
+
+  describe('cascade cleanup on collaborator removal/leaving', () => {
+    async function meId(headers: Record<string, string>) {
+      const body = await graphql<{ me: { id: string } }>(
+        `
+          query {
+            me {
+              id
+            }
+          }
+        `,
+        headers,
+      );
+      return body.data!.me.id;
+    }
+
+    it("removing a collaborator deletes only that collaborator's synced event", async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      await setDueDate(owner, listId, '2026-09-01');
+
+      const collaboratorA = asUser('collaborator-a', 'a@example.com');
+      const collaboratorB = asUser('collaborator-b', 'b@example.com');
+      await inviteAndAccept(owner, listId, collaboratorA);
+      await inviteAndAccept(owner, listId, collaboratorB);
+
+      await connectGoogleCalendar(collaboratorA);
+      upsertEvent.mockResolvedValueOnce({
+        eventId: 'a-event',
+        calendarId: 'primary',
+      });
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        collaboratorA,
+      );
+
+      await connectGoogleCalendar(collaboratorB);
+      upsertEvent.mockResolvedValueOnce({
+        eventId: 'b-event',
+        calendarId: 'primary',
+      });
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        collaboratorB,
+      );
+
+      const targetUserId = await meId(collaboratorA);
+      const body = await graphql<{ removeCollaborator: boolean }>(
+        `mutation { removeCollaborator(listId: "${listId}", targetUserId: "${targetUserId}") }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.removeCollaborator).toBe(true);
+      expect(deleteEvent).toHaveBeenCalledTimes(1);
+      expect(deleteEvent).toHaveBeenCalledWith('plain-access-token', 'a-event');
+
+      const aUser = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'collaborator-a' },
+      });
+      const bUser = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'collaborator-b' },
+      });
+      expect(
+        await testDb.calendarSync.findUnique({
+          where: { userId_listId: { userId: aUser.id, listId } },
+        }),
+      ).toBeNull();
+      expect(
+        await testDb.calendarSync.findUnique({
+          where: { userId_listId: { userId: bUser.id, listId } },
+        }),
+      ).not.toBeNull();
+    });
+
+    it("leaving a List deletes only the leaving user's synced event", async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      await setDueDate(owner, listId, '2026-09-01');
+
+      const collaborator = asUser('collaborator-1', 'collaborator@example.com');
+      await inviteAndAccept(owner, listId, collaborator);
+
+      await connectGoogleCalendar(owner);
+      upsertEvent.mockResolvedValueOnce({
+        eventId: 'owner-event',
+        calendarId: 'primary',
+      });
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        owner,
+      );
+
+      await connectGoogleCalendar(collaborator);
+      upsertEvent.mockResolvedValueOnce({
+        eventId: 'collaborator-event',
+        calendarId: 'primary',
+      });
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        collaborator,
+      );
+
+      const body = await graphql<{ leaveList: boolean }>(
+        `mutation { leaveList(listId: "${listId}") }`,
+        collaborator,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.leaveList).toBe(true);
+      expect(deleteEvent).toHaveBeenCalledTimes(1);
+      expect(deleteEvent).toHaveBeenCalledWith(
+        'plain-access-token',
+        'collaborator-event',
+      );
+
+      const ownerUser = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'owner-1' },
+      });
+      expect(
+        await testDb.calendarSync.findUnique({
+          where: { userId_listId: { userId: ownerUser.id, listId } },
+        }),
+      ).not.toBeNull();
+    });
+
+    it('removal succeeds even when the mocked Calendar delete call fails', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      await setDueDate(owner, listId, '2026-09-01');
+
+      const collaborator = asUser('collaborator-1', 'collaborator@example.com');
+      await inviteAndAccept(owner, listId, collaborator);
+      await connectGoogleCalendar(collaborator);
+      await graphql(
+        `mutation { syncListToCalendar(listId: "${listId}") }`,
+        collaborator,
+      );
+
+      deleteEvent.mockRejectedValueOnce(new Error('Google API down'));
+
+      const targetUserId = await meId(collaborator);
+      const body = await graphql<{ removeCollaborator: boolean }>(
+        `mutation { removeCollaborator(listId: "${listId}", targetUserId: "${targetUserId}") }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.removeCollaborator).toBe(true);
+
+      const collaboratorUser = await testDb.user.findUniqueOrThrow({
+        where: { hubUserId: 'collaborator-1' },
+      });
+      expect(
+        await testDb.calendarSync.findUnique({
+          where: {
+            userId_listId: { userId: collaboratorUser.id, listId },
+          },
+        }),
+      ).toBeNull();
+    });
+
+    it('removing a collaborator who never synced is a no-op for Calendar cleanup', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      const collaborator = asUser('collaborator-1', 'collaborator@example.com');
+      await inviteAndAccept(owner, listId, collaborator);
+
+      const targetUserId = await meId(collaborator);
+      const body = await graphql<{ removeCollaborator: boolean }>(
+        `mutation { removeCollaborator(listId: "${listId}", targetUserId: "${targetUserId}") }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.removeCollaborator).toBe(true);
+      expect(deleteEvent).not.toHaveBeenCalled();
+    });
+  });
 });

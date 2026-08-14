@@ -9,6 +9,7 @@ import { UsersService } from '../users/users.service';
 import { ListShareStatus } from '@prisma/client';
 import { ShareCandidateInput } from './share-candidate.input';
 import { HubClientService } from '../hub/hub-client.service';
+import { CalendarSyncService } from '../google-calendar/calendar-sync.service';
 
 @Injectable()
 export class ListSharesService {
@@ -17,6 +18,7 @@ export class ListSharesService {
     private readonly listsService: ListsService,
     private readonly usersService: UsersService,
     private readonly hubClientService: HubClientService,
+    private readonly calendarSyncService: CalendarSyncService,
   ) {}
 
   async searchShareCandidates(ownerId: string, listId: string, q: string) {
@@ -102,6 +104,12 @@ export class ListSharesService {
     await this.prisma.listShare.delete({
       where: { listId_userId: { userId: targetUserId, listId } },
     });
+    // Best-effort, after the share is gone - other users' synced events are
+    // untouched (business-rules.md Rule 10).
+    await this.calendarSyncService.deleteCalendarEventForUser(
+      targetUserId,
+      listId,
+    );
 
     return true;
   }
@@ -128,6 +136,7 @@ export class ListSharesService {
         },
       },
     });
+    await this.calendarSyncService.deleteCalendarEventForUser(userId, listId);
 
     return true;
   }
