@@ -120,5 +120,23 @@
     "noResults": "Совпадений для «{query}» не найдено",
     "added": "Добавлен",
     "removeCollaboratorButton": "Удалить"
+  },
+  "Categories": {
+    "title": "Категории",
+    "backToLists": "Назад к спискам",
+    "createPlaceholder": "Название новой категории",
+    "createButton": "Создать",
+    "emptyState": "Пока нет категорий. Создайте первую выше.",
+    "editButton": "Изменить",
+    "saveButton": "Сохранить",
+    "cancelButton": "Отмена",
+    "deleteButton": "Удалить",
+    "deleteConfirm": "Удалить эту категорию? Списки, отнесённые к ней, станут без категории.",
+    "manageLink": "Категории",
+    "filterLabel": "Категория",
+    "filterAll": "Все списки",
+    "filterUncategorized": "Без категории",
+    "assignLabel": "Категория",
+    "assignUncategorized": "Без категории"
   }
 }

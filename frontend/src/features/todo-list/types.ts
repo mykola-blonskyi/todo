@@ -18,4 +18,5 @@ export interface ListDetailData {
   collaborators: Collaborator[];
   templateId: string | null;
   comments: Comment[];
+  myCategory: { id: string; name: string } | null;
 }

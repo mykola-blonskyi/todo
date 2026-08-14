@@ -120,5 +120,23 @@
     "noResults": "Збігів для «{query}» не знайдено",
     "added": "Додано",
     "removeCollaboratorButton": "Видалити"
+  },
+  "Categories": {
+    "title": "Категорії",
+    "backToLists": "Назад до списків",
+    "createPlaceholder": "Назва нової категорії",
+    "createButton": "Створити",
+    "emptyState": "Поки що немає категорій. Створіть першу вище.",
+    "editButton": "Редагувати",
+    "saveButton": "Зберегти",
+    "cancelButton": "Скасувати",
+    "deleteButton": "Видалити",
+    "deleteConfirm": "Видалити цю категорію? Списки, віднесені до неї, стануть без категорії.",
+    "manageLink": "Категорії",
+    "filterLabel": "Категорія",
+    "filterAll": "Усі списки",
+    "filterUncategorized": "Без категорії",
+    "assignLabel": "Категорія",
+    "assignUncategorized": "Без категорії"
   }
 }

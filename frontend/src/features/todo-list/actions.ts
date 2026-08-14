@@ -98,6 +98,30 @@ export async function deleteTaskAction(id: string) {
   revalidatePath('/[locale]/lists/[id]', 'page');
 }
 
+export async function assignCategoryAction(listId: string, categoryId: string) {
+  await graphqlFetch(
+    `mutation AssignListCategory($listId: ID!, $categoryId: ID!) {
+      assignListCategory(listId: $listId, categoryId: $categoryId)
+    }`,
+    { listId, categoryId },
+  );
+
+  revalidatePath('/[locale]/lists/[id]', 'page');
+  revalidatePath('/[locale]', 'page');
+}
+
+export async function unassignCategoryAction(listId: string) {
+  await graphqlFetch(
+    `mutation UnassignListCategory($listId: ID!) {
+      unassignListCategory(listId: $listId)
+    }`,
+    { listId },
+  );
+
+  revalidatePath('/[locale]/lists/[id]', 'page');
+  revalidatePath('/[locale]', 'page');
+}
+
 export async function moveTaskAction(
   listId: string,
   taskId: string,

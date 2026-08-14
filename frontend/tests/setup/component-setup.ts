@@ -28,3 +28,12 @@ vi.mock('@shared/lib/i18n/navigation', () => ({
   }: React.AnchorHTMLAttributes<HTMLAnchorElement>) =>
     React.createElement('a', { href, ...props }, children),
 }));
+
+// Same reasoning as the i18n Link mock above, for client components (e.g.
+// CategoryFilter) that read/write the URL directly via next/navigation
+// instead of going through the i18n wrapper.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}));

@@ -31,6 +31,17 @@ export class ListCategoryAssignmentsService {
     return true;
   }
 
+  // The caller's own Category for this List, if any - each User on a shared
+  // List categorizes independently (Rule 22), so this is always scoped to
+  // the resolving caller, never a List-wide value.
+  async myCategoryForList(userId: string, listId: string) {
+    const assignment = await this.prisma.listCategoryAssignment.findUnique({
+      where: { userId_listId: { userId, listId } },
+      include: { category: true },
+    });
+    return assignment?.category ?? null;
+  }
+
   // Same owner-or-accepted-collaborator check duplicated across services -
   // see CommentsService's identical private helper for why (avoids a
   // circular module dependency).

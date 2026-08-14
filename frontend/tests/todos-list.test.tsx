@@ -14,7 +14,9 @@ vi.mock('@/features/list-sharing/actions', () => ({
 
 describe('TodosList', () => {
   it('shows the empty state when there are no lists', () => {
-    renderWithIntl(<TodosList lists={[]} pendingInvites={[]} />);
+    renderWithIntl(
+      <TodosList lists={[]} pendingInvites={[]} categories={[]} />,
+    );
 
     expect(
       screen.getByText('No lists yet. Create one above to get started.'),
@@ -29,6 +31,7 @@ describe('TodosList', () => {
           { id: 'list-2', title: 'Chores' },
         ]}
         pendingInvites={[]}
+        categories={[]}
       />,
     );
 
@@ -43,7 +46,9 @@ describe('TodosList', () => {
   });
 
   it('does not render a pending invites section when there are none', () => {
-    renderWithIntl(<TodosList lists={[]} pendingInvites={[]} />);
+    renderWithIntl(
+      <TodosList lists={[]} pendingInvites={[]} categories={[]} />,
+    );
 
     expect(screen.queryByText('Pending invites')).not.toBeInTheDocument();
   });
@@ -59,6 +64,7 @@ describe('TodosList', () => {
             list: { id: 'list-3', title: 'Shared List' },
           },
         ]}
+        categories={[]}
       />,
     );
 
