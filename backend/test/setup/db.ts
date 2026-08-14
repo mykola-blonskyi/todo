@@ -11,7 +11,7 @@ export async function resetDb() {
   await testDb.$executeRawUnsafe(`
     TRUNCATE TABLE
       calendar_syncs, google_calendar_connections, comments, list_shares, tasks,
-      template_collaborators, list_templates, lists, users
+      template_collaborators, list_templates, categories, lists, users
     RESTART IDENTITY CASCADE
   `);
 }
