@@ -6,5 +6,6 @@ import { UsersModule } from '../users/users.module';
 @Module({
   imports: [UsersModule],
   providers: [ListCategoryAssignmentsService, ListCategoryAssignmentsResolver],
+  exports: [ListCategoryAssignmentsService],
 })
 export class ListCategoryAssignmentsModule {}

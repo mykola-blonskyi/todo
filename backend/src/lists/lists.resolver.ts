@@ -12,6 +12,8 @@ import { ListsService } from './lists.service';
 import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
 import { CommentsService } from '../comments/comments.service';
+import { ListCategoryAssignmentsService } from '../list-category-assignments/list-category-assignments.service';
+import { Category } from '../categories/category.model';
 import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
 
@@ -22,6 +24,7 @@ export class ListsResolver {
     private readonly usersService: UsersService,
     private readonly tasksService: TasksService,
     private readonly commentsService: CommentsService,
+    private readonly categoryAssignmentsService: ListCategoryAssignmentsService,
   ) {}
 
   @ResolveField()
@@ -43,6 +46,12 @@ export class ListsResolver {
   @ResolveField()
   comments(@Parent() list: List) {
     return this.commentsService.commentsForList(list.id);
+  }
+
+  @ResolveField(() => Category, { nullable: true })
+  async myCategory(@Parent() list: List, @CurrentUser() identity: Identity) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.categoryAssignmentsService.myCategoryForList(user.id, list.id);
   }
 
   @Mutation(() => List)

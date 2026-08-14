@@ -348,4 +348,51 @@ describe('ListCategoryAssignment + myLists filter (GraphQL)', () => {
       expect(collaboratorBody.data?.myLists.map((l) => l.id)).toContain(listId);
     });
   });
+
+  describe('List.myCategory', () => {
+    it("returns the caller's own assigned Category", async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      const categoryId = await createCategory(owner, 'Home');
+      await assignListCategory(owner, listId, categoryId);
+
+      const body = await graphql<{
+        list: { myCategory: { id: string; name: string } | null };
+      }>(`query { list(id: "${listId}") { myCategory { id name } } }`, owner);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.list.myCategory).toEqual({
+        id: categoryId,
+        name: 'Home',
+      });
+    });
+
+    it('returns null when unassigned', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+
+      const body = await graphql<{
+        list: { myCategory: { id: string } | null };
+      }>(`query { list(id: "${listId}") { myCategory { id } } }`, owner);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.list.myCategory).toBeNull();
+    });
+
+    it('is independent per caller on a shared List', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const listId = await createList(owner, 'Groceries');
+      const collaborator = asUser('collaborator-1', 'collaborator@example.com');
+      await inviteAndAccept(owner, listId, collaborator);
+
+      const ownerCategoryId = await createCategory(owner, 'Work');
+      await assignListCategory(owner, listId, ownerCategoryId);
+
+      const collaboratorBody = await graphql<{
+        list: { myCategory: { id: string } | null };
+      }>(`query { list(id: "${listId}") { myCategory { id } } }`, collaborator);
+
+      expect(collaboratorBody.data?.list.myCategory).toBeNull();
+    });
+  });
 });

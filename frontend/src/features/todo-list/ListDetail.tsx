@@ -11,6 +11,7 @@ import {
   addTaskCommentAction,
 } from '@features/comments';
 import { SyncToCalendarButton } from '@features/google-calendar';
+import type { Category } from '@features/categories';
 import {
   renameListAction,
   updateListDueDateAction,
@@ -23,18 +24,21 @@ import {
 } from './actions';
 import { DeleteListButton } from './DeleteListButton';
 import { TaskRow } from './TaskRow';
+import { CategoryAssign } from './CategoryAssign';
 import type { ListDetailData } from './types';
 
 interface ListDetailProps {
   list: ListDetailData;
   myUserId: string;
   googleCalendarConnected: boolean;
+  categories: Category[];
 }
 
 export async function ListDetail({
   list,
   myUserId,
   googleCalendarConnected,
+  categories,
 }: ListDetailProps) {
   const t = await getTranslations('Lists');
   const tTasks = await getTranslations('Tasks');
@@ -100,6 +104,12 @@ export async function ListDetail({
       {googleCalendarConnected ? (
         <SyncToCalendarButton listId={list.id} />
       ) : null}
+
+      <CategoryAssign
+        listId={list.id}
+        myCategory={list.myCategory}
+        categories={categories}
+      />
 
       {list.templateId ? (
         <Badge variant="secondary" className="self-start">

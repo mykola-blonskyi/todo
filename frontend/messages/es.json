@@ -120,5 +120,23 @@
     "noResults": "Sin coincidencias para “{query}”",
     "added": "Añadido",
     "removeCollaboratorButton": "Eliminar"
+  },
+  "Categories": {
+    "title": "Categorías",
+    "backToLists": "Volver a las listas",
+    "createPlaceholder": "Nombre de la nueva categoría",
+    "createButton": "Crear",
+    "emptyState": "Aún no hay categorías. Crea una arriba para empezar.",
+    "editButton": "Editar",
+    "saveButton": "Guardar",
+    "cancelButton": "Cancelar",
+    "deleteButton": "Eliminar",
+    "deleteConfirm": "¿Eliminar esta categoría? Las listas asignadas a ella quedarán sin categoría.",
+    "manageLink": "Categorías",
+    "filterLabel": "Categoría",
+    "filterAll": "Todas las listas",
+    "filterUncategorized": "Sin categoría",
+    "assignLabel": "Categoría",
+    "assignUncategorized": "Sin categoría"
   }
 }

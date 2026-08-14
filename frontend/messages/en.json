@@ -120,5 +120,23 @@
     "noResults": "No matches for “{query}”",
     "added": "Added",
     "removeCollaboratorButton": "Remove"
+  },
+  "Categories": {
+    "title": "Categories",
+    "backToLists": "Back to lists",
+    "createPlaceholder": "New category name",
+    "createButton": "Create",
+    "emptyState": "No categories yet. Create one above to get started.",
+    "editButton": "Edit",
+    "saveButton": "Save",
+    "cancelButton": "Cancel",
+    "deleteButton": "Delete",
+    "deleteConfirm": "Delete this category? Lists assigned to it will become uncategorized.",
+    "manageLink": "Categories",
+    "filterLabel": "Category",
+    "filterAll": "All lists",
+    "filterUncategorized": "Uncategorized",
+    "assignLabel": "Category",
+    "assignUncategorized": "Uncategorized"
   }
 }

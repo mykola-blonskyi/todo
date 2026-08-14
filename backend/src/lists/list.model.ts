@@ -2,6 +2,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Task } from '../tasks/task.model';
 import { User } from '../users/user.model';
 import { Comment } from '../comments/comment.model';
+import { Category } from '../categories/category.model';
 
 @ObjectType()
 export class List {
@@ -33,6 +34,11 @@ export class List {
 
   @Field(() => [Comment])
   comments?: Comment[];
+
+  // The caller's own Category for this List, if any - per-User, independent
+  // of any other User's assignment on the same shared List (Rule 22).
+  @Field(() => Category, { nullable: true })
+  myCategory?: Category | null;
 
   // Provenance only - set if this List was spawned by a ListTemplate
   // Occurrence (knowledge/domain-model.md List.templateId), null for a
