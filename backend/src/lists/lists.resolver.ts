@@ -55,9 +55,14 @@ export class ListsResolver {
   }
 
   @Query(() => [List])
-  async myLists(@CurrentUser() identity: Identity) {
+  async myLists(
+    @CurrentUser() identity: Identity,
+    @Args('categoryId', { type: () => ID, nullable: true }) categoryId?: string,
+    @Args('uncategorizedOnly', { type: () => Boolean, nullable: true })
+    uncategorizedOnly?: boolean,
+  ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
-    return this.listsService.myLists(user.id);
+    return this.listsService.myLists(user.id, categoryId, uncategorizedOnly);
   }
 
   @Query(() => List)

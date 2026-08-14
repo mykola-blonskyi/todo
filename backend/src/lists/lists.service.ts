@@ -22,7 +22,17 @@ export class ListsService {
     });
   }
 
-  myLists(userId: string) {
+  myLists(
+    userId: string,
+    categoryId?: string | null,
+    uncategorizedOnly?: boolean | null,
+  ) {
+    if (categoryId && uncategorizedOnly) {
+      throw new BadRequestException(
+        'categoryId and uncategorizedOnly are mutually exclusive',
+      );
+    }
+
     return this.prisma.list.findMany({
       where: {
         OR: [
@@ -36,6 +46,12 @@ export class ListsService {
             },
           },
         ],
+        ...(categoryId && {
+          categoryAssignments: { some: { userId, categoryId } },
+        }),
+        ...(uncategorizedOnly && {
+          categoryAssignments: { none: { userId } },
+        }),
       },
       orderBy: { createdAt: 'asc' },
     });

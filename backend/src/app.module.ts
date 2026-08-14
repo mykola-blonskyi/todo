@@ -18,6 +18,7 @@ import { HubModule } from './hub/hub.module';
 import { CommentsModule } from './comments/comments.module';
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ListCategoryAssignmentsModule } from './list-category-assignments/list-category-assignments.module';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
 @Module({
@@ -56,6 +57,7 @@ import { GraphQLError, GraphQLFormattedError } from 'graphql';
     CommentsModule,
     GoogleCalendarModule,
     CategoriesModule,
+    ListCategoryAssignmentsModule,
   ],
   controllers: [AppController],
   providers: [
