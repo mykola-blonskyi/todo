@@ -45,6 +45,7 @@ model User {
   ownedListTemplates       ListTemplate[]
   templateCollaborations   TemplateCollaborator[]
   ownedCategories          Category[]
+  categoryAssignments      ListCategoryAssignment[]
 
   @@map("users")
 }
@@ -70,10 +71,11 @@ model List {
   templateId String?
   template   ListTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
 
-  tasks         Task[]
-  shares        ListShare[]
-  comments      Comment[]      @relation("ListComments")
-  calendarSyncs CalendarSync[]
+  tasks               Task[]
+  shares              ListShare[]
+  comments            Comment[]                @relation("ListComments")
+  calendarSyncs       CalendarSync[]
+  categoryAssignments ListCategoryAssignment[]
 
   @@map("lists")
 }
@@ -257,7 +259,6 @@ model TemplateCollaborator {
 // ─── Category ────────────────────────────────────────────────────────────────
 // A User's own private grouping for Lists - never shared, never visible to
 // anyone else (knowledge/domain-model.md, business-rules.md Rule 20).
-// ListCategoryAssignment (the join to List) doesn't exist yet - TODO-31.
 
 model Category {
   id        String   @id @default(uuid())
@@ -267,6 +268,31 @@ model Category {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
+  assignments ListCategoryAssignment[]
+
   @@unique([ownerId, name])
   @@map("categories")
+}
+
+// ─── ListCategoryAssignment ─────────────────────────────────────────────────
+// Connects one User's Category to one List they have access to - per-User,
+// fully independent of any other User's assignment on the same shared List
+// (business-rules.md Rules 21-22). Cascades with either side: deleting a
+// Category or a List removes the assignment, never the other side.
+
+model ListCategoryAssignment {
+  id         String   @id @default(uuid())
+  assignedAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  listId String
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listId])
+  @@map("list_category_assignments")
 }
