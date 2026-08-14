@@ -17,6 +17,26 @@ export class TasksService {
     });
   }
 
+  // For the tasksByListId DataLoader (src/graphql/loaders.ts) - one query
+  // for every List in a fan-out, grouped back into a Map by the loader.
+  async tasksByListIds(listIds: string[]) {
+    const tasks = await this.prisma.task.findMany({
+      where: { listId: { in: listIds } },
+      orderBy: { position: 'asc' },
+    });
+
+    const byListId = new Map<string, typeof tasks>();
+    for (const task of tasks) {
+      const existing = byListId.get(task.listId);
+      if (existing) {
+        existing.push(task);
+      } else {
+        byListId.set(task.listId, [task]);
+      }
+    }
+    return byListId;
+  }
+
   async createTask(
     ownerId: string,
     listId: string,

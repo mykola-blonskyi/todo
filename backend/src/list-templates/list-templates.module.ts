@@ -7,5 +7,6 @@ import { ListTemplatesResolver } from './list-templates.resolver';
 @Module({
   imports: [UsersModule, HubModule],
   providers: [ListTemplatesService, ListTemplatesResolver],
+  exports: [ListTemplatesService],
 })
 export class ListTemplatesModule {}

@@ -10,37 +10,41 @@ import {
 import { List } from './list.model';
 import { ListsService } from './lists.service';
 import { UsersService } from '../users/users.service';
-import { TasksService } from '../tasks/tasks.service';
 import { CommentsService } from '../comments/comments.service';
 import { ListCategoryAssignmentsService } from '../list-category-assignments/list-category-assignments.service';
 import { Category } from '../categories/category.model';
 import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
+import { Loaders } from '../graphql/loaders.decorator';
+import type { GqlLoaders } from '../graphql/loaders';
 
 @Resolver(() => List)
 export class ListsResolver {
   constructor(
     private readonly listsService: ListsService,
     private readonly usersService: UsersService,
-    private readonly tasksService: TasksService,
     private readonly commentsService: CommentsService,
     private readonly categoryAssignmentsService: ListCategoryAssignmentsService,
   ) {}
 
   @ResolveField()
-  tasks(@Parent() list: List) {
-    return this.tasksService.tasksForList(list.id);
+  tasks(@Parent() list: List, @Loaders() loaders: GqlLoaders) {
+    return loaders.tasksByListId.load(list.id);
   }
 
   @ResolveField(() => Boolean)
-  async isOwner(@Parent() list: List, @CurrentUser() identity: Identity) {
-    const user = await this.usersService.findOrCreateByIdentity(identity);
+  async isOwner(
+    @Parent() list: List,
+    @CurrentUser() identity: Identity,
+    @Loaders() loaders: GqlLoaders,
+  ) {
+    const user = await loaders.currentUser.load(identity.hubUserId);
     return list.ownerId === user.id;
   }
 
   @ResolveField()
-  collaborators(@Parent() list: List) {
-    return this.listsService.acceptedCollaborators(list.id);
+  collaborators(@Parent() list: List, @Loaders() loaders: GqlLoaders) {
+    return loaders.acceptedCollaboratorsByListId.load(list.id);
   }
 
   @ResolveField()

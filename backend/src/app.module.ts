@@ -9,10 +9,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { UsersService } from './users/users.service';
+import { TasksModule } from './tasks/tasks.module';
+import { TasksService } from './tasks/tasks.service';
 import { ListsModule } from './lists/lists.module';
+import { ListsService } from './lists/lists.service';
 import { IdentityGuard } from './identity/identity.guard';
 import { ListSharesModule } from './list-shares/list-shares.module';
 import { ListTemplatesModule } from './list-templates/list-templates.module';
+import { ListTemplatesService } from './list-templates/list-templates.service';
 import { OccurrencesModule } from './occurrences/occurrences.module';
 import { HubModule } from './hub/hub.module';
 import { CommentsModule } from './comments/comments.module';
@@ -20,33 +25,53 @@ import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ListCategoryAssignmentsModule } from './list-category-assignments/list-category-assignments.module';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import { createLoaders } from './graphql/loaders';
+import type { Request } from 'express';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     PrismaModule,
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      formatError(
-        formattedError: GraphQLFormattedError,
-        error: unknown,
-      ): GraphQLFormattedError {
-        const originalError =
-          error instanceof GraphQLError ? error.originalError : undefined;
+      imports: [UsersModule, TasksModule, ListsModule, ListTemplatesModule],
+      inject: [UsersService, TasksService, ListsService, ListTemplatesService],
+      useFactory: (
+        usersService: UsersService,
+        tasksService: TasksService,
+        listsService: ListsService,
+        listTemplatesService: ListTemplatesService,
+      ): ApolloDriverConfig => ({
+        autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+        context: ({ req }: { req: Request }) => ({
+          req,
+          loaders: createLoaders(req, {
+            usersService,
+            tasksService,
+            listsService,
+            listTemplatesService,
+          }),
+        }),
+        formatError(
+          formattedError: GraphQLFormattedError,
+          error: unknown,
+        ): GraphQLFormattedError {
+          const originalError =
+            error instanceof GraphQLError ? error.originalError : undefined;
 
-        if (originalError instanceof HttpException) {
-          return formattedError;
-        }
+          if (originalError instanceof HttpException) {
+            return formattedError;
+          }
 
-        console.error('Unhandled GraphQL error:', originalError ?? error);
+          console.error('Unhandled GraphQL error:', originalError ?? error);
 
-        return {
-          message: 'Internal server error',
-          extensions: { code: 'INTERNAL_SERVER_ERROR' },
-        };
-      },
+          return {
+            message: 'Internal server error',
+            extensions: { code: 'INTERNAL_SERVER_ERROR' },
+          };
+        },
+      }),
     }),
     UsersModule,
     ListsModule,
