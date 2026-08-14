@@ -69,9 +69,10 @@ model List {
   templateId String?
   template   ListTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
 
-  tasks    Task[]
-  shares   ListShare[]
-  comments Comment[]   @relation("ListComments")
+  tasks         Task[]
+  shares        ListShare[]
+  comments      Comment[]      @relation("ListComments")
+  calendarSyncs CalendarSync[]
 
   @@map("lists")
 }
@@ -90,8 +91,7 @@ model Task {
   listId String
   list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
 
-  comments      Comment[]      @relation("TaskComments")
-  calendarSyncs CalendarSync[]
+  comments Comment[] @relation("TaskComments")
 
   @@map("tasks")
 }
@@ -144,8 +144,10 @@ model Comment {
 }
 
 // ─── CalendarSync ────────────────────────────────────────────────────────────
-// One row per user per task that's been synced - independent calendar events
-// per user, per business-rules.md Rule 8.
+// One row per user per List that's been synced - independent calendar events
+// per user, per business-rules.md Rule 8. One event per List (not per Task,
+// see TODO-52/ADR-015) - re-sync updates the same event via googleEventId
+// rather than creating a new row.
 
 model CalendarSync {
   id               String   @id @default(uuid())
@@ -156,10 +158,10 @@ model CalendarSync {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  taskId String
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  listId String
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, taskId])
+  @@unique([userId, listId])
   @@map("calendar_syncs")
 }
 

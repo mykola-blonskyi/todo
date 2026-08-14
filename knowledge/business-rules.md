@@ -61,32 +61,34 @@ see [plans/backlog.md](../plans/backlog.md) — not built in the initial version
 
 ## Rule 8 — Calendar sync is opt-in, one-way, and per-user
 
-A Task only participates in Calendar sync if it has a due date, and only for Users who explicitly
+A List only participates in Calendar sync once it has a due date, and only for Users who explicitly
 trigger a sync for that List — never automatically, and never by default for either the Owner or a
-Collaborator. Sync is one-way (todolist → Google Calendar); todolist never reads back edits made
-directly in Google Calendar. The Owner's and each Collaborator's synced copies are independent
-events in independent calendars (see **CalendarSync**, one row per user per task).
+Collaborator. Sync is List-level: one Calendar event per (User, List), not per Task (ADR-015) — its
+description lists every Task as a checklist (done/not-done marker), so per-Task state is visible
+without per-Task events. Sync is one-way (todolist → Google Calendar); todolist never reads back
+edits made directly in Google Calendar. The Owner's and each Collaborator's synced copies are
+independent events in independent calendars (see **CalendarSync**, one row per user per List).
 
 ---
 
-## Rule 9 — Completing a synced Task deletes its calendar event
+## Rule 9 — Retired
 
-When a Task with one or more CalendarSync rows is marked `done`, todolist attempts to delete the
-corresponding Google Calendar event for every User who had synced it. This is a best-effort action —
-Task completion is never blocked or rolled back by a failed calendar deletion (e.g. expired token);
-the failure is logged and the CalendarSync row is removed regardless.
+Previously: "completing a synced Task deletes its calendar event" — this assumed per-Task sync.
+Retired by ADR-015 (List-level sync): Task completion has no automatic effect on the List's Calendar
+event. The event only changes on an explicit re-sync (which refreshes the checklist to show current
+done/not-done state) or gets removed via Rule 10's List-deletion/collaborator-removal cascade.
 
 ---
 
-## Rule 10 — Deleting a List or removing a Collaborator cleans up their calendar
+## Rule 10 — Deleting a List or removing a Collaborator cleans up their calendar event
 
-- Deleting a List cascades to its Tasks, Comments, and ListShares, and best-effort deletes every
-  CalendarSync'd event for every User (Owner and all Collaborators) who had synced any of its Tasks.
+- Deleting a List cascades to its Tasks, Comments, and ListShares, and best-effort deletes the
+  synced Calendar event for every User (Owner and all Collaborators) who had synced that List.
 - Removing a Collaborator (by the Owner) or a Collaborator leaving voluntarily deletes their
-  ListShare and best-effort deletes only *their own* CalendarSync'd events for that List's Tasks —
-  other Users' synced events are untouched.
-- Both are best-effort in the same sense as Rule 9: a failed Google API call is logged, not treated
-  as a failure of the deletion/removal itself.
+  ListShare and best-effort deletes only *their own* synced Calendar event for that List — other
+  Users' synced events are untouched.
+- Both are best-effort: a failed Google API call is logged, not treated as a failure of the
+  deletion/removal itself.
 
 ---
 

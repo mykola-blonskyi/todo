@@ -73,6 +73,11 @@
     "showButton": "Comentarios ({count})",
     "hideButton": "Ocultar comentarios"
   },
+  "CalendarSync": {
+    "syncButton": "Sincronizar con Google Calendar",
+    "syncSuccess": "Sincronizado con Google Calendar.",
+    "syncError": "No se pudo sincronizar con Google Calendar. Asegúrate de que la lista tenga una fecha límite e inténtalo de nuevo."
+  },
   "ListTemplates": {
     "title": "Plantillas recurrentes",
     "createButton": "Nueva plantilla",

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { encryptToken } from './token-encryption';
+import { decryptToken, encryptToken } from './token-encryption';
 import z from 'zod';
 
 const tokenResponseSchema = z.object({
@@ -9,6 +9,11 @@ const tokenResponseSchema = z.object({
   expires_in: z.number(),
   scope: z.string(),
 });
+
+// A token is refreshed this far ahead of its real expiry, so a sync call
+// that's mid-flight when the clock ticks over never sends an already-stale
+// access token to the Calendar API.
+const EXPIRY_SKEW_MS = 60_000;
 
 @Injectable()
 export class GoogleCalendarService {
@@ -56,22 +61,65 @@ export class GoogleCalendarService {
     return connection !== null;
   }
 
+  // Returns a plaintext access token guaranteed valid for at least
+  // EXPIRY_SKEW_MS, refreshing (and persisting) a new one first if the
+  // stored one is expired or about to be.
+  async getValidAccessToken(userId: string): Promise<string> {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId },
+    });
+    if (!connection) {
+      throw new BadRequestException('Google Calendar is not connected');
+    }
+
+    if (connection.expiresAt.getTime() > Date.now() + EXPIRY_SKEW_MS) {
+      return decryptToken(connection.accessToken);
+    }
+
+    const refreshed = await this.refreshAccessToken(
+      decryptToken(connection.refreshToken),
+    );
+
+    await this.prisma.googleCalendarConnection.update({
+      where: { userId },
+      data: {
+        accessToken: encryptToken(refreshed.access_token),
+        expiresAt: new Date(Date.now() + refreshed.expires_in * 1000),
+      },
+    });
+
+    return refreshed.access_token;
+  }
+
   private async exchangeCode(code: string, redirectUri: string) {
+    return this.postToTokenEndpoint({
+      code,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+    });
+  }
+
+  private async refreshAccessToken(refreshToken: string) {
+    return this.postToTokenEndpoint({
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    });
+  }
+
+  private async postToTokenEndpoint(params: Record<string, string>) {
     const res = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        code,
+        ...params,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
       }),
     });
 
     if (!res.ok) {
       throw new BadRequestException(
-        'Google rejected the Calendar authorization code',
+        'Google rejected the Calendar token request - reconnect may be required',
       );
     }
 

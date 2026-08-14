@@ -486,6 +486,52 @@ old single-pulse behavior is exactly `streakDays = 1`. A new `streakStartDate` f
   consistent with the other three recurrence types, and a missed-cron edge case is judged rarer and
   lower-stakes than the complexity of merging two different anchoring strategies in one due-check.
 
+---
+
+## ADR-015: Google Calendar sync targets the List as a whole, not individual Tasks
+
+Date: 2026-08-14
+
+Status: Accepted
+
+### Context
+The manual sync trigger (TODO-18) was first built per-Task: every Task with its own due date became
+its own Calendar event. In practice, most Lists represent one checklist due by one deadline, not a
+set of independently-scheduled items — per-Task sync required setting a due date on every Task
+individually and produced one Calendar event per Task, cluttering the calendar for a single list.
+
+### Decision
+Sync is List-level: `List` gains its own optional `dueDate` (`knowledge/domain-model.md`), and
+`syncListToCalendar` produces exactly one Calendar event per (user, List) — titled with the List's
+title, with a checklist of every Task (done/not-done marker, `position` order) in the description.
+Re-syncing updates that same event in place (via the stored `googleEventId`) rather than creating a
+new one — idempotent in the sense of "never duplicates," not "never changes." `CalendarSync` is
+re-keyed from `(userId, taskId)` to `(userId, listId)` accordingly. `Task.dueDate` is unchanged and
+plays no role in Calendar sync anymore — it stays a purely Task-management field.
+
+A consequence: Rule 9 ("completing a synced Task deletes its calendar event") is retired — there's no
+per-Task event left to delete, and no equivalent "List is done" concept was introduced to replace it
+(seen as scope creep past what was asked). The List's event is only ever removed via the existing
+List-deletion/collaborator-removal cascade (Rule 10), unchanged in substance, just reworded from
+per-Task events (plural) to the List's one event (singular).
+
+### Alternatives Considered
+- **Keep per-Task sync, add a List-level rollup on top** — rejected: running two sync granularities
+  side by side for the same feature has no clear benefit and doubles the surface to maintain/explain.
+- **Auto-delete the List's event once every Task in it is done** — rejected: requires inventing a
+  "List is done" concept that doesn't exist anywhere else in the domain model, for a feature nobody
+  asked for. The checklist description already shows per-Task completion state on every resync.
+- **Default the event date to "today" when `List.dueDate` is unset** (so sync always works) —
+  rejected: a Calendar event dated "today" for reasons unrelated to any real deadline is more
+  confusing than requiring the List to have a due date before it can be synced at all.
+
+### Consequences
+- TODO-19 ("delete calendar event on task done") is cancelled — its premise no longer exists.
+- The originally-merged per-Task implementation (TODO-18's first version, PR #96) was closed unmerged
+  rather than shipped-then-reverted, since nothing depended on it yet.
+- `CalendarSync`'s schema change (re-keying `taskId` → `listId`) needed no data migration — no rows
+  existed under the old per-Task shape at the time of this change.
+
 ### Consequences
 - `intervalDays`'s meaning changes for every already-existing `everyNDays` template with no data
   migration — their firing cadence may shift the moment this ships (accepted, see above)
