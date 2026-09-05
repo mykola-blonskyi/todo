@@ -64,7 +64,9 @@ describe('me query (GraphQL)', () => {
       theme: 'light',
     });
 
-    const rows = await testDb.user.findMany({ where: { hubUserId: 'hub-1' } });
+    const rows = await testDb.user.findMany({
+      where: { identitySub: 'hub-1' },
+    });
     expect(rows).toHaveLength(1);
   });
 
@@ -78,7 +80,9 @@ describe('me query (GraphQL)', () => {
       'x-user-email': 'owner@example.com',
     });
 
-    const rows = await testDb.user.findMany({ where: { hubUserId: 'hub-1' } });
+    const rows = await testDb.user.findMany({
+      where: { identitySub: 'hub-1' },
+    });
 
     expect(rows).toHaveLength(1);
     expect(second.data?.me.id).toBe(rows[0].id);
@@ -97,5 +101,80 @@ describe('me query (GraphQL)', () => {
     });
 
     expect(second.data?.me.name).toBe('Owner');
+  });
+
+  // findOrCreateCandidate keys a share/template candidate's row by the hub's
+  // own id (TODO-54), not a login `sub`. Without reconciling on email, that
+  // person's first real sign-in matches no row, falls through to create, and
+  // dies on User.email's unique constraint (ADR-016).
+  describe('reconciling a pre-existing candidate row on first real sign-in', () => {
+    it('reattaches the existing row by email, preserving its id and associations', async () => {
+      const candidate = await testDb.user.create({
+        data: { identitySub: 'hub-user-7', email: 'shared@example.com' },
+      });
+      const owner = await testDb.user.create({
+        data: { identitySub: 'login-owner', email: 'owner@example.com' },
+      });
+      const list = await testDb.list.create({
+        data: { title: 'Groceries', ownerId: owner.id },
+      });
+      await testDb.listShare.create({
+        data: { listId: list.id, userId: candidate.id },
+      });
+
+      const body = await meQuery({
+        'x-user-id': 'login-sub-7',
+        'x-user-email': 'shared@example.com',
+        'x-user-name': 'Shared',
+      });
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.me.id).toBe(candidate.id);
+
+      const rows = await testDb.user.findMany({
+        where: { email: 'shared@example.com' },
+      });
+      expect(rows).toHaveLength(1);
+      expect(rows[0].identitySub).toBe('login-sub-7');
+      expect(rows[0].name).toBe('Shared');
+
+      const shares = await testDb.listShare.findMany({
+        where: { userId: candidate.id },
+      });
+      expect(shares).toHaveLength(1);
+    });
+
+    it('still creates a row normally when nothing pre-exists for that email', async () => {
+      const body = await meQuery({
+        'x-user-id': 'login-sub-8',
+        'x-user-email': 'fresh@example.com',
+      });
+
+      expect(body.errors).toBeUndefined();
+      const rows = await testDb.user.findMany({
+        where: { identitySub: 'login-sub-8' },
+      });
+      expect(rows).toHaveLength(1);
+      expect(rows[0].email).toBe('fresh@example.com');
+    });
+
+    it('updates in place when a row already carries the matching identitySub', async () => {
+      const existing = await testDb.user.create({
+        data: { identitySub: 'login-sub-9', email: 'stable@example.com' },
+      });
+
+      const body = await meQuery({
+        'x-user-id': 'login-sub-9',
+        'x-user-email': 'stable@example.com',
+        'x-user-name': 'Stable',
+      });
+
+      expect(body.data?.me.id).toBe(existing.id);
+      const row = await testDb.user.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(row.identitySub).toBe('login-sub-9');
+      expect(row.name).toBe('Stable');
+    });
   });
 });

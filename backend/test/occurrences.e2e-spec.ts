@@ -26,8 +26,8 @@ describe('Occurrence spawning (GraphQL)', () => {
     await app.close();
   });
 
-  function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -355,7 +355,7 @@ describe('Occurrence spawning (GraphQL)', () => {
         where: { listId: spawned.id },
         include: { user: true },
       });
-      expect(listShare?.user.hubUserId).toBe('hub-2');
+      expect(listShare?.user.identitySub).toBe('hub-2');
       expect(listShare?.status).toBe('accepted');
       expect(listShare?.respondedAt).not.toBeNull();
     });
@@ -372,7 +372,7 @@ describe('Occurrence spawning (GraphQL)', () => {
       const spawned = body.data!.spawnDueOccurrence!;
 
       const ownerUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'hub-1' },
+        where: { identitySub: 'hub-1' },
       });
       const assignment = await testDb.listCategoryAssignment.findUnique({
         where: {
@@ -412,7 +412,7 @@ describe('Occurrence spawning (GraphQL)', () => {
       const spawned = body.data!.spawnDueOccurrence!;
 
       const collaboratorUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'hub-2' },
+        where: { identitySub: 'hub-2' },
       });
       const collaboratorAssignment =
         await testDb.listCategoryAssignment.findUnique({

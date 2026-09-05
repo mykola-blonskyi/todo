@@ -26,8 +26,8 @@ describe('Theme/locale preferences (GraphQL)', () => {
     await app.close();
   });
 
-  function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -56,7 +56,7 @@ describe('Theme/locale preferences (GraphQL)', () => {
     expect(body.data?.updateTheme.theme).toBe('dark');
 
     const row = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'hub-1' },
+      where: { identitySub: 'hub-1' },
     });
     expect(row.theme).toBe('dark');
   });
@@ -79,7 +79,7 @@ describe('Theme/locale preferences (GraphQL)', () => {
     expect(body.data?.updateLocale.locale).toBe('uk');
 
     const row = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'hub-1' },
+      where: { identitySub: 'hub-1' },
     });
     expect(row.locale).toBe('uk');
   });
@@ -110,10 +110,10 @@ describe('Theme/locale preferences (GraphQL)', () => {
     );
 
     const ownerRow = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'hub-1' },
+      where: { identitySub: 'hub-1' },
     });
     const otherRow = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'hub-2' },
+      where: { identitySub: 'hub-2' },
     });
     expect(ownerRow.theme).toBe('dark');
     expect(otherRow.theme).toBe('light');

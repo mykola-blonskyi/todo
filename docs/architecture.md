@@ -30,8 +30,11 @@ app) — see [ADR-006](decisions.md) for why the two were merged from separately
 Responsibilities:
 - All user-facing pages (lists, tasks, sharing, comments, settings, calendar connect)
 - Acts as a BFF: the only public entry point, calls the backend GraphQL API server-side
-- Subdomain auth middleware (hub validate check) + `next-intl` locale routing, same pattern as the
-  hub's own middleware
+- Auth middleware (`proxy.ts`): decodes todolist's own Auth.js session JWT, redirects to the local
+  sign-in page when it's absent, forwards the trusted identity headers when it isn't — plus
+  `next-intl` locale routing, same pattern as the hub's own middleware
+- Sign-in/sign-out UI of its own (`/[locale]/login`, header sign-out) as an OIDC client of
+  `login.blonskyi.dev` — see [ADR-016](decisions.md)
 - Google Calendar OAuth callback route (`/api/google/calendar/callback`) — REST, not GraphQL, since
   it's a third-party redirect target
 
@@ -39,8 +42,10 @@ Stack: Next.js 16, TypeScript, shadcn/ui, Tailwind CSS v3 (matched to the hub's 
 components/theme tokens can be copied directly — see [ADR-007](decisions.md)), `next-themes`
 (light/dark/theme-rose, same as hub), `next-intl` (en/ru/uk/es, URL-based, same as hub)
 
-Dependencies: hub's `/api/auth/validate` and `/api/auth/project-members` endpoints, the internal
-backend API, PostgreSQL (via the backend only — frontend never talks to Postgres directly)
+Dependencies: `login.blonskyi.dev`'s OIDC endpoints (discovery, `/authorize`, `/token`, JWKS), the
+hub's `/api/auth/project-members` endpoint (share-target search only — a deferred dependency, see
+[ADR-016](decisions.md)), the internal backend API, PostgreSQL (via the backend only — frontend
+never talks to Postgres directly)
 
 ---
 
@@ -67,9 +72,15 @@ container can reach it, over Coolify's private `coolify` Docker network — see
 
 External systems:
 
-- **Hub (`blonskyi.dev`)** — identity and per-project access control. Todolist calls
-  `/api/auth/validate` (login/access gate) and `/api/auth/project-members` (share-target search).
-  No auth logic is duplicated locally.
+- **login (`login.blonskyi.dev`)** — the shared OpenID Provider for all `*.blonskyi.dev` projects.
+  Todolist is a genuine, independent OIDC client of it (ADR-016): authorization code + PKCE via
+  Auth.js, RS256 tokens verified against login's JWKS. A valid todolist session already implies the
+  user is approved and has a `client_members` grant for `todolist` — no separate access-gate call.
+- **Hub (`blonskyi.dev`)** — still called for exactly one thing: `/api/auth/project-members`
+  (share-target search, ADR-009), forwarding the caller's hub session cookie. This is a documented,
+  deferred dependency (ADR-016, `docs/TODO.md`) — it has no login-side equivalent yet, and now
+  depends on the user separately holding a live hub session, which conversion to login no longer
+  guarantees.
 - **Google OAuth (Calendar scope)** — separate consent flow from hub login, reusing the hub's
   existing OAuth Client with an additional registered redirect URI — see [ADR-004](decisions.md).
 - **Google Calendar API** — one-way event push/delete per user, triggered manually, never read from.
@@ -84,11 +95,17 @@ External systems:
 
 ### Login / access flow
 ```
-User → todo.blonskyi.dev → frontend middleware
-→ read JWT from .blonskyi.dev cookie (or none → redirect to hub login)
-→ GET {API_URL}/api/auth/validate?project=todo
-→ allowed:false → redirect to hub login
-→ allowed:true → upsert local shadow User row from claims → serve page
+User → todo.blonskyi.dev → frontend middleware (proxy.ts)
+→ decode todolist's own Auth.js session JWT via getToken() (host-only cookie, no cookie
+  ever shared with the hub or login)
+→ absent → redirect to todolist's own sign-in page, callbackUrl = the exact deep-link path
+→ sign-in page form POSTs to /api/auth/signin/login → Auth.js redirects to login's /authorize
+  (PKCE + state) → login/Google → login redirects back to /api/auth/callback/login → Auth.js
+  exchanges the code, verifies the ID token against login's JWKS, sets the session cookie
+→ present → set x-user-id (login's sub)/x-user-email headers from the decoded token → serve page
+→ backend upserts the local shadow User row (identitySub, email, ...) from those headers, same as
+  before (ADR-003) — login has already enforced approval + the todolist client_members grant before
+  issuing a token at all, so no separate access-gate call is needed (ADR-016)
 ```
 
 ### Share flow
@@ -134,16 +151,21 @@ actual configuration — this section intentionally doesn't duplicate it.
 ## Security
 
 Authentication:
-- Delegated entirely to the hub — no local password/session implementation
-- Frontend validates the shared `.blonskyi.dev` cookie via the hub's `/api/auth/validate` on every
-  request (same middleware pattern as `boilerplates/subdomain-app.md` in the hub repo)
+- Todolist is a genuine OIDC client of `login.blonskyi.dev` (ADR-016) — Auth.js (`next-auth`),
+  authorization code + PKCE, RS256 tokens verified against login's JWKS. No local
+  password/session-verification code of its own beyond Auth.js's own implementation.
+- Frontend middleware (`proxy.ts`) decodes todolist's own Auth.js session JWT via `getToken()` on
+  every page request — a host-only cookie, never shared with the hub or with login
 - Backend trusts requests only from the frontend, over the private Docker network — it does not
-  independently re-verify the JWT (see [ADR-003](decisions.md))
+  independently re-verify the JWT (see [ADR-003](decisions.md)), unchanged by ADR-016
 
 Authorization:
 - List-level: Owner vs Collaborator, enforced in backend resolvers per
   [business-rules.md](../knowledge/business-rules.md) Rules 2–3
-- Project-level: hub's `project_access`, enforced before any request reaches todolist at all (Rule 1)
+- Project-level: login's `client_members` grant for `todolist` plus the user's own approved status,
+  both enforced by login itself before it ever issues a token — a valid todolist session already
+  implies this, so there is no separate access-gate call on the request hot path (ADR-016; this
+  supersedes the old Rule 1 hub `project_access` gate, see `knowledge/business-rules.md`)
 
 Secrets Management:
 - Environment variables only, never committed; Google Calendar refresh/access tokens encrypted at

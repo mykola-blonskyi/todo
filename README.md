@@ -1,8 +1,10 @@
 # todolist
 
 Advanced TODO list app at [todo.blonskyi.dev](https://todo.blonskyi.dev) — a subdomain project of
-the personal hub ([blonskyi.dev](https://blonskyi.dev), repo `my-projects`). Users log in exclusively
-via the hub's Google SSO; this repo never implements its own login.
+the personal hub ([blonskyi.dev](https://blonskyi.dev), repo `my-projects`). Users log in via
+[login.blonskyi.dev](https://login.blonskyi.dev) (repo `login`), the shared OpenID Provider for all
+`*.blonskyi.dev` projects — this repo is a genuine OIDC client of it, not a consumer of the hub's own
+session cookie (ADR-016).
 
 **Status: early implementation.** Design is complete (see `docs/`), infrastructure and the Prisma
 schema are in place, and implementation is underway ticket by ticket — see
@@ -22,7 +24,8 @@ schema are in place, and implementation is underway ticket by ticket — see
 - **Frontend** — Next.js, shadcn/ui, Tailwind CSS, `next-intl`, `next-themes`
 - **Backend** — NestJS, GraphQL (code-first), Prisma, PostgreSQL — internal-only (no public API,
   the frontend is the sole entry point, see ADR-003)
-- **Auth** — delegated entirely to the hub's existing SSO (shared `.blonskyi.dev` session cookie)
+- **Auth** — Auth.js (`next-auth`) as a genuine OIDC client of `login.blonskyi.dev` (ADR-016); no
+  shared cookie or secret with the hub
 - **Monorepo** — single pnpm workspace (`backend/`, `frontend/`)
 
 ## Local development
@@ -32,6 +35,9 @@ schema are in place, and implementation is underway ticket by ticket — see
 - Node.js 22+
 - pnpm
 - Docker + Docker Compose
+- A local checkout of the [`login`](https://github.com/mykola-blonskyi/login) repo (Go 1.24+) —
+  since ADR-016 the frontend has no auth of its own to fall back on: every page request needs a
+  real session issued by a running `login` instance. There is no dev bypass.
 
 ### Setup
 
@@ -47,9 +53,36 @@ docker compose -f docker-compose.dev.yml up -d --wait
 pnpm db:migrate
 cd ..
 
+cp frontend/.env.example frontend/.env   # see "Local login instance" below for the OIDC values
+
 pnpm --filter backend start:dev    # NestJS on its configured port
 pnpm --filter frontend dev         # Next.js on http://localhost:3000
 ```
+
+### Local `login` instance
+
+Register todolist once against your local IdP, from the `login` repo:
+
+```bash
+REGISTER_CLIENT_ID=todolist REGISTER_CLIENT_NAME=Todolist \
+REGISTER_CLIENT_SECRET=<generate one> \
+REGISTER_REDIRECT_URIS=http://localhost:3000/api/auth/callback/login \
+REGISTER_KIND=confidential \
+go run ./cmd/login register-client
+
+ISSUER=http://localhost:4000 DATABASE_URL=<login's throwaway Postgres> \
+GOOGLE_CLIENT_ID=placeholder GOOGLE_CLIENT_SECRET=placeholder \
+OWNER_EMAIL=you@example.com SESSION_SECRET=dev-secret \
+KEY_ENCRYPTION_KEY=dev-key-encryption-secret \
+go run ./cmd/login serve
+```
+
+Then in `frontend/.env` set `OIDC_ISSUER=http://localhost:4000`, `OIDC_CLIENT_SECRET` to the secret
+you just registered, and `AUTH_SECRET` to any fresh value (`openssl rand -base64 32`).
+
+Signing in needs an approved `login` user who also has a `client_members` grant for `todolist`. If
+Google OAuth isn't usable from your environment, seed a `sessions` row and sign the `login_session`
+cookie by hand — see login's own `examples/go-client/README.md`, "Testing without Google".
 
 ### Available commands
 

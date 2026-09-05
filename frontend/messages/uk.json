@@ -2,6 +2,9 @@
   "Common": {
     "appName": "todolist"
   },
+  "Nav": {
+    "signOut": "Вийти"
+  },
   "ThemeSwitcher": {
     "toggleTheme": "Змінити тему",
     "light": "Світла",
@@ -138,5 +141,12 @@
     "filterUncategorized": "Без категорії",
     "assignLabel": "Категорія",
     "assignUncategorized": "Без категорії"
+  },
+  "LoginPage": {
+    "title": "Увійти",
+    "subtitle": "Увійдіть, щоб отримати доступ до своїх списків",
+    "signInButton": "Продовжити через login.blonskyi.dev",
+    "signInError": "Не вдалося підготувати форму входу. Будь ласка, спробуйте ще раз.",
+    "retryButton": "Спробувати ще раз"
   }
 }

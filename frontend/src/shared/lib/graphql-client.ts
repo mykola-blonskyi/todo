@@ -1,5 +1,9 @@
 import { headers } from 'next/headers';
-import type { Identity } from './hub-identity';
+import {
+  AUTHJS_COOKIE_PREFIX,
+  stripCookiesWithPrefix,
+} from '@features/auth/lib/session-cookie';
+import type { Identity } from './identity';
 
 interface GraphQLErrorPayload {
   message: string;
@@ -16,11 +20,9 @@ export class GraphQLRequestError extends Error {
 }
 
 // Server Components/Actions only - forwards the trusted identity headers the
-// proxy already validated (ADR-003, the backend is internal-only and never
-// re-verifies a JWT itself). An explicit `identity` is only needed from
-// routes the proxy's matcher excludes (e.g. /api/google/calendar/callback -
-// see proxy.ts), which resolve it themselves instead of relying on
-// proxy-injected headers.
+// proxy already validated (ADR-003). An explicit `identity` is only needed
+// from routes the proxy's matcher excludes (e.g.
+// /api/google/calendar/callback), which resolve it themselves.
 export async function graphqlFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
@@ -33,10 +35,15 @@ export async function graphqlFetch<T>(
     const headerList = await headers();
     userId = headerList.get('x-user-id');
     email = headerList.get('x-user-email');
-    // Forwarded on to the hub by searchShareCandidates - that one call
-    // needs the caller's actual .blonskyi.dev session, not just the
-    // locally-trusted identity headers above (see TODO-54).
-    cookie = headerList.get('cookie');
+    // Forwarded on to the hub by searchShareCandidates, which needs the
+    // caller's own .blonskyi.dev session (TODO-54). Every todolist-owned
+    // Auth.js cookie is stripped first: the hub can't validate any of them
+    // (different secret) and has no business receiving this app's own
+    // session state, chunked or not.
+    const incomingCookie = headerList.get('cookie');
+    cookie = incomingCookie
+      ? stripCookiesWithPrefix(incomingCookie, AUTHJS_COOKIE_PREFIX)
+      : null;
   }
 
   const res = await fetch(process.env.BACKEND_URL!, {

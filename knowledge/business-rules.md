@@ -3,11 +3,14 @@
 See [domain-model.md](domain-model.md) for entity definitions and [glossary.md](glossary.md) for
 terminology.
 
-## Rule 1 — Hub project access gates everything, before any List-level rule applies
+## Rule 1 — login's own access grant gates everything, before any List-level rule applies
 
-A User must have a hub `project_access` grant for the `todo` project slug (or be the hub owner)
-to reach todo.blonskyi.dev at all — enforced by the subdomain middleware calling the hub's
-`/api/auth/validate` endpoint. No rule below is ever reached by a User who fails this check.
+A User must be `approved` on login and hold a `client_members` grant for the `todolist` client (or
+be login's owner) to reach todo.blonskyi.dev at all — enforced by login itself before it ever issues
+a token to todolist's Auth.js client (ADR-016). Previously this was the hub's own `project_access`
+grant, checked via a separate `/api/auth/validate` call on every request; that call no longer
+exists — a valid todolist session already implies the grant, since login would not have issued the
+token otherwise. No rule below is ever reached by a User who fails this check.
 
 ---
 

@@ -4,26 +4,39 @@
 
 ### Hub
 
-The existing application at `blonskyi.dev` (repo: `my-projects`). Owns Google login, the
-`.blonskyi.dev` session cookie, the project directory, and per-project access control. Todolist is
-a *consumer* of the hub's auth, not a re-implementation of it.
+The existing application at `blonskyi.dev` (repo: `my-projects`). Owns the project directory. Prior
+to ADR-016 it also owned Google login, the `.blonskyi.dev` session cookie, and per-project access
+control for every subdomain, including todolist; that responsibility now belongs to **login**
+(below). The hub is still called for exactly one thing — the `/api/auth/project-members` search
+(see `docs/TODO.md`'s deferred-dependency entry).
+
+---
+
+### login
+
+The shared OpenID Provider at `login.blonskyi.dev` (repo: `login`) for all `*.blonskyi.dev`
+projects, since ADR-016. Owns Google login, user approval, and per-client access
+(`client_members`). Todolist is a genuine, independent OIDC client of it (Auth.js, authorization
+code + PKCE) — not a shared-cookie consumer the way it was of the hub before ADR-016.
 
 ---
 
 ### Project (hub term)
 
 A registered pet project in the hub's `projects` table (e.g. slug `todo`), listed on the hub's
-project directory and gated by `project_access`. Not to be confused with a **List** (todolist's own
-domain concept, see below) — "project" always means the hub-level registration, "list" always means
-a todolist entity.
+project directory. Not to be confused with a **List** (todolist's own domain concept, see below) —
+"project" always means the hub-level registration, "list" always means a todolist entity. Distinct
+from, and no longer gated by, hub-level **Project Access** (below) — see ADR-016.
 
 ---
 
-### Project Access
+### Project Access (hub term, superseded for todolist by ADR-016)
 
-A hub-level grant (row in `project_access`) that lets a given user open a given subdomain project at
-all. Checked by every subdomain's middleware via the hub's `/api/auth/validate` endpoint. Distinct
-from — and a prerequisite for — being invited to a specific **List** inside todolist.
+The hub-level grant (row in `project_access`) that used to let a given user open todolist at all,
+checked via the hub's `/api/auth/validate` endpoint on every request. Since ADR-016, todolist's
+equivalent gate is login's own `client_members` grant for the `todolist` client, enforced by login
+itself before it issues a token — see `knowledge/business-rules.md` Rule 1. Other hub subdomains
+that haven't migrated yet may still use this term as originally defined.
 
 ---
 
@@ -140,9 +153,9 @@ event.
 ### GoogleCalendarConnection
 
 A per-user record holding the OAuth tokens (encrypted at rest) that authorize todolist to write to
-that User's Google Calendar. Entirely separate from hub login — login only ever grants identity
-(profile/email) scope; a GoogleCalendarConnection is created only when a User explicitly clicks
-"Connect Google Calendar" and grants the Calendar scope.
+that User's Google Calendar. Entirely separate from signing in via **login** — that only ever grants
+identity (profile/email) scope; a GoogleCalendarConnection is created only when a User explicitly
+clicks "Connect Google Calendar" and grants the Calendar scope.
 
 ---
 

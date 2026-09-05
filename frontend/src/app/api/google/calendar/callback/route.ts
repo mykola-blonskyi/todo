@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveIdentity } from '@shared/lib/hub-identity';
+import { getIdentity } from '@shared/lib/identity';
 import { routing } from '@shared/lib/i18n/routing';
 import { graphqlFetch } from '@shared/lib/graphql-client';
 import {
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     return redirectWithResult('error');
   }
 
-  const identity = await resolveIdentity(request.headers.get('cookie') ?? '');
+  const identity = await getIdentity(request);
   if (!identity) {
     return redirectWithResult('error');
   }

@@ -47,7 +47,7 @@ export function createLoaders(
     categoryAssignmentsService,
   }: LoaderServices,
 ): GqlLoaders {
-  // Keyed by hubUserId, but the batch function ignores the keys' values -
+  // Keyed by identitySub, but the batch function ignores the keys' values -
   // it always re-parses the identity from req itself, the same trust
   // boundary as IdentityGuard (never trust caller-supplied data as an
   // identity to upsert, see TODO-46). The key only exists so DataLoader's
@@ -63,13 +63,13 @@ export function createLoaders(
   // field, so this re-parse is defense-in-depth, not the primary error
   // path.
   const currentUser = new DataLoader<string, User>(
-    async (hubUserIds: readonly string[]) => {
+    async (identitySubs: readonly string[]) => {
       const identity = parseIdentity(req);
       if (!identity) {
         throw new UnauthorizedException('Missing trusted identity headers');
       }
       const user = await usersService.findOrCreateByIdentity(identity);
-      return hubUserIds.map(() => user);
+      return identitySubs.map(() => user);
     },
   );
 
@@ -128,7 +128,7 @@ export function createLoaders(
       if (!identity) {
         throw new UnauthorizedException('Missing trusted identity headers');
       }
-      const user = await currentUser.load(identity.hubUserId);
+      const user = await currentUser.load(identity.identitySub);
       const byListId = await categoryAssignmentsService.myCategoriesByListIds(
         user.id,
         [...listIds],

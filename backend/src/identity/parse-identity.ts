@@ -6,12 +6,12 @@ import { Identity } from './identity.types';
 // the guard having already run (see loaders.ts for why). Returns null instead of
 // throwing so each caller picks its own error.
 export function parseIdentity(req: Request): Identity | null {
-  const hubUserId = req.headers['x-user-id'];
+  const identitySub = req.headers['x-user-id'];
   const email = req.headers['x-user-email'];
 
   if (
-    typeof hubUserId !== 'string' ||
-    !hubUserId ||
+    typeof identitySub !== 'string' ||
+    !identitySub ||
     typeof email !== 'string' ||
     !email
   ) {
@@ -22,7 +22,7 @@ export function parseIdentity(req: Request): Identity | null {
   const image = req.headers['x-user-image'];
 
   return {
-    hubUserId,
+    identitySub,
     email,
     name: typeof name === 'string' ? name : undefined,
     image: typeof image === 'string' ? image : undefined,

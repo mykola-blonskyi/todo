@@ -2,6 +2,9 @@
   "Common": {
     "appName": "todolist"
   },
+  "Nav": {
+    "signOut": "Cerrar sesión"
+  },
   "ThemeSwitcher": {
     "toggleTheme": "Cambiar tema",
     "light": "Claro",
@@ -138,5 +141,12 @@
     "filterUncategorized": "Sin categoría",
     "assignLabel": "Categoría",
     "assignUncategorized": "Sin categoría"
+  },
+  "LoginPage": {
+    "title": "Iniciar sesión",
+    "subtitle": "Inicia sesión para acceder a tus listas",
+    "signInButton": "Continuar a login.blonskyi.dev",
+    "signInError": "No se pudo preparar el formulario de inicio de sesión. Inténtalo de nuevo.",
+    "retryButton": "Reintentar"
   }
 }

@@ -47,8 +47,8 @@ describe('Calendar sync (GraphQL)', () => {
     jest.restoreAllMocks();
   });
 
-  function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -179,7 +179,7 @@ describe('Calendar sync (GraphQL)', () => {
     });
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const sync = await testDb.calendarSync.findUniqueOrThrow({
       where: { userId_listId: { userId: user.id, listId } },
@@ -218,7 +218,7 @@ describe('Calendar sync (GraphQL)', () => {
     });
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const syncs = await testDb.calendarSync.findMany({
       where: { userId: user.id, listId },
@@ -238,7 +238,7 @@ describe('Calendar sync (GraphQL)', () => {
     );
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const before = await testDb.calendarSync.findUniqueOrThrow({
       where: { userId_listId: { userId: user.id, listId } },
@@ -304,7 +304,7 @@ describe('Calendar sync (GraphQL)', () => {
     expect(body.data?.syncListToCalendar).toBe(true);
 
     const ownerUser = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const ownerSync = await testDb.calendarSync.findUnique({
       where: { userId_listId: { userId: ownerUser.id, listId } },
@@ -320,7 +320,7 @@ describe('Calendar sync (GraphQL)', () => {
     await connectGoogleCalendar(owner);
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     await testDb.googleCalendarConnection.update({
       where: { userId: user.id },
@@ -484,10 +484,10 @@ describe('Calendar sync (GraphQL)', () => {
       expect(deleteEvent).toHaveBeenCalledWith('plain-access-token', 'a-event');
 
       const aUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'collaborator-a' },
+        where: { identitySub: 'collaborator-a' },
       });
       const bUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'collaborator-b' },
+        where: { identitySub: 'collaborator-b' },
       });
       expect(
         await testDb.calendarSync.findUnique({
@@ -543,7 +543,7 @@ describe('Calendar sync (GraphQL)', () => {
       );
 
       const ownerUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'owner-1' },
+        where: { identitySub: 'owner-1' },
       });
       expect(
         await testDb.calendarSync.findUnique({
@@ -577,7 +577,7 @@ describe('Calendar sync (GraphQL)', () => {
       expect(body.data?.removeCollaborator).toBe(true);
 
       const collaboratorUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'collaborator-1' },
+        where: { identitySub: 'collaborator-1' },
       });
       expect(
         await testDb.calendarSync.findUnique({

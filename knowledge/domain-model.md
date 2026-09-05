@@ -8,15 +8,19 @@ the permission/cascade rules referenced below.
 ### User
 
 Responsibilities:
-- Local shadow of a hub-identified person. Never the source of truth for identity — the hub is.
+- Local shadow of a login-identified person. Never the source of truth for identity — login is
+  (ADR-016; previously the hub).
 - Owns Lists, holds ListShares, has independent theme/locale preferences, may hold a
   GoogleCalendarConnection.
 
 Fields:
 - `id` (uuid, local primary key)
-- `hubUserId` (uuid — the hub's `users.id`, the join key back to the hub, not a real FK since it
-  lives in a separate database)
-- `email`, `name`, `image` (denormalized from the hub, refreshed on login / project-members lookups)
+- `identitySub` (uuid — login's own `sub` claim, the join key back to login, not a real FK since it
+  lives in a separate database. Renamed from `hubUserId` in ADR-016; a pre-existing row's value is a
+  stale hub user id until the owner-remap step in ADR-016 runs, and a row created via the
+  still-hub-sourced share-candidate search (`findOrCreateCandidate`) also holds a hub user id, not a
+  real login `sub`, until that person actually logs in — a known, documented gap, see ADR-016)
+- `email`, `name`, `image` (denormalized from login, refreshed on login / project-members lookups)
 - `locale` (enum: en/ru/uk/es, default `en` — independent of the hub's own per-user locale)
 - `theme` (enum: light/dark/theme-rose, default `light` — independent of the hub's own per-user
   theme)

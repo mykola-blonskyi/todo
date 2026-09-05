@@ -43,14 +43,13 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     environment:
-      API_URL: ${API_URL}
       APP_URL: ${APP_URL}
+      HUB_URL: ${HUB_URL}
+      OIDC_ISSUER: ${OIDC_ISSUER}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       AUTH_SECRET: ${AUTH_SECRET}
-      COOKIE_DOMAIN: ${COOKIE_DOMAIN}
-      PROJECT_SLUG: ${PROJECT_SLUG}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       BACKEND_URL: http://backend:4000/graphql
-      DEV_BYPASS_AUTH: 'false'
     depends_on:
       - backend
     restart: unless-stopped
