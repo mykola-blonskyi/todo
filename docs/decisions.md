@@ -609,7 +609,10 @@ the hub's own `GoogleSignInButton` byte-for-byte. Deliberately **not** `signIn()
 Action — the hub's ADR-015/016/017 chain found and fixed a real bug where a Server Action whose
 result is an external navigation gets replayed by Next.js's own Server Actions `startTransition`
 machinery once another page using Server Actions loads the same framework chunk. A plain form
-leaves no React/Next.js request-handling in the loop to replay.
+leaves no React/Next.js request-handling in the loop to replay. Sign-out (`LoginSignOutButton`, in
+the header, shown only when `proxy.ts` has forwarded an identity) *is* a Server Action, mirroring
+the hub's own `logout.ts`: that replay bug only bites when the action's result navigates off our
+own origin, and sign-out lands back on `/[locale]/login`.
 
 `proxy.ts` now decodes todolist's own JWT via `getIdentity()`/`getToken()`; absent → redirect to
 `/[locale]/login` with `callbackUrl` set to the exact current path (middleware also gained a
@@ -628,13 +631,20 @@ the local shadow User is now keyed by login's `sub`, not the hub's old user id. 
 `ShareCandidate` wire shape (still sourced from the hub's project-members search) deliberately
 keeps its own `hubUserId` field name — a different, unmigrated identity mechanism.
 
-**One-row manual data-continuity fix for the owner.** Todolist's existing `User` row for
-nikolay.blonskiy@gmail.com is keyed by the hub's old user id. After conversion, `login` issues a
-different `sub` for the same person — their first post-conversion sign-in needs, once, after that
-real sign-in (the value doesn't exist before it):
-```sql
-UPDATE users SET "identitySub" = '<owner''s new login sub>' WHERE email = 'nikolay.blonskiy@gmail.com';
-```
+**Data continuity is reconciled automatically, by email.** Existing `User` rows are keyed by an
+identifier `login` will never reissue: the owner's row carries the hub's old user id, and
+`findOrCreateCandidate` keeps minting rows keyed by a hub id for anyone added as a share/template
+candidate before their own first real sign-in. `User.email` is unique, so on that person's first
+real sign-in a plain upsert on `identitySub` matches nothing, falls through to `create`, and
+**fails outright** on the email constraint — not a one-off owner problem, a problem for every
+share candidate.
+
+`findOrCreateByIdentity` therefore resolves in three steps inside one transaction: by
+`identitySub`, then by `email` (rewriting `identitySub` onto the row that already exists), and only
+then `create`. This is the same reconciliation `login`'s own `db.UpsertGoogleUser` performs for the
+same shape of problem — a row created under an older identifier needs reattaching once a stable one
+is presented — and every existing association (Lists, ListShares, ...) keeps pointing at the same
+`User.id`. No manual SQL step, for the owner or anyone else.
 
 ### Alternatives Considered
 - **`DrizzleAdapter`** — rejected: the existing Prisma `User` shadow table already does everything
@@ -644,9 +654,13 @@ UPDATE users SET "identitySub" = '<owner''s new login sub>' WHERE email = 'nikol
   a bug the hub's ADR-015/016/017 chain already root-caused (inside Next.js's own runtime) and
   fixed once; re-deriving that investigation here would waste effort proving something already
   proven.
-- **Automating the owner-remap** — rejected: the value to write doesn't exist until the owner
-  actually signs in through `login`; a script can't manufacture it, and hardcoding a guessed value
-  risks corrupting the real row. A documented, one-time manual SQL statement is safer.
+- **A one-time manual `UPDATE users SET "identitySub" = ...` runbook step for the owner** —
+  rejected. It was the original plan, on the reasoning that the new `sub` doesn't exist until the
+  owner first signs in, so no migration could manufacture it. That reasoning holds for a
+  *migration*, but not for the sign-in path itself, which has the new `sub` in hand at exactly the
+  moment it's needed. It also framed as an owner-only chore something that affects every
+  pre-existing share candidate. Reconciling by email in `findOrCreateByIdentity` handles all of
+  them, with no runbook.
 - **Migrating `searchShareCandidates`/`searchTemplateCandidates` off the hub in this ticket** —
   rejected, out of scope. `HubClientService.searchProjectMembers` has no login-side equivalent yet.
   Left calling the hub as before — with a real, newly-introduced consequence: that call
@@ -663,15 +677,16 @@ UPDATE users SET "identitySub" = '<owner''s new login sub>' WHERE email = 'nikol
   service could leak or misuse.
 - Backend (`internal-only`, ADR-003) is unaffected in principle — still never verifies a JWT
   itself, only the *source* of the forwarded headers changed.
+- Todolist's session cookie is host-only *and* never forwarded outward: `graphqlFetch` strips it
+  from the `cookie` header it passes through to the backend (and thence to the hub's
+  project-members search), so the one remaining hub call can't receive this app's live credential.
 - Verified locally end-to-end against a real `login serve` instance (throwaway Postgres, `todolist`
   registered via `register-client`, IdP session seeded directly per login's own "Testing without
   Google" technique — no real Google consent screen, same sandbox limitation login's own
   `docs/TODO.md` documents): full sign-in to the exact deep-linked path, PKCE present on the real
   `/authorize` request, `identitySub` stable across repeat sign-ins (no duplicate `User` row), and
-  the owner-remap verified against a seeded pre-existing row with real List data attached — after
-  the remap, a fresh sign-in reused that row rather than colliding on `User.email`'s unique
-  constraint (what happens today *without* the remap: the first post-cutover sign-in for an
-  existing user fails outright — a real blocker, not a silent orphaning). This same live
-  verification is what caught the `profile.sub`-vs-`user.id` bug above; static review alone would
-  not have. Not automated: the owner-remap SQL step itself, documented as a manual runbook step in
-  this ticket's pull request.
+  the email reconciliation above driven through the real HTTP flow against a seeded
+  candidate-shaped row with List data attached — the row was reattached in place (same `id`, new
+  `identitySub`) instead of colliding on `User.email`'s unique constraint, which is what the
+  original upsert did. This same live verification is what caught the `profile.sub`-vs-`user.id`
+  bug above; static review alone would not have.
