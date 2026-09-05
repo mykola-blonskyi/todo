@@ -34,7 +34,7 @@ export class ListsResolver {
     @CurrentUser() identity: Identity,
     @Loaders() loaders: GqlLoaders,
   ) {
-    const user = await loaders.currentUser.load(identity.hubUserId);
+    const user = await loaders.currentUser.load(identity.identitySub);
     return list.ownerId === user.id;
   }
 

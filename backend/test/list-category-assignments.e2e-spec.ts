@@ -26,8 +26,8 @@ describe('ListCategoryAssignment + myLists filter (GraphQL)', () => {
     await app.close();
   });
 
-  function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -97,7 +97,7 @@ describe('ListCategoryAssignment + myLists filter (GraphQL)', () => {
       expect(body.data?.assignListCategory).toBe(true);
 
       const user = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'owner-1' },
+        where: { identitySub: 'owner-1' },
       });
       const assignment = await testDb.listCategoryAssignment.findUnique({
         where: { userId_listId: { userId: user.id, listId } },
@@ -115,7 +115,7 @@ describe('ListCategoryAssignment + myLists filter (GraphQL)', () => {
       await assignListCategory(owner, listId, workId);
 
       const user = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'owner-1' },
+        where: { identitySub: 'owner-1' },
       });
       const assignments = await testDb.listCategoryAssignment.findMany({
         where: { userId: user.id, listId },
@@ -178,7 +178,7 @@ describe('ListCategoryAssignment + myLists filter (GraphQL)', () => {
       expect(body.data?.unassignListCategory).toBe(true);
 
       const user = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'owner-1' },
+        where: { identitySub: 'owner-1' },
       });
       const assignment = await testDb.listCategoryAssignment.findUnique({
         where: { userId_listId: { userId: user.id, listId } },
@@ -206,7 +206,7 @@ describe('ListCategoryAssignment + myLists filter (GraphQL)', () => {
       );
 
       const ownerUser = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'owner-1' },
+        where: { identitySub: 'owner-1' },
       });
       const ownerAssignment = await testDb.listCategoryAssignment.findUnique({
         where: { userId_listId: { userId: ownerUser.id, listId } },

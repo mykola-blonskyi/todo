@@ -64,7 +64,9 @@ describe('me query (GraphQL)', () => {
       theme: 'light',
     });
 
-    const rows = await testDb.user.findMany({ where: { hubUserId: 'hub-1' } });
+    const rows = await testDb.user.findMany({
+      where: { identitySub: 'hub-1' },
+    });
     expect(rows).toHaveLength(1);
   });
 
@@ -78,7 +80,9 @@ describe('me query (GraphQL)', () => {
       'x-user-email': 'owner@example.com',
     });
 
-    const rows = await testDb.user.findMany({ where: { hubUserId: 'hub-1' } });
+    const rows = await testDb.user.findMany({
+      where: { identitySub: 'hub-1' },
+    });
 
     expect(rows).toHaveLength(1);
     expect(second.data?.me.id).toBe(rows[0].id);

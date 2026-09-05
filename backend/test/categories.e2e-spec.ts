@@ -25,8 +25,8 @@ describe('Category CRUD (GraphQL)', () => {
     await app.close();
   });
 
-  function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {

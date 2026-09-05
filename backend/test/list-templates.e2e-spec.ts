@@ -383,7 +383,7 @@ describe('ListTemplate (GraphQL)', () => {
     // No spawning logic exists yet (that's a later ticket) - simulate a
     // spawned List directly to exercise the onDelete: SetNull FK from #39.
     const ownerRecord = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'hub-1' },
+      where: { identitySub: 'hub-1' },
     });
     const spawnedList = await testDb.list.create({
       data: {
@@ -475,7 +475,7 @@ describe('ListTemplate (GraphQL)', () => {
     expect(body.errors).toBeUndefined();
 
     const victimRow = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'victim-1' },
+      where: { identitySub: 'victim-1' },
     });
     expect(victimRow.email).toBe('victim@example.com');
     expect(victimRow.name).toBeNull();

@@ -257,7 +257,7 @@ describe('List Sharing (GraphQL)', () => {
       expect(body.errors).toBeUndefined();
 
       const victimRow = await testDb.user.findUniqueOrThrow({
-        where: { hubUserId: 'victim-1' },
+        where: { identitySub: 'victim-1' },
       });
       expect(victimRow.email).toBe('victim@example.com');
       expect(victimRow.name).toBeNull();

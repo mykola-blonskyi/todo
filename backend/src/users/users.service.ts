@@ -22,20 +22,20 @@ export class UsersService {
   //
   // ONLY call this with an identity the caller cannot forge - i.e. the
   // trusted @CurrentUser() of the request itself. It overwrites
-  // email/name/image unconditionally on a hubUserId match, so passing it
+  // email/name/image unconditionally on an identitySub match, so passing it
   // client-supplied data describing someone else (e.g. a share/collaborator
   // "candidate") lets any caller corrupt another real user's profile. Use
   // findOrCreateCandidate for that case instead.
   findOrCreateByIdentity(identity: Identity) {
     return this.prisma.user.upsert({
-      where: { hubUserId: identity.hubUserId },
+      where: { identitySub: identity.identitySub },
       update: {
         email: identity.email,
         name: identity.name,
         image: identity.image,
       },
       create: {
-        hubUserId: identity.hubUserId,
+        identitySub: identity.identitySub,
         email: identity.email,
         name: identity.name,
         image: identity.image,
@@ -48,12 +48,20 @@ export class UsersService {
   // findOrCreateByIdentity, never overwrites an existing User's profile -
   // the candidate data is unverified GraphQL input, not a trusted identity
   // header, so a hubUserId match must not let it clobber real profile data.
+  //
+  // candidate.hubUserId is actually the hub's own userId (from
+  // HubClientService's project-members search, ADR-009), not a real login
+  // `sub` - there is no login-side equivalent of that search yet. It gets
+  // written into the User row's identitySub column as-is, so a
+  // pre-created candidate row won't automatically link up when that person
+  // later logs in for real via login. Known, accepted limitation of this
+  // migration, not a bug to fix here.
   findOrCreateCandidate(candidate: Candidate) {
     return this.prisma.user.upsert({
-      where: { hubUserId: candidate.hubUserId },
+      where: { identitySub: candidate.hubUserId },
       update: {},
       create: {
-        hubUserId: candidate.hubUserId,
+        identitySub: candidate.hubUserId,
         email: candidate.email,
         name: candidate.name,
         image: candidate.image,

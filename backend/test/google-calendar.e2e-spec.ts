@@ -36,8 +36,8 @@ describe('Google Calendar connect (GraphQL)', () => {
     jest.restoreAllMocks();
   });
 
-  function asUser(hubUserId: string, email: string) {
-    return { 'x-user-id': hubUserId, 'x-user-email': email };
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -122,7 +122,7 @@ describe('Google Calendar connect (GraphQL)', () => {
     );
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const connection = await testDb.googleCalendarConnection.findUniqueOrThrow({
       where: { userId: user.id },
@@ -154,7 +154,7 @@ describe('Google Calendar connect (GraphQL)', () => {
     expect(body.errors?.[0]).toBeDefined();
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const connection = await testDb.googleCalendarConnection.findUnique({
       where: { userId: user.id },
@@ -202,7 +202,7 @@ describe('Google Calendar connect (GraphQL)', () => {
     );
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const connections = await testDb.googleCalendarConnection.findMany({
       where: { userId: user.id },
@@ -254,7 +254,7 @@ describe('Google Calendar connect (GraphQL)', () => {
     expect(body.errors).toBeUndefined();
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const connection = await testDb.googleCalendarConnection.findUniqueOrThrow({
       where: { userId: user.id },
@@ -288,7 +288,7 @@ describe('Google Calendar connect (GraphQL)', () => {
     expect(body.errors?.[0]).toBeDefined();
 
     const user = await testDb.user.findUniqueOrThrow({
-      where: { hubUserId: 'owner-1' },
+      where: { identitySub: 'owner-1' },
     });
     const connection = await testDb.googleCalendarConnection.findUnique({
       where: { userId: user.id },

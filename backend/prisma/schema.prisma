@@ -11,8 +11,10 @@ datasource db {
 }
 
 // ─── User ────────────────────────────────────────────────────────────────────
-// Local shadow of a hub-identified person - hubUserId is the join key back to
-// the hub's own `users.id`, not a real FK (separate database, ADR-002).
+// Local shadow of a login-identified person - identitySub is the login IdP's
+// `sub` claim, the join key back to login.blonskyi.dev, not a real FK
+// (separate database, ADR-002; see docs/decisions.md for the login OIDC
+// conversion ADR).
 
 enum UserLocale {
   en
@@ -28,14 +30,14 @@ enum UserTheme {
 }
 
 model User {
-  id        String     @id @default(uuid())
-  hubUserId String     @unique
-  email     String     @unique
-  name      String?
-  image     String?
-  locale    UserLocale @default(en)
-  theme     UserTheme  @default(light)
-  createdAt DateTime   @default(now())
+  id          String     @id @default(uuid())
+  identitySub String     @unique
+  email       String     @unique
+  name        String?
+  image       String?
+  locale      UserLocale @default(en)
+  theme       UserTheme  @default(light)
+  createdAt   DateTime   @default(now())
 
   ownedLists               List[]
   listShares               ListShare[]
@@ -276,7 +278,7 @@ model Category {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  assignments      ListCategoryAssignment[]
+  assignments         ListCategoryAssignment[]
   defaultForTemplates ListTemplate[]
 
   @@unique([ownerId, name])
