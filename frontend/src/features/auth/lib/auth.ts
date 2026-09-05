@@ -1,17 +1,17 @@
 import NextAuth from 'next-auth';
 import { jwtCallback } from './jwt-callback';
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_SECURE } from './session-cookie';
 
-// No adapter: todolist keeps its own Prisma User shadow table
-// (findOrCreateByIdentity, populated from the trusted x-user-id/x-user-email
-// headers proxy.ts forwards) - see docs/decisions.md ADR-016. Without an
-// adapter there's no Auth.js-managed accounts table to link
-// against, so unlike the hub (ADR-024 in its own repo) todolist needs no
-// allowDangerousEmailAccountLinking flag either - login.blonskyi.dev is the
-// only provider that will ever exist here.
+// No database adapter: todolist keeps its own Prisma User shadow table, so
+// there's no Auth.js-managed accounts table to link against either
+// (docs/decisions.md ADR-016).
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   providers: [
     {
+      // Auth.js mounts this provider at /api/auth/signin/login, which reads
+      // like the /[locale]/login page but isn't - proxy.ts's
+      // LOGIN_PATH_PATTERN is what keeps the two apart.
       id: 'login',
       name: 'login.blonskyi.dev',
       type: 'oidc',
@@ -19,15 +19,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: 'todolist',
       clientSecret: process.env.OIDC_CLIENT_SECRET!,
       checks: ['pkce', 'state'],
-      // Maps the ID token's standard claims onto `user` for email/name/image.
-      // NOT relied on for the identity value itself, though: verified live
-      // against a real login instance that without a database adapter,
-      // Auth.js discards whatever `id` a bare inline provider's profile()
-      // returns and assigns `user.id` (and therefore the default
-      // `token.sub`) a fresh random id on every sign-in instead - it has no
-      // adapter-backed user record to treat as canonical. The jwt()
-      // callback below reads the stable id from `profile.sub`/
-      // `account.providerAccountId` directly instead, never from `user.id`.
+      // Maps the ID token's standard claims onto `user` for email/name/image,
+      // but NOT for the identity itself: without an adapter Auth.js discards
+      // this `id` and assigns `user.id` a fresh random value on every sign-in,
+      // so the jwt() callback reads `profile.sub` instead (ADR-016).
       profile(profile) {
         return {
           id: profile.sub as string,
@@ -40,32 +35,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: 'jwt',
+    // 24h, matching login's own IdP session and refresh-token TTLs. True
+    // per-request revocation would need login's RFC 7662 introspection
+    // endpoint (its ADR-006, opt-in per client) - deferred, not enabled here.
+    maxAge: 60 * 60 * 24,
   },
   cookies: {
     sessionToken: {
-      // Pinned to the unprefixed name unconditionally (matching the hub's
-      // own auth.ts) so it always matches getIdentity()'s explicit
-      // `cookieName` on the read side - Auth.js's own automatic `__Secure-`
-      // prefixing depends on protocol detection that's unreliable behind
-      // Coolify/Traefik (the same class of gotcha proxy.ts's APP_URL
-      // comment documents for request.url). No `domain` set - host-only,
-      // unlike the hub's old `.blonskyi.dev`-scoped cookie; todolist's
-      // session is never shared with another service.
-      name: 'authjs.session-token',
+      // Pinned explicitly rather than left to Auth.js's automatic `__Secure-`
+      // prefixing, whose protocol detection is unreliable behind
+      // Coolify/Traefik. No `domain` - host-only, never shared with the hub.
+      name: SESSION_COOKIE_NAME,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: SESSION_COOKIE_SECURE,
       },
     },
   },
   callbacks: {
     jwt: jwtCallback,
   },
-  // No session/redirect callbacks: getIdentity() reads the raw token via
-  // getToken(), never session(), so no session() callback is needed. No
-  // redirect override either - todolist only ever redirects to its own
-  // origin (Auth.js's default same-origin check already covers that),
-  // unlike the hub, which has to validate arbitrary *.blonskyi.dev targets.
 });

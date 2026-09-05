@@ -1,5 +1,9 @@
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import {
+  SESSION_COOKIE_NAME,
+  SESSION_COOKIE_SECURE,
+} from '@features/auth/lib/session-cookie';
 
 export interface Identity {
   userId: string;
@@ -8,31 +12,25 @@ export interface Identity {
 
 const AUTH_SECRET = process.env.AUTH_SECRET!;
 
-// Shared by proxy.ts and the /api/google/calendar/connect route - both
-// build "this app's own sign-in page, for this locale" as a redirect
-// target. `appUrl` is passed in rather than read from process.env here so
-// each caller keeps using its own already-validated env var name.
-export function signInUrl(locale: string, appUrl: string): URL {
-  return new URL(`/${locale}/login`, appUrl);
+// "This app's own sign-in page, for this locale" - shared by proxy.ts and the
+// /api/google/calendar/connect route.
+export function signInUrl(locale: string): URL {
+  return new URL(`/${locale}/login`, process.env.APP_URL!);
 }
 
-// Shared by proxy.ts (page requests) and the /api/google/calendar routes
-// (which the proxy's matcher deliberately excludes, see proxy.ts) - both
-// need to independently decode the caller's own todolist Auth.js JWT.
-// A valid token already implies authorization: login.blonskyi.dev only
-// issues one after the approved-status + client_members grant checks for
-// `todolist` (docs/decisions.md), so there's no separate allow/deny call to
-// make here the way resolveIdentity() used to call the hub's /validate.
+// Shared by proxy.ts (page requests) and the /api/google/calendar routes,
+// which proxy.ts's matcher deliberately excludes. A valid token already
+// implies authorization - login only issues one after its approved-status and
+// `todolist` client_members checks (docs/decisions.md ADR-016) - so there's no
+// separate allow/deny call the way resolveIdentity() used to make.
 export async function getIdentity(
   request: NextRequest,
 ): Promise<Identity | null> {
   const token = await getToken({
     req: request,
     secret: AUTH_SECRET,
-    // Must match auth.ts's own cookies.sessionToken.name/secure exactly -
-    // see the comment there.
-    cookieName: 'authjs.session-token',
-    secureCookie: process.env.NODE_ENV === 'production',
+    cookieName: SESSION_COOKIE_NAME,
+    secureCookie: SESSION_COOKIE_SECURE,
   });
 
   if (!token?.userId || !token.email) {

@@ -1,4 +1,8 @@
 import { headers } from 'next/headers';
+import {
+  SESSION_COOKIE_NAME,
+  stripCookie,
+} from '@features/auth/lib/session-cookie';
 import type { Identity } from './identity';
 
 interface GraphQLErrorPayload {
@@ -16,11 +20,9 @@ export class GraphQLRequestError extends Error {
 }
 
 // Server Components/Actions only - forwards the trusted identity headers the
-// proxy already validated (ADR-003, the backend is internal-only and never
-// re-verifies a JWT itself). An explicit `identity` is only needed from
-// routes the proxy's matcher excludes (e.g. /api/google/calendar/callback -
-// see proxy.ts), which resolve it themselves instead of relying on
-// proxy-injected headers.
+// proxy already validated (ADR-003). An explicit `identity` is only needed
+// from routes the proxy's matcher excludes (e.g.
+// /api/google/calendar/callback), which resolve it themselves.
 export async function graphqlFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
@@ -33,10 +35,14 @@ export async function graphqlFetch<T>(
     const headerList = await headers();
     userId = headerList.get('x-user-id');
     email = headerList.get('x-user-email');
-    // Forwarded on to the hub by searchShareCandidates - that one call
-    // needs the caller's actual .blonskyi.dev session, not just the
-    // locally-trusted identity headers above (see TODO-54).
-    cookie = headerList.get('cookie');
+    // Forwarded on to the hub by searchShareCandidates, which needs the
+    // caller's own .blonskyi.dev session (TODO-54). Todolist's session cookie
+    // is stripped first: the hub can't validate it (different secret) and has
+    // no business receiving this app's live credential.
+    const incomingCookie = headerList.get('cookie');
+    cookie = incomingCookie
+      ? stripCookie(incomingCookie, SESSION_COOKIE_NAME)
+      : null;
   }
 
   const res = await fetch(process.env.BACKEND_URL!, {

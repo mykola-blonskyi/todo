@@ -11,15 +11,15 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 // Entry point for the "Connect Google Calendar" action in Settings. Not
-// covered by proxy.ts's page-auth gate (its matcher excludes /api - see
-// proxy.ts), so identity is resolved independently here.
+// covered by proxy.ts's page-auth gate (its matcher excludes /api), so
+// identity is resolved independently here.
 export async function GET(request: NextRequest) {
   const identity = await getIdentity(request);
   const locale =
     request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
 
   if (!identity) {
-    const loginUrl = signInUrl(locale, process.env.APP_URL!);
+    const loginUrl = signInUrl(locale);
     loginUrl.searchParams.set(
       'callbackUrl',
       `${process.env.APP_URL}/${locale}/settings`,
