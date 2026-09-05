@@ -7,6 +7,14 @@ tickets.
 
 ## Backlog
 
+- [ ] `searchShareCandidates`/`searchTemplateCandidates` still depend on the hub's
+      `/api/auth/project-members` endpoint (`backend/src/hub/hub-client.service.ts`), forwarding the
+      caller's raw cookie header — deliberately left as-is by ADR-016 (converting todolist to the
+      `login` IdP), since login has no directory/search endpoint yet. This now depends on the user
+      separately holding a live hub session (`.blonskyi.dev` cookie) from having visited the hub
+      directly — no longer guaranteed just by using todolist, since todolist's own session no longer
+      comes from the hub. Needs a login-side equivalent of the hub's ADR-009 endpoint (or the
+      `client_members` table exposed some other way) before this dependency can be fully removed.
 - [ ] Real-time updates (WebSocket subscriptions) instead of refresh-to-see-changes
 - [ ] Telegram bot notification channel (business-rules.md Rule 7 names this as a possible future
       addition, not built now)

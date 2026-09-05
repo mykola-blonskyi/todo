@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from '@shared/lib/i18n/routing';
-import { devBypassIdentity, resolveIdentity } from '@shared/lib/hub-identity';
+import { locales } from '@shared/lib/i18n/config';
+import { getIdentity, signInUrl } from '@shared/lib/identity';
 
 const intlMiddleware = createMiddleware(routing);
 
-const API_URL = process.env.API_URL!;
 const APP_URL = process.env.APP_URL!;
-const AUTH_SECRET = process.env.AUTH_SECRET!;
+
+// Built from the same locale list next-intl's routing config uses, so a
+// future locale addition can't silently fall out of sync with this pattern.
+// next-intl's default localePrefix ('always') means every locale, including
+// the default one, gets a URL prefix, so the sign-in page is always e.g.
+// /en/login.
+const LOGIN_PATH_PATTERN = new RegExp(
+  `^/(?:${locales.join('|')})/login(?:/|$)`,
+);
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,9 +29,16 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // The sign-in page itself must never be gated - otherwise an
+  // unauthenticated visit redirects to /login, which redirects to /login,
+  // forever.
+  if (LOGIN_PATH_PATTERN.test(pathname)) {
+    return intlMiddleware(request);
+  }
+
   const locale =
     request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
-  const loginUrl = new URL(`${API_URL}/${locale}/login`);
+  const loginUrl = signInUrl(locale, APP_URL);
   // Don't use request.url here - behind Coolify/Traefik it resolves to the
   // container's internal bind address (e.g. 0.0.0.0:3000), not the public
   // origin (same gotcha the hub's own post-login/route.ts documents). Combine
@@ -35,22 +49,7 @@ export default async function proxy(request: NextRequest) {
   );
   loginUrl.searchParams.set('callbackUrl', currentUrl.toString());
 
-  if (!devBypassIdentity()) {
-    const token = await getToken({
-      req: request,
-      secret: AUTH_SECRET,
-      // The hub's own auth.ts pins this cookie name unconditionally (no
-      // __Secure- prefix, even in production) - must match exactly here.
-      cookieName: 'authjs.session-token',
-      secureCookie: process.env.NODE_ENV === 'production',
-    });
-
-    if (!token) {
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  const identity = await resolveIdentity(request.headers.get('cookie') ?? '');
+  const identity = await getIdentity(request);
   if (!identity) {
     return NextResponse.redirect(loginUrl);
   }

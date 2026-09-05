@@ -138,5 +138,10 @@
     "filterUncategorized": "Без категории",
     "assignLabel": "Категория",
     "assignUncategorized": "Без категории"
+  },
+  "LoginPage": {
+    "title": "Войти",
+    "subtitle": "Войдите, чтобы получить доступ к своим спискам",
+    "signInButton": "Продолжить через login.blonskyi.dev"
   }
 }

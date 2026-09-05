@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import type { Identity } from './hub-identity';
+import type { Identity } from './identity';
 
 interface GraphQLErrorPayload {
   message: string;

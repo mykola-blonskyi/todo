@@ -138,5 +138,10 @@
     "filterUncategorized": "Sin categoría",
     "assignLabel": "Categoría",
     "assignUncategorized": "Sin categoría"
+  },
+  "LoginPage": {
+    "title": "Iniciar sesión",
+    "subtitle": "Inicia sesión para acceder a tus listas",
+    "signInButton": "Continuar a login.blonskyi.dev"
   }
 }

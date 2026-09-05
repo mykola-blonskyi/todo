@@ -35,7 +35,7 @@ WORKDIR /app/frontend
 
 EXPOSE 3000
 
-# Coolify env vars this expects: API_URL, AUTH_SECRET, COOKIE_DOMAIN,
-# PROJECT_SLUG, BACKEND_URL (never DEV_BYPASS_AUTH) - see
+# Coolify env vars this expects: APP_URL, HUB_URL, OIDC_ISSUER,
+# OIDC_CLIENT_SECRET, AUTH_SECRET, GOOGLE_CLIENT_ID, BACKEND_URL - see
 # frontend/.env.example and docs/decisions.md.
 CMD ["node", "server.js"]

@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveIdentity } from '@shared/lib/hub-identity';
+import { getIdentity, signInUrl } from '@shared/lib/identity';
 import { routing } from '@shared/lib/i18n/routing';
 import {
   GOOGLE_OAUTH_STATE_COOKIE,
@@ -14,12 +14,12 @@ const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 // covered by proxy.ts's page-auth gate (its matcher excludes /api - see
 // proxy.ts), so identity is resolved independently here.
 export async function GET(request: NextRequest) {
-  const identity = await resolveIdentity(request.headers.get('cookie') ?? '');
+  const identity = await getIdentity(request);
   const locale =
     request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
 
   if (!identity) {
-    const loginUrl = new URL(`${process.env.API_URL}/${locale}/login`);
+    const loginUrl = signInUrl(locale, process.env.APP_URL!);
     loginUrl.searchParams.set(
       'callbackUrl',
       `${process.env.APP_URL}/${locale}/settings`,

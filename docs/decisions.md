@@ -541,3 +541,137 @@ per-Task events (plural) to the List's one event (singular).
 - `streakStartDate` is genuinely new schema surface with no equivalent in the other three
   recurrence types, which anchor purely off the calendar (today's weekday/day-of-month) with no
   stored "day zero" of their own
+
+---
+
+## ADR-016: Todolist becomes an independent OIDC client of `login.blonskyi.dev`
+
+Date: 2026-09-05
+
+Status: Accepted
+
+### Context
+`login.blonskyi.dev` (repo `login`) is a new shared OpenID Provider for all `*.blonskyi.dev`
+projects, extracted from the hub. The hub itself already completed the same conversion (its own
+ADR-024) — a working, deployed reference for this migration. Ticket 12 does the equivalent for
+todolist: stop trusting the hub's `.blonskyi.dev` session cookie and its `/api/auth/validate`
+endpoint (ADR-001), and become a genuine Auth.js OIDC client of `login` instead, with `login`
+itself enforcing per-client access (`client_members`) before it ever issues a token. Unlike the
+hub's ADR-024, this is not a "provider swap only" — todolist never had its own login/session
+implementation to swap a provider under.
+
+### Decision
+**Client registration** (operational step, on `login`, not a file in this repo): registered once via
+login's own CLI —
+```bash
+REGISTER_CLIENT_ID=todolist REGISTER_CLIENT_NAME=Todolist \
+REGISTER_CLIENT_SECRET=<generated, stored as OIDC_CLIENT_SECRET> \
+REGISTER_REDIRECT_URIS=https://todo.blonskyi.dev/api/auth/callback/login \
+REGISTER_KIND=confidential \
+go run ./cmd/login register-client
+```
+(`REGISTER_SCOPES` left at its default `openid,profile,email,offline_access`; no `admin` scope. A
+second, comma-separated `http://localhost:3000/api/auth/callback/login` redirect URI was added for
+local verification only — not needed in production.)
+
+`frontend/src/features/auth/lib/auth.ts`: a generic OIDC provider (`id: "login"`,
+`issuer: process.env.OIDC_ISSUER`, `clientId: "todolist"` — fixed literal, matching the
+registration above and the hub's own `clientId: "hub"` convention —
+`clientSecret: process.env.OIDC_CLIENT_SECRET`, `checks: ["pkce", "state"]`), `session:
+{ strategy: "jwt" }`, `trustHost: true`. `cookies.sessionToken` pins the cookie name/`secure` flag
+explicitly (matching the hub's own auth.ts), with no `domain` — host-only, never shared with
+another service. No `DrizzleAdapter`/Auth.js-managed accounts table: todolist keeps its existing
+Prisma `User` shadow table exactly as before (`findOrCreateByIdentity`, from the trusted
+`x-user-id`/`x-user-email` headers `proxy.ts` forwards, ADR-003) — which is also why no
+`allowDangerousEmailAccountLinking` flag is needed, unlike the hub: that flag reconciles a new
+provider against an adapter-managed `accounts` table with rows from a different provider, and
+todolist has no such table. No custom `redirect` callback either: the hub needs one
+(`resolveTrustedRedirectTarget`) because its `callbackUrl` can target any `*.blonskyi.dev`
+subdomain; todolist's `callbackUrl` only ever targets its own origin, which Auth.js's default
+same-origin check already covers.
+
+**A `jwt` callback is required, and it must read `profile.sub`, never `user.id`.** Verified live
+against a real login instance, not assumed from docs: without a database adapter, Auth.js
+discards whatever `id` a bare inline provider's `profile()` returns and assigns `user.id` (and the
+default `token.sub`) a fresh random id on every sign-in instead, since it has no adapter-backed
+record to treat as canonical. `profile.sub` (from the verified ID token) is the only value
+actually stable across sign-ins, so `jwt({ token, profile })` copies it onto a custom
+`token.userId` field (a `next-auth/jwt` module augmentation), which `getIdentity()`
+(`frontend/src/shared/lib/identity.ts`, replacing the deleted `resolveIdentity()`) reads instead of
+`token.sub`. This is why the hub's own `token.userId = user.id` jwt callback works there but would
+be silently wrong here: the hub's `user.id` is a real, `DrizzleAdapter`-assigned database id,
+stable by construction; todolist's bare `user.id` is not, precisely because it has no adapter.
+
+Sign-in page (`frontend/src/app/[locale]/login/page.tsx`,
+`frontend/src/features/auth/components/LoginSignInButton.tsx`, todolist's first ever): a plain
+`<form method="POST" action="/api/auth/signin/login">` with a client-fetched CSRF token, mirroring
+the hub's own `GoogleSignInButton` byte-for-byte. Deliberately **not** `signIn()` or a Server
+Action — the hub's ADR-015/016/017 chain found and fixed a real bug where a Server Action whose
+result is an external navigation gets replayed by Next.js's own Server Actions `startTransition`
+machinery once another page using Server Actions loads the same framework chunk. A plain form
+leaves no React/Next.js request-handling in the loop to replay.
+
+`proxy.ts` now decodes todolist's own JWT via `getIdentity()`/`getToken()`; absent → redirect to
+`/[locale]/login` with `callbackUrl` set to the exact current path (middleware also gained a
+bypass for the login page's own path, to avoid a redirect loop); present → set `x-user-id`
+(login's `sub`)/`x-user-email` headers, unchanged from before (ADR-003) other than the values'
+source. Deleted `resolveIdentity()`/`devBypassIdentity()`/`hub-identity.ts` and the
+`/api/auth/validate` call entirely, along with the `DEV_BYPASS_AUTH`/`DEV_USER_ID`/
+`DEV_USER_EMAIL`/`PROJECT_SLUG` (frontend) env vars that only existed to support them: `login`
+enforces approval + the `client_members` grant before issuing a token at all (Rule 1), so a valid
+session already implies authorization, and local dev can now run a real `login serve` instance
+against a throwaway Postgres with a directly-seeded session (login's own `examples/go-client/
+README.md` "Testing without Google" technique) instead of faking identity headers.
+
+`User.hubUserId` renamed to `User.identitySub` (plain `RENAME COLUMN` migration, no data loss) —
+the local shadow User is now keyed by login's `sub`, not the hub's old user id. The GraphQL
+`ShareCandidate` wire shape (still sourced from the hub's project-members search) deliberately
+keeps its own `hubUserId` field name — a different, unmigrated identity mechanism.
+
+**One-row manual data-continuity fix for the owner.** Todolist's existing `User` row for
+nikolay.blonskiy@gmail.com is keyed by the hub's old user id. After conversion, `login` issues a
+different `sub` for the same person — their first post-conversion sign-in needs, once, after that
+real sign-in (the value doesn't exist before it):
+```sql
+UPDATE users SET "identitySub" = '<owner''s new login sub>' WHERE email = 'nikolay.blonskiy@gmail.com';
+```
+
+### Alternatives Considered
+- **`DrizzleAdapter`** — rejected: the existing Prisma `User` shadow table already does everything
+  an adapter would; a second Auth.js-managed user table would mean reconciling two sources of
+  truth for no benefit, with no multi-provider linking problem to solve.
+- **Client-side `signIn()` or a Server Action for the sign-in button** — rejected: not hypothetical,
+  a bug the hub's ADR-015/016/017 chain already root-caused (inside Next.js's own runtime) and
+  fixed once; re-deriving that investigation here would waste effort proving something already
+  proven.
+- **Automating the owner-remap** — rejected: the value to write doesn't exist until the owner
+  actually signs in through `login`; a script can't manufacture it, and hardcoding a guessed value
+  risks corrupting the real row. A documented, one-time manual SQL statement is safer.
+- **Migrating `searchShareCandidates`/`searchTemplateCandidates` off the hub in this ticket** —
+  rejected, out of scope. `HubClientService.searchProjectMembers` has no login-side equivalent yet.
+  Left calling the hub as before — with a real, newly-introduced consequence: that call
+  authenticates against the hub's own session, which todolist's users no longer hold just by using
+  todolist. Tracked in `docs/TODO.md`, not silently accepted.
+
+### Consequences
+- New frontend env vars: `OIDC_ISSUER`, `OIDC_CLIENT_SECRET`, `HUB_URL` (replaces `API_URL`'s one
+  remaining use, the "blonskyi.dev" header link, unrelated to auth). Removed: `API_URL`,
+  `COOKIE_DOMAIN` (verified unused), `PROJECT_SLUG` (frontend only — the backend's own, used by the
+  unchanged `HubClientService`, stays), `DEV_BYPASS_AUTH`/`DEV_USER_ID`/`DEV_USER_EMAIL`.
+- **`AUTH_SECRET` changes meaning** — todolist's own fresh Auth.js secret, no longer the hub's
+  shared one. A genuine security improvement: one fewer service holding a credential another
+  service could leak or misuse.
+- Backend (`internal-only`, ADR-003) is unaffected in principle — still never verifies a JWT
+  itself, only the *source* of the forwarded headers changed.
+- Verified locally end-to-end against a real `login serve` instance (throwaway Postgres, `todolist`
+  registered via `register-client`, IdP session seeded directly per login's own "Testing without
+  Google" technique — no real Google consent screen, same sandbox limitation login's own
+  `docs/TODO.md` documents): full sign-in to the exact deep-linked path, PKCE present on the real
+  `/authorize` request, `identitySub` stable across repeat sign-ins (no duplicate `User` row), and
+  the owner-remap verified against a seeded pre-existing row with real List data attached — after
+  the remap, a fresh sign-in reused that row rather than colliding on `User.email`'s unique
+  constraint (what happens today *without* the remap: the first post-cutover sign-in for an
+  existing user fails outright — a real blocker, not a silent orphaning). This same live
+  verification is what caught the `profile.sub`-vs-`user.id` bug above; static review alone would
+  not have. Not automated: the owner-remap SQL step itself, documented as a manual runbook step in
+  this ticket's pull request.

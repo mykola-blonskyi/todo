@@ -138,5 +138,10 @@
     "filterUncategorized": "Uncategorized",
     "assignLabel": "Category",
     "assignUncategorized": "Uncategorized"
+  },
+  "LoginPage": {
+    "title": "Sign in",
+    "subtitle": "Sign in to access your lists",
+    "signInButton": "Continue to login.blonskyi.dev"
   }
 }

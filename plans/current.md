@@ -2,10 +2,11 @@
 
 ## Goal
 
-Ship a working v1 of the todolist app at `todo.blonskyi.dev`: hub-authenticated login, List/Task
-CRUD, sharing with accept/decline, comments, optional manual one-way Google Calendar sync, themed
-and localized to match the hub, deployed via Coolify on the same VPS as the hub. Full design
-rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
+Ship a working v1 of the todolist app at `todo.blonskyi.dev`: login via `login.blonskyi.dev`
+(ADR-016 — previously the hub directly), List/Task CRUD, sharing with accept/decline, comments,
+optional manual one-way Google Calendar sync, themed and localized to match the hub, deployed via
+Coolify on the same VPS as the hub. Full design rationale in
+[docs/decisions.md](../docs/decisions.md); domain rules in
 [knowledge/business-rules.md](../knowledge/business-rules.md).
 
 This file tracks phase-level progress. The actual ticket-level, dependency-ordered breakdown lives

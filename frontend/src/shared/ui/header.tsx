@@ -25,7 +25,7 @@ export const Header = async ({ locale }: HeaderProps) => {
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <a
-            href={`${process.env.API_URL}/${locale}/projects`}
+            href={`${process.env.HUB_URL}/${locale}/projects`}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-sm text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

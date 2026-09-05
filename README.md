@@ -1,8 +1,10 @@
 # todolist
 
 Advanced TODO list app at [todo.blonskyi.dev](https://todo.blonskyi.dev) — a subdomain project of
-the personal hub ([blonskyi.dev](https://blonskyi.dev), repo `my-projects`). Users log in exclusively
-via the hub's Google SSO; this repo never implements its own login.
+the personal hub ([blonskyi.dev](https://blonskyi.dev), repo `my-projects`). Users log in via
+[login.blonskyi.dev](https://login.blonskyi.dev) (repo `login`), the shared OpenID Provider for all
+`*.blonskyi.dev` projects — this repo is a genuine OIDC client of it, not a consumer of the hub's own
+session cookie (ADR-016).
 
 **Status: early implementation.** Design is complete (see `docs/`), infrastructure and the Prisma
 schema are in place, and implementation is underway ticket by ticket — see
@@ -22,7 +24,8 @@ schema are in place, and implementation is underway ticket by ticket — see
 - **Frontend** — Next.js, shadcn/ui, Tailwind CSS, `next-intl`, `next-themes`
 - **Backend** — NestJS, GraphQL (code-first), Prisma, PostgreSQL — internal-only (no public API,
   the frontend is the sole entry point, see ADR-003)
-- **Auth** — delegated entirely to the hub's existing SSO (shared `.blonskyi.dev` session cookie)
+- **Auth** — Auth.js (`next-auth`) as a genuine OIDC client of `login.blonskyi.dev` (ADR-016); no
+  shared cookie or secret with the hub
 - **Monorepo** — single pnpm workspace (`backend/`, `frontend/`)
 
 ## Local development

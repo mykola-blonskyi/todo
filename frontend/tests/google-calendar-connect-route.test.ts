@@ -1,24 +1,24 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@shared/lib/hub-identity', () => ({
-  resolveIdentity: vi.fn(),
+vi.mock('@shared/lib/identity', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@shared/lib/identity')>()),
+  getIdentity: vi.fn(),
 }));
 
-process.env.API_URL = 'https://blonskyi.dev';
 process.env.APP_URL = 'https://todo.blonskyi.dev';
 process.env.GOOGLE_CLIENT_ID = 'test-client-id';
 
-const { resolveIdentity } = await import('@shared/lib/hub-identity');
+const { getIdentity } = await import('@shared/lib/identity');
 const { GET } = await import('@/app/api/google/calendar/connect/route');
 
 describe('GET /api/google/calendar/connect', () => {
   beforeEach(() => {
-    vi.mocked(resolveIdentity).mockReset();
+    vi.mocked(getIdentity).mockReset();
   });
 
-  it('redirects to the hub login when there is no session', async () => {
-    vi.mocked(resolveIdentity).mockResolvedValue(null);
+  it('redirects to todolist login when there is no session', async () => {
+    vi.mocked(getIdentity).mockResolvedValue(null);
 
     const response = await GET(
       new NextRequest('https://todo.blonskyi.dev/api/google/calendar/connect'),
@@ -26,7 +26,7 @@ describe('GET /api/google/calendar/connect', () => {
 
     expect(response.status).toBe(307);
     const location = new URL(response.headers.get('location')!);
-    expect(location.origin).toBe('https://blonskyi.dev');
+    expect(location.origin).toBe('https://todo.blonskyi.dev');
     expect(location.pathname).toBe('/en/login');
     expect(location.searchParams.get('callbackUrl')).toBe(
       'https://todo.blonskyi.dev/en/settings',
@@ -34,8 +34,8 @@ describe('GET /api/google/calendar/connect', () => {
   });
 
   it('redirects to Google with the correct auth params and sets a state cookie', async () => {
-    vi.mocked(resolveIdentity).mockResolvedValue({
-      userId: 'hub-user-1',
+    vi.mocked(getIdentity).mockResolvedValue({
+      userId: 'login-user-1',
       email: 'a@example.com',
     });
 
