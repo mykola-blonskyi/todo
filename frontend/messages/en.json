@@ -2,6 +2,9 @@
   "Common": {
     "appName": "todolist"
   },
+  "Nav": {
+    "signOut": "Sign out"
+  },
   "ThemeSwitcher": {
     "toggleTheme": "Toggle theme",
     "light": "Light",
@@ -142,6 +145,8 @@
   "LoginPage": {
     "title": "Sign in",
     "subtitle": "Sign in to access your lists",
-    "signInButton": "Continue to login.blonskyi.dev"
+    "signInButton": "Continue to login.blonskyi.dev",
+    "signInError": "Couldn't prepare the sign-in form. Please try again.",
+    "retryButton": "Try again"
   }
 }

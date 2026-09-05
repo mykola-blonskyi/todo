@@ -30,8 +30,11 @@ app) — see [ADR-006](decisions.md) for why the two were merged from separately
 Responsibilities:
 - All user-facing pages (lists, tasks, sharing, comments, settings, calendar connect)
 - Acts as a BFF: the only public entry point, calls the backend GraphQL API server-side
-- Subdomain auth middleware (hub validate check) + `next-intl` locale routing, same pattern as the
-  hub's own middleware
+- Auth middleware (`proxy.ts`): decodes todolist's own Auth.js session JWT, redirects to the local
+  sign-in page when it's absent, forwards the trusted identity headers when it isn't — plus
+  `next-intl` locale routing, same pattern as the hub's own middleware
+- Sign-in/sign-out UI of its own (`/[locale]/login`, header sign-out) as an OIDC client of
+  `login.blonskyi.dev` — see [ADR-016](decisions.md)
 - Google Calendar OAuth callback route (`/api/google/calendar/callback`) — REST, not GraphQL, since
   it's a third-party redirect target
 
@@ -39,8 +42,10 @@ Stack: Next.js 16, TypeScript, shadcn/ui, Tailwind CSS v3 (matched to the hub's 
 components/theme tokens can be copied directly — see [ADR-007](decisions.md)), `next-themes`
 (light/dark/theme-rose, same as hub), `next-intl` (en/ru/uk/es, URL-based, same as hub)
 
-Dependencies: hub's `/api/auth/validate` and `/api/auth/project-members` endpoints, the internal
-backend API, PostgreSQL (via the backend only — frontend never talks to Postgres directly)
+Dependencies: `login.blonskyi.dev`'s OIDC endpoints (discovery, `/authorize`, `/token`, JWKS), the
+hub's `/api/auth/project-members` endpoint (share-target search only — a deferred dependency, see
+[ADR-016](decisions.md)), the internal backend API, PostgreSQL (via the backend only — frontend
+never talks to Postgres directly)
 
 ---
 

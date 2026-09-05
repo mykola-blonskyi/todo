@@ -30,10 +30,7 @@ export default async function LoginPage({
             <CardDescription>{t('subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginSignInButton
-              label={t('signInButton')}
-              callbackUrl={callbackUrl}
-            />
+            <LoginSignInButton callbackUrl={callbackUrl} />
           </CardContent>
         </Card>
       </div>

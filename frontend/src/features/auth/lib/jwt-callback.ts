@@ -6,11 +6,9 @@ declare module 'next-auth/jwt' {
   }
 }
 
-// Split out from auth.ts so it's testable without triggering NextAuth()'s
-// own module-scope initialization (which pulls in next/server in a way
-// vitest's jsdom environment can't resolve). See the comment on its use in
-// auth.ts, and docs/decisions.md ADR-016, for why this must read
-// `profile.sub` and never `user.id`.
+// Split out from auth.ts so it's testable without triggering NextAuth()'s own
+// module-scope initialization, which vitest's jsdom environment can't resolve.
+// Must read `profile.sub`, never `user.id` - see auth.ts and ADR-016.
 export function jwtCallback({
   token,
   profile,

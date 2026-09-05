@@ -1,33 +1,51 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { getCsrfToken } from 'next-auth/react';
 import { Button } from '@ui/components/button';
 
 interface LoginSignInButtonProps {
-  label: string;
   callbackUrl?: string;
 }
 
-// A plain HTML form POSTing straight to Auth.js's own
-// /api/auth/signin/login, not a client-side signIn() call and not a Server
-// Action: the hub hit real bugs with both of those (see the hub repo's own
-// ADR-015/ADR-016/ADR-017, and this repo's docs/decisions.md ADR-016) - any
-// Server Action here gets wrapped in Next.js's internal startTransition,
-// which replays once the resulting external navigation lands on a page
-// that also uses Server Actions, and dropping our own useTransition isn't
-// enough since the wrapping happens inside Next.js's framework code
-// regardless. A native form submit leaves no React/Next.js request-handling
-// in the loop at all.
-export function LoginSignInButton({
-  label,
-  callbackUrl,
-}: LoginSignInButtonProps) {
+// A plain HTML form POSTing straight to Auth.js's own /api/auth/signin/login,
+// deliberately not signIn() or a Server Action: Next.js replays a Server
+// Action whose result is an external navigation, a real bug the hub already
+// root-caused (its ADR-015/016/017, and this repo's ADR-016).
+export function LoginSignInButton({ callbackUrl }: LoginSignInButtonProps) {
+  const t = useTranslations('LoginPage');
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
-    getCsrfToken().then(setCsrfToken);
+  const loadCsrfToken = useCallback(() => {
+    getCsrfToken()
+      .then((token) => (token ? setCsrfToken(token) : setFailed(true)))
+      .catch(() => setFailed(true));
   }, []);
+
+  useEffect(loadCsrfToken, [loadCsrfToken]);
+
+  // Without a token the form can only be rejected, so offer a retry rather
+  // than leaving a permanently disabled button and no explanation.
+  if (failed) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-destructive">{t('signInError')}</p>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => {
+            setFailed(false);
+            loadCsrfToken();
+          }}
+        >
+          {t('retryButton')}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form method="POST" action="/api/auth/signin/login">
@@ -36,7 +54,7 @@ export function LoginSignInButton({
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
       )}
       <Button type="submit" className="w-full" disabled={!csrfToken}>
-        {label}
+        {t('signInButton')}
       </Button>
     </form>
   );

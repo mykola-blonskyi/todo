@@ -10,12 +10,22 @@ const APP_URL = process.env.APP_URL!;
 
 // Built from the same locale list next-intl's routing config uses, so a
 // future locale addition can't silently fall out of sync with this pattern.
-// next-intl's default localePrefix ('always') means every locale, including
-// the default one, gets a URL prefix, so the sign-in page is always e.g.
-// /en/login.
+// next-intl's localePrefix is 'always', so the sign-in page is always
+// /<locale>/login.
 const LOGIN_PATH_PATTERN = new RegExp(
   `^/(?:${locales.join('|')})/login(?:/|$)`,
 );
+
+// The path's own locale prefix comes first: on a first-ever visit there is no
+// NEXT_LOCALE cookie yet, and falling straight to the default would send
+// /uk/lists/42 to /en/login.
+function redirectLocale(request: NextRequest): string {
+  const fromPath = request.nextUrl.pathname.split('/')[1];
+  if ((locales as readonly string[]).includes(fromPath)) {
+    return fromPath;
+  }
+  return request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
+}
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -36,13 +46,11 @@ export default async function proxy(request: NextRequest) {
     return intlMiddleware(request);
   }
 
-  const locale =
-    request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
-  const loginUrl = signInUrl(locale, APP_URL);
+  const loginUrl = signInUrl(redirectLocale(request));
   // Don't use request.url here - behind Coolify/Traefik it resolves to the
-  // container's internal bind address (e.g. 0.0.0.0:3000), not the public
-  // origin (same gotcha the hub's own post-login/route.ts documents). Combine
-  // the actual path/query with our own known-public origin instead.
+  // container's internal bind address, not the public origin (same gotcha the
+  // hub's own post-login/route.ts documents). Combine the actual path/query
+  // with our own known-public origin instead.
   const currentUrl = new URL(
     request.nextUrl.pathname + request.nextUrl.search,
     APP_URL,
@@ -54,19 +62,10 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Mutate the request's own headers before handing off to next-intl's
-  // middleware, rather than building a fresh NextResponse afterwards from
-  // request.headers - next-intl's middleware carries the locale it resolved
-  // forward via a header on the NextResponse *it* constructs internally,
-  // which isn't readable back out. Rebuilding a response afterward (the
-  // previous approach here) silently dropped that header on every request,
-  // so getRequestConfig always fell back to the default locale downstream -
-  // confirmed via raw SSR HTML: non-default-locale URLs rendered English
-  // content despite the correct NEXT_LOCALE cookie being set (TODO-48).
-  // Mutating request.headers here, before intlMiddleware reads them, means
-  // next-intl's own header ends up in the same response it returns, and
-  // that response (redirect or next()) can just be returned directly - no
-  // separate rebuild or manual cookie-copying required.
+  // Set on the request *before* handing off to next-intl, not on a fresh
+  // NextResponse afterwards: next-intl carries the resolved locale on the
+  // response it builds internally, so rebuilding one here dropped it and every
+  // non-default-locale URL rendered in English (TODO-48).
   request.headers.set('x-user-id', identity.userId);
   request.headers.set('x-user-email', identity.email);
 
