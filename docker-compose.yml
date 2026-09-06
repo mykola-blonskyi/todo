@@ -44,6 +44,7 @@ services:
       dockerfile: frontend/Dockerfile
     environment:
       APP_URL: ${APP_URL}
+      AUTH_URL: https://todo.blonskyi.dev/api/auth
       HUB_URL: ${HUB_URL}
       OIDC_ISSUER: ${OIDC_ISSUER}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
