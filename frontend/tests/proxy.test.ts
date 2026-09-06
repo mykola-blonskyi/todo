@@ -100,4 +100,16 @@ describe('proxy middleware', () => {
 
     expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
   });
+
+  // The Privacy Policy page must load logged out: Google's OAuth consent
+  // screen links to it for the calendar.events scope, and review has to be
+  // able to fetch it without a session.
+  it('never gates the privacy policy page, so it loads without signing in', async () => {
+    getTokenMock.mockResolvedValue(null);
+    const request = new NextRequest('http://localhost:3000/en/privacy');
+
+    await proxy(request);
+
+    expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
+  });
 });

@@ -11,7 +11,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     {
       // Auth.js mounts this provider at /api/auth/signin/login, which reads
       // like the /[locale]/login page but isn't - proxy.ts's
-      // LOGIN_PATH_PATTERN is what keeps the two apart.
+      // PUBLIC_PATH_PATTERN is what keeps the two apart.
       id: 'login',
       name: 'login.blonskyi.dev',
       type: 'oidc',

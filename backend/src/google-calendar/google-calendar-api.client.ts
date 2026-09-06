@@ -50,7 +50,9 @@ export class GoogleCalendarApiClient {
     });
 
     if (!res.ok) {
-      throw new Error(`Google Calendar event upsert failed: ${res.status}`);
+      throw new Error(
+        `Google Calendar event upsert failed: ${res.status} ${await errorReason(res)}`,
+      );
     }
 
     const data = (await res.json()) as { id: string };
@@ -71,7 +73,31 @@ export class GoogleCalendarApiClient {
     // success, not an error, so a retry of an already-cleaned-up event
     // doesn't get logged as a failure.
     if (!res.ok && res.status !== 410) {
-      throw new Error(`Google Calendar event deletion failed: ${res.status}`);
+      throw new Error(
+        `Google Calendar event deletion failed: ${res.status} ${await errorReason(res)}`,
+      );
+    }
+  }
+}
+
+// Google's error body carries the actual reason (e.g. "insufficientPermissions",
+// "accessNotConfigured" when the Calendar API isn't enabled on the project,
+// "rateLimitExceeded") that a bare status code hides - critical for a 403,
+// which Google returns for several unrelated causes. Best-effort: falls back
+// to nothing if the body isn't the expected JSON shape (or isn't JSON at all).
+async function errorReason(res: Response): Promise<string> {
+  try {
+    const body = (await res.clone().json()) as {
+      error?: { message?: string; errors?: { reason?: string }[] };
+    };
+    const reason = body.error?.errors?.[0]?.reason;
+    const message = body.error?.message;
+    return [reason, message].filter(Boolean).join(': ');
+  } catch {
+    try {
+      return await res.clone().text();
+    } catch {
+      return '';
     }
   }
 }
