@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { ArrowDown, ArrowUp, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui/components/button';
 import { Checkbox } from '@/shared/ui/components/checkbox';
 import { Input } from '@/shared/ui/components/input';
-import { TaskCommentsToggle } from '@features/comments';
+import { CommentThread, TaskCommentsToggle } from '@features/comments';
 import type { Task } from './types';
 
 interface TaskRowLabels {
@@ -46,6 +47,7 @@ export function TaskRow({
   onAddComment,
 }: TaskRowProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   if (isEditing) {
@@ -96,11 +98,16 @@ export function TaskRow({
   }
 
   return (
-    <li className="flex flex-col gap-2">
+    <li
+      data-tui-row=""
+      tabIndex={-1}
+      className="group relative flex flex-col gap-1 rounded-md px-1 py-1 transition-colors hover:bg-muted/60 focus:bg-accent focus:outline-none"
+    >
       <div className="flex items-center gap-3">
         <Checkbox
           checked={task.done}
           disabled={isPending}
+          aria-label={task.title}
           onCheckedChange={() => {
             startTransition(() => {
               void onToggleDone(task.id);
@@ -109,60 +116,101 @@ export function TaskRow({
         />
         <span
           className={
-            task.done ? 'flex-1 text-muted-foreground line-through' : 'flex-1'
+            task.done
+              ? 'min-w-0 flex-1 text-muted-foreground line-through'
+              : 'min-w-0 flex-1'
           }
         >
           {task.title}
           {task.dueDate ? (
-            <span className="ml-2 text-xs text-muted-foreground">
+            <span className="ml-2 whitespace-nowrap text-xs text-muted-foreground">
               {labels.dueDateLabel} {task.dueDate.slice(0, 10)}
             </span>
           ) : null}
         </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={isFirst || isPending}
-          onClick={() => startTransition(() => void onMove(task.id, 'up'))}
-        >
-          ↑<span className="sr-only">{labels.moveUp}</span>
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={isLast || isPending}
-          onClick={() => startTransition(() => void onMove(task.id, 'down'))}
-        >
-          ↓<span className="sr-only">{labels.moveDown}</span>
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsEditing(true)}
-        >
-          {labels.editButton}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={isPending}
-          onClick={() => {
-            if (window.confirm(labels.deleteConfirm)) {
-              startTransition(() => void onDelete(task.id));
+        {/* Secondary actions stay out of the way until the row is hovered or
+            focused (always visible on touch, where there is no hover). A
+            comment count is the one thing that stays visible: it is
+            information, not just an action. */}
+        <div className="flex shrink-0 items-center gap-0.5">
+          <TaskCommentsToggle
+            count={task.comments.length}
+            isOpen={commentsOpen}
+            onToggle={() => setCommentsOpen((open) => !open)}
+            className={
+              task.comments.length > 0 || commentsOpen
+                ? undefined
+                : 'opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100'
             }
-          }}
-        >
-          {labels.deleteButton}
-        </Button>
+          />
+          {/* Pointer devices: an overlay at the row's end, revealed on
+              hover/focus, so the title keeps its full width. Touch devices:
+              always visible, in flow. */}
+          <div className="flex items-center gap-0.5 [@media(hover:hover)]:absolute [@media(hover:hover)]:right-1 [@media(hover:hover)]:top-1 [@media(hover:hover)]:rounded-md [@media(hover:hover)]:bg-muted [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:focus-within:opacity-100 [@media(hover:hover)]:group-hover:opacity-100">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 px-0"
+              data-action="move-up"
+              disabled={isFirst || isPending}
+              onClick={() => startTransition(() => void onMove(task.id, 'up'))}
+            >
+              <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">{labels.moveUp}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 px-0"
+              data-action="move-down"
+              disabled={isLast || isPending}
+              onClick={() =>
+                startTransition(() => void onMove(task.id, 'down'))
+              }
+            >
+              <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">{labels.moveDown}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 px-0"
+              data-action="edit"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">{labels.editButton}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 px-0 text-muted-foreground hover:text-destructive"
+              data-action="delete"
+              disabled={isPending}
+              onClick={() => {
+                if (window.confirm(labels.deleteConfirm)) {
+                  startTransition(() => void onDelete(task.id));
+                }
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">{labels.deleteButton}</span>
+            </Button>
+          </div>
+        </div>
       </div>
-      <TaskCommentsToggle
-        comments={task.comments}
-        onSubmit={(formData) => onAddComment(task.id, formData)}
-      />
+      {commentsOpen ? (
+        <div className="pl-7 pr-1">
+          <CommentThread
+            comments={task.comments}
+            onSubmit={(formData) => onAddComment(task.id, formData)}
+          />
+        </div>
+      ) : null}
     </li>
   );
 }

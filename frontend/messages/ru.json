@@ -3,13 +3,24 @@
     "appName": "todolist"
   },
   "Nav": {
-    "signOut": "Выйти"
+    "signOut": "Выйти",
+    "primary": "Основная навигация",
+    "lists": "Списки",
+    "allLists": "Все списки",
+    "templates": "Повторяющиеся",
+    "categories": "Категории",
+    "settings": "Настройки",
+    "uncategorized": "Без категории",
+    "pendingInvites": "Приглашения",
+    "selectList": "Выберите список",
+    "selectListHint": "Выберите список слева или создайте новый, чтобы начать.",
+    "back": "Назад"
   },
   "ThemeSwitcher": {
-    "toggleTheme": "Переключить тему",
-    "light": "Светлая",
-    "dark": "Тёмная",
-    "rose": "Розовая"
+    "toggleTheme": "Режим",
+    "light": "Светлый",
+    "dark": "Тёмный",
+    "system": "Системный"
   },
   "LocaleSwitcher": {
     "label": "Сменить язык",
@@ -24,7 +35,10 @@
     "connectButton": "Подключить Google Календарь",
     "connected": "Подключено",
     "connectSuccess": "Google Календарь подключён.",
-    "connectError": "Не удалось подключить Google Календарь. Попробуйте ещё раз."
+    "connectError": "Не удалось подключить Google Календарь. Попробуйте ещё раз.",
+    "appearanceTitle": "Оформление",
+    "accountTitle": "Аккаунт",
+    "signedInAs": "Вы вошли как {email}"
   },
   "Lists": {
     "title": "Ваши списки",
@@ -38,7 +52,8 @@
     "deleteButton": "Удалить",
     "deleteConfirm": "Удалить этот список? Это действие нельзя отменить.",
     "generatedFromTemplate": "Создано из повторяющегося шаблона",
-    "dueDateLabel": "Срок выполнения"
+    "dueDateLabel": "Срок выполнения",
+    "titleLabel": "Название списка"
   },
   "Tasks": {
     "title": "Задачи",
@@ -148,5 +163,145 @@
     "signInButton": "Продолжить через login.blonskyi.dev",
     "signInError": "Не удалось подготовить форму входа. Пожалуйста, попробуйте снова.",
     "retryButton": "Попробовать снова"
+  },
+  "PaletteSwitcher": {
+    "label": "Палитра",
+    "classic": "Классическая",
+    "rose": "Роза",
+    "indigo": "Индиго",
+    "ocean": "Океан",
+    "forest": "Лес",
+    "olive": "Олива",
+    "honey": "Мёд",
+    "clay": "Глина",
+    "coral": "Коралл",
+    "violet": "Фиалка",
+    "graphite": "Графит",
+    "paper": "Бумага"
+  },
+  "LayoutSwitcher": {
+    "label": "Лейаут",
+    "workspace": "Workspace",
+    "board": "Board",
+    "notebook": "Notebook",
+    "pocket": "Pocket",
+    "terminal": "Terminal",
+    "ledger": "Ledger"
+  },
+  "Appearance": {
+    "layout": "Лейаут",
+    "palette": "Палитра",
+    "mode": "Режим",
+    "language": "Язык",
+    "layoutHint": {
+      "workspace": "Три панели: навигация, списки, детали.",
+      "board": "Канбан-доска — категории как колонки.",
+      "notebook": "Бумажный блокнот с оглавлением и закладками.",
+      "pocket": "Как на телефоне: таб-бар и крупные элементы.",
+      "terminal": "Текстовый интерфейс, управление с клавиатуры.",
+      "ledger": "Плотная таблица с фильтрами и раскрытием строк."
+    }
+  },
+  "Overview": {
+    "overdue": "Просрочено",
+    "dueToday": "Срок сегодня",
+    "dueThisWeek": "Срок на этой неделе",
+    "openTasks": "Открытых задач",
+    "doneOf": "{done} из {total} выполнено",
+    "progress": "Прогресс",
+    "due": "Срок",
+    "people": "Участники",
+    "onlyYou": "Только вы",
+    "noDueDate": "Без срока",
+    "recurring": "Повторяющийся",
+    "shared": "Общий",
+    "owner": "Владелец",
+    "updated": "Обновлён",
+    "emptyCategory": "Здесь пока нет списков.",
+    "emptyFiltered": "Нет списков под этот фильтр.",
+    "moreTasks": "ещё {count}",
+    "tasks": "Задачи",
+    "noTasks": "Задач пока нет",
+    "later": "Позже",
+    "today": "Сегодня"
+  },
+  "Board": {
+    "invites": "Приглашения",
+    "addList": "Добавить список",
+    "dropHint": "Отпустите, чтобы переместить сюда",
+    "close": "Закрыть",
+    "cancel": "Отмена"
+  },
+  "Notebook": {
+    "contents": "Оглавление",
+    "newPage": "начать новую страницу…",
+    "thisWeek": "На этой неделе",
+    "nothingDue": "Сроков нет — спокойная неделя.",
+    "invitesSticky": "Вас пригласили:",
+    "sharedWith": "общий с {names}",
+    "recurringPages": "Повторяющиеся страницы",
+    "recurringHint": "Эти страницы копируют себя по заданному расписанию.",
+    "tabsHint": "Закладки на обрезе блокнота. Каждый список может стоять за одной закладкой.",
+    "behindTabs": "За каждой закладкой",
+    "overdue": "Просрочено"
+  },
+  "Pocket": {
+    "newList": "Новый список",
+    "close": "Закрыть"
+  },
+  "Terminal": {
+    "done": "готово",
+    "invites": "приглашений",
+    "paused": "пауза",
+    "none": "нет",
+    "listsHint": "j/k — перемещение · enter — открыть · : — команда · ? — справка",
+    "newList": "новый список",
+    "due": "срок",
+    "owner": "владелец",
+    "you": "вы",
+    "other": "общий",
+    "with": "с",
+    "recurring": "повторяющийся",
+    "meta": "свойства",
+    "manage": "управление",
+    "commandLabel": "Команда",
+    "commandPlaceholder": "введите команду — help покажет список",
+    "commandHint": "esc очищает · : фокус",
+    "usage": "использование: {usage}",
+    "created": "создан список «{title}»",
+    "added": "добавлена задача «{title}»",
+    "noListOpen": "сначала откройте список",
+    "notFound": "ничего не найдено по «{query}»",
+    "unknown": "неизвестная команда: {command} (попробуйте help)",
+    "help": {
+      "new": "создать список",
+      "add": "добавить задачу в открытый список",
+      "open": "открыть n-й список (или по названию)",
+      "keys": "клавиши: j/k — перемещение · x — готово · e — правка · d — удалить · J/K — порядок · enter — открыть"
+    }
+  },
+  "Ledger": {
+    "colList": "Список",
+    "colCategory": "Категория",
+    "colProgress": "Прогресс",
+    "colDue": "Срок",
+    "colPeople": "Участники",
+    "colUpdated": "Обновлён",
+    "colTask": "Задача",
+    "colStatus": "Статус",
+    "colActions": "Действия",
+    "colName": "Название",
+    "colOpenTasks": "Открытых задач",
+    "expand": "Развернуть строку",
+    "collapse": "Свернуть строку",
+    "open": "Открыть список",
+    "openFull": "Открыть страницу",
+    "filterAll": "Все",
+    "quickFilters": "Быстрые фильтры",
+    "showing": "Показано {count} из {total}",
+    "footerHint": "Нажмите на колонку для сортировки · разверните строку, чтобы работать с задачами",
+    "invitesTitle": "Ожидающие приглашения",
+    "fieldTitle": "Название",
+    "fieldMeta": "Категория и синхронизация"
   }
 }

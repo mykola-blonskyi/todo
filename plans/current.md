@@ -136,3 +136,14 @@ sequenced against Phases 5–6, tracked here as it lands.
   ongoing maintenance surface (two configs to keep working in CI)
 - Hub prerequisites (Phase 2) block Phase 4 (sharing) — sequence accordingly, don't start sharing UI
   before the `project-members` endpoint exists
+
+---
+
+## Phase 9 — Layouts & palettes (ADR-017)
+
+- [x] Backend: `UserPalette` / `UserLayout` enums, `system` mode, `updatePalette` / `updateLayout`
+      mutations, data migration of `theme-rose`
+- [x] Frontend: three-axis preferences (mode / palette / layout), cookie-backed server rendering,
+      `src/layouts/*` registry with six full layouts × seven screens, ten new palettes, four locales
+- [ ] Follow-ups: touch drag-and-drop on the Board; read persisted mode back on a fresh device;
+      per-layout PWA `theme_color`

@@ -10,7 +10,7 @@ the permission/cascade rules referenced below.
 Responsibilities:
 - Local shadow of a login-identified person. Never the source of truth for identity — login is
   (ADR-016; previously the hub).
-- Owns Lists, holds ListShares, has independent theme/locale preferences, may hold a
+- Owns Lists, holds ListShares, has independent theme/palette/layout/locale preferences, may hold a
   GoogleCalendarConnection.
 
 Fields:
@@ -22,8 +22,12 @@ Fields:
   real login `sub`, until that person actually logs in — a known, documented gap, see ADR-016)
 - `email`, `name`, `image` (denormalized from login, refreshed on login / project-members lookups)
 - `locale` (enum: en/ru/uk/es, default `en` — independent of the hub's own per-user locale)
-- `theme` (enum: light/dark/theme-rose, default `light` — independent of the hub's own per-user
-  theme)
+- `theme` (enum: light/dark/system, default `light` — light/dark mode only, independent of the
+  hub's own per-user theme)
+- `palette` (enum: classic/rose/indigo/ocean/forest/olive/honey/clay/coral/violet/graphite/paper,
+  default `classic` — colour palette, see ADR-017)
+- `layout` (enum: workspace/board/notebook/pocket/terminal/ledger, default `workspace` — which
+  app shell / page composition the user sees, see ADR-017)
 - `createdAt`
 
 Relationships:

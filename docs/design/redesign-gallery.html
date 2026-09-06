@@ -1,0 +1,1970 @@
+<title>Todolist Redesign Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Public+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=DM+Sans:wght@400;500&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Lora:ital,wght@0,400;0,600;1,400&family=Caveat:wght@500;600;700&family=Archivo+Black&family=Archivo:wght@400;600;700&family=Nunito:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* ---------- gallery chrome tokens (three theme states) ---------- */
+:root {
+  --g-bg: #eceef2;
+  --g-panel: #ffffff;
+  --g-panel-2: #f6f7f9;
+  --g-ink: #16181d;
+  --g-muted: #667085;
+  --g-line: #d9dde4;
+  --g-accent: #2f5bea;
+  --g-accent-ink: #ffffff;
+  --g-shadow: 0 1px 2px rgba(20, 24, 33, 0.06), 0 12px 32px -16px rgba(20, 24, 33, 0.25);
+  --g-font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --g-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --g-bg: #101215;
+    --g-panel: #191c21;
+    --g-panel-2: #1f232a;
+    --g-ink: #e7e9ee;
+    --g-muted: #98a0ad;
+    --g-line: #2b3038;
+    --g-accent: #7d9bff;
+    --g-accent-ink: #0b1230;
+    --g-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --g-bg: #101215;
+  --g-panel: #191c21;
+  --g-panel-2: #1f232a;
+  --g-ink: #e7e9ee;
+  --g-muted: #98a0ad;
+  --g-line: #2b3038;
+  --g-accent: #7d9bff;
+  --g-accent-ink: #0b1230;
+  --g-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--g-bg);
+  color: var(--g-ink);
+  font-family: var(--g-font);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--g-accent); outline-offset: 2px; }
+
+/* ---------- layout ---------- */
+.g-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 20px; border-bottom: 1px solid var(--g-line); background: var(--g-panel);
+  position: sticky; top: 0; z-index: 5;
+}
+.g-top h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.g-top h1 span { color: var(--g-muted); font-weight: 400; }
+.g-top .g-meta { color: var(--g-muted); font-size: 12px; }
+.g-seg { display: inline-flex; border: 1px solid var(--g-line); border-radius: 8px; overflow: hidden; background: var(--g-panel-2); }
+.g-seg button { border: 0; background: transparent; padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--g-muted); }
+.g-seg button[aria-pressed="true"] { background: var(--g-ink); color: var(--g-panel); }
+
+.g-wrap {
+  display: grid; grid-template-columns: 256px minmax(0, 1fr) 284px; gap: 16px;
+  padding: 16px 20px 40px; align-items: start;
+}
+@media (max-width: 1100px) { .g-wrap { grid-template-columns: 1fr; } .g-rail { position: static; } }
+.g-rail { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 12px; }
+.g-panel { background: var(--g-panel); border: 1px solid var(--g-line); border-radius: 12px; padding: 12px; }
+.g-panel h2 {
+  margin: 2px 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--g-muted);
+}
+
+/* design list */
+.g-designs { display: flex; flex-direction: column; gap: 2px; }
+.g-designs button {
+  display: grid; grid-template-columns: 22px 1fr; column-gap: 10px; align-items: baseline; text-align: left;
+  width: 100%; border: 0; background: transparent; padding: 8px 8px; border-radius: 8px; cursor: pointer;
+}
+.g-designs button:hover { background: var(--g-panel-2); }
+.g-designs button[aria-pressed="true"] { background: var(--g-accent); color: var(--g-accent-ink); }
+.g-designs button[aria-pressed="true"] small { color: inherit; opacity: 0.8; }
+.g-designs .n { font-family: var(--g-mono); font-size: 11px; color: var(--g-muted); font-variant-numeric: tabular-nums; }
+.g-designs button[aria-pressed="true"] .n { color: inherit; opacity: 0.75; }
+.g-designs b { font-weight: 600; font-size: 13px; display: block; }
+.g-designs small { color: var(--g-muted); font-size: 11.5px; display: block; line-height: 1.35; margin-top: 1px; }
+
+/* theme list */
+.g-themes { display: flex; flex-direction: column; gap: 2px; }
+.g-themes button {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; text-align: left;
+  width: 100%; border: 0; background: transparent; padding: 6px 8px; border-radius: 8px; cursor: pointer;
+}
+.g-themes button:hover { background: var(--g-panel-2); }
+.g-themes button[aria-pressed="true"] { background: var(--g-panel-2); box-shadow: inset 0 0 0 1.5px var(--g-accent); }
+.g-themes b { font-weight: 600; font-size: 13px; display: block; }
+.g-themes small { color: var(--g-muted); font-size: 11px; display: block; line-height: 1.3; }
+.sw { display: grid; grid-template-columns: repeat(2, 12px); grid-template-rows: repeat(2, 12px); gap: 2px; border-radius: 6px; overflow: hidden; border: 1px solid var(--g-line); padding: 2px; background: var(--g-panel); }
+.sw i { display: block; border-radius: 2px; }
+
+.g-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.g-btn {
+  border: 1px solid var(--g-line); background: var(--g-panel-2); border-radius: 8px; padding: 7px 11px; cursor: pointer; font-size: 12.5px; font-weight: 500;
+}
+.g-btn.primary { background: var(--g-ink); color: var(--g-panel); border-color: var(--g-ink); }
+.g-btn:hover { filter: brightness(0.97); }
+.g-code {
+  margin: 0; font-family: var(--g-mono); font-size: 11px; line-height: 1.5; white-space: pre; overflow: auto;
+  max-height: 260px; padding: 10px 12px; border-radius: 8px; background: var(--g-panel-2); border: 1px solid var(--g-line); color: var(--g-ink);
+}
+details summary { cursor: pointer; color: var(--g-muted); font-size: 12px; margin: 6px 4px 8px; }
+.g-note { color: var(--g-muted); font-size: 12px; line-height: 1.5; margin: 6px 4px 0; }
+.g-note code { font-family: var(--g-mono); font-size: 11px; background: var(--g-panel-2); padding: 1px 4px; border-radius: 4px; }
+.g-toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--g-ink); color: var(--g-panel); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+.g-toast.show { opacity: 1; }
+
+/* stage */
+.g-center { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.g-frame { background: var(--g-panel); border: 1px solid var(--g-line); border-radius: 14px; box-shadow: var(--g-shadow); overflow: hidden; }
+.g-frame-bar { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--g-line); background: var(--g-panel-2); }
+.g-frame-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--g-line); display: block; }
+.g-frame-bar .url { margin-left: 8px; flex: 1; font-family: var(--g-mono); font-size: 11.5px; color: var(--g-muted); background: var(--g-panel); border: 1px solid var(--g-line); border-radius: 6px; padding: 3px 10px; }
+.g-viewport { position: relative; overflow: hidden; }
+.stage { width: 1180px; transform-origin: top left; }
+.g-desc { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; background: var(--g-panel); border: 1px solid var(--g-line); border-radius: 12px; padding: 18px 20px; }
+@media (max-width: 760px) { .g-desc { grid-template-columns: 1fr; } }
+.g-desc h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+.g-desc p { margin: 0; color: var(--g-ink); font-size: 13.5px; line-height: 1.55; max-width: 62ch; }
+.g-desc dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12.5px; align-content: start; }
+.g-desc dt { color: var(--g-muted); }
+.g-desc dd { margin: 0; }
+.g-desc dd code { font-family: var(--g-mono); font-size: 11.5px; }
+
+/* ---------- shadcn tokens on the stage (default = app's current theme) ---------- */
+.stage {
+  --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%; --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%; --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%; --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%; --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%; --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%; --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%; --input: 214.3 31.8% 91.4%; --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+}
+.stage.dark {
+  --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%; --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%; --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%; --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%; --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%; --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%; --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%; --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%; --input: 217.2 32.6% 17.5%; --ring: 212.7 26.8% 83.9%;
+}
+/* resolved shorthands every mockup uses */
+.stage {
+  --c-bg: hsl(var(--background)); --c-fg: hsl(var(--foreground));
+  --c-card: hsl(var(--card)); --c-card-fg: hsl(var(--card-foreground));
+  --c-primary: hsl(var(--primary)); --c-primary-fg: hsl(var(--primary-foreground));
+  --c-secondary: hsl(var(--secondary)); --c-secondary-fg: hsl(var(--secondary-foreground));
+  --c-muted: hsl(var(--muted)); --c-muted-fg: hsl(var(--muted-foreground));
+  --c-accent: hsl(var(--accent)); --c-accent-fg: hsl(var(--accent-foreground));
+  --c-destructive: hsl(var(--destructive)); --c-destructive-fg: hsl(var(--destructive-foreground));
+  --c-border: hsl(var(--border)); --c-input: hsl(var(--input)); --c-ring: hsl(var(--ring));
+  --r: var(--radius);
+  --p-a: hsl(var(--primary) / 0.12); --p-b: hsl(var(--primary) / 0.28);
+  --ok: hsl(152 60% 38%); --warn: hsl(36 90% 48%);
+  background: var(--c-bg); color: var(--c-fg);
+  font-variant-numeric: tabular-nums;
+}
+.stage.dark { --ok: hsl(150 55% 55%); --warn: hsl(40 92% 62%); }
+.mock:not(.on) { display: none !important; }
+
+/* generic mockup primitives (designs may restyle) */
+.cb { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--c-muted-fg); display: inline-grid; place-items: center; flex: none; background: var(--c-card); }
+.cb.on { background: var(--c-primary); border-color: var(--c-primary); }
+.cb.on::after { content: ""; width: 5px; height: 9px; border: solid var(--c-primary-fg); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+.av { width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 10px; font-weight: 600; background: var(--c-secondary); color: var(--c-secondary-fg); border: 2px solid var(--c-card); flex: none; }
+.av.p { background: var(--c-primary); color: var(--c-primary-fg); }
+.avs { display: inline-flex; }
+.avs .av + .av { margin-left: -8px; }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; background: var(--c-secondary); color: var(--c-secondary-fg); line-height: 1.4; white-space: nowrap; }
+.badge.p { background: var(--c-primary); color: var(--c-primary-fg); }
+.badge.o { border: 1px solid var(--c-border); background: transparent; color: var(--c-muted-fg); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: calc(var(--r) - 2px); background: var(--c-primary); color: var(--c-primary-fg); font-size: 13px; font-weight: 500; border: 1px solid transparent; white-space: nowrap; }
+.btn.o { background: var(--c-card); color: var(--c-fg); border-color: var(--c-input); }
+.btn.g { background: transparent; color: var(--c-fg); }
+.btn.s { height: 28px; padding: 0 10px; font-size: 12px; }
+.btn.d { background: transparent; color: var(--c-destructive); border-color: hsl(var(--destructive) / 0.4); }
+.inp { display: flex; align-items: center; height: 34px; padding: 0 12px; border-radius: calc(var(--r) - 2px); border: 1px solid var(--c-input); background: var(--c-card); color: var(--c-muted-fg); font-size: 13px; }
+.inp.f { flex: 1; }
+.muted { color: var(--c-muted-fg); }
+.done { color: var(--c-muted-fg); text-decoration: line-through; text-decoration-color: hsl(var(--muted-foreground) / 0.6); }
+.bar { height: 6px; border-radius: 999px; background: var(--c-secondary); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--c-primary); border-radius: inherit; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+
+/* ---- 10 proposed themes (identical to themes.css) ---- */
+/* ------------------------------------------------------------------
+ * 10 additional themes for todolist — drop-in for frontend/src/app/globals.css
+ *
+ * Same token contract as the existing light / .dark / .theme-rose blocks:
+ * paste the whole file inside the first `@layer base { ... }` after
+ * `.dark.theme-rose`, then register the ids in
+ *   - src/features/preferences/types.ts      (themes tuple)
+ *   - src/app/[locale]/layout.tsx           (ThemeProvider themes=[...])
+ *   - src/features/preferences/ThemeToggle  (labels) + messages/*.json
+ * Every theme ships a light block (.theme-x) and a dark block (.dark.theme-x),
+ * so next-themes can keep toggling `dark` independently of the palette.
+ * ------------------------------------------------------------------ */
+
+  /* ============================================================
+   * Indigo theme — cool blue-grey neutrals with an indigo accent
+   * Applied via class="theme-indigo" on <html>
+   * ============================================================ */
+  .theme-indigo {
+    --background: 220 20% 98%;
+    --foreground: 222 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 12%;
+
+    --primary: 234 60% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 18% 93%;
+    --secondary-foreground: 222 30% 12%;
+
+    --muted: 220 18% 93%;
+    --muted-foreground: 220 12% 45%;
+
+    --accent: 230 40% 92%;
+    --accent-foreground: 222 30% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 16% 88%;
+    --input: 220 16% 88%;
+    --ring: 234 60% 50%;
+  }
+
+  /* Dark Indigo variant */
+  .dark.theme-indigo {
+    --background: 224 24% 8%;
+    --foreground: 220 20% 94%;
+
+    --card: 224 22% 11%;
+    --card-foreground: 220 20% 94%;
+
+    --popover: 224 22% 11%;
+    --popover-foreground: 220 20% 94%;
+
+    --primary: 234 70% 68%;
+    --primary-foreground: 226 40% 10%;
+
+    --secondary: 224 18% 17%;
+    --secondary-foreground: 220 20% 94%;
+
+    --muted: 224 18% 17%;
+    --muted-foreground: 220 12% 62%;
+
+    --accent: 228 24% 20%;
+    --accent-foreground: 220 20% 94%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 224 16% 20%;
+    --input: 224 16% 20%;
+    --ring: 234 70% 68%;
+  }
+
+  /* ============================================================
+   * Ocean theme — teal primary on airy aqua neutrals
+   * Applied via class="theme-ocean" on <html>
+   * ============================================================ */
+  .theme-ocean {
+    --background: 190 40% 97%;
+    --foreground: 200 50% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 50% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 50% 10%;
+
+    --primary: 186 72% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 190 35% 92%;
+    --secondary-foreground: 200 50% 10%;
+
+    --muted: 190 35% 92%;
+    --muted-foreground: 196 20% 42%;
+
+    --accent: 184 50% 88%;
+    --accent-foreground: 200 50% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 190 28% 86%;
+    --input: 190 28% 86%;
+    --ring: 186 72% 36%;
+  }
+
+  /* Dark Ocean variant */
+  .dark.theme-ocean {
+    --background: 200 45% 7%;
+    --foreground: 190 30% 93%;
+
+    --card: 200 40% 10%;
+    --card-foreground: 190 30% 93%;
+
+    --popover: 200 40% 10%;
+    --popover-foreground: 190 30% 93%;
+
+    --primary: 182 65% 55%;
+    --primary-foreground: 200 50% 8%;
+
+    --secondary: 198 30% 16%;
+    --secondary-foreground: 190 30% 93%;
+
+    --muted: 198 30% 16%;
+    --muted-foreground: 192 18% 62%;
+
+    --accent: 196 32% 19%;
+    --accent-foreground: 190 30% 93%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 198 28% 19%;
+    --input: 198 28% 19%;
+    --ring: 182 65% 55%;
+  }
+
+  /* ============================================================
+   * Forest theme — deep green on pale moss
+   * Applied via class="theme-forest" on <html>
+   * ============================================================ */
+  .theme-forest {
+    --background: 100 20% 97%;
+    --foreground: 140 30% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 140 30% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 140 30% 10%;
+
+    --primary: 150 45% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 110 18% 92%;
+    --secondary-foreground: 140 30% 10%;
+
+    --muted: 110 18% 92%;
+    --muted-foreground: 130 12% 42%;
+
+    --accent: 140 30% 88%;
+    --accent-foreground: 140 30% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 110 14% 86%;
+    --input: 110 14% 86%;
+    --ring: 150 45% 32%;
+  }
+
+  /* Dark Forest variant */
+  .dark.theme-forest {
+    --background: 150 25% 7%;
+    --foreground: 100 20% 93%;
+
+    --card: 150 22% 10%;
+    --card-foreground: 100 20% 93%;
+
+    --popover: 150 22% 10%;
+    --popover-foreground: 100 20% 93%;
+
+    --primary: 145 50% 58%;
+    --primary-foreground: 150 40% 8%;
+
+    --secondary: 148 18% 16%;
+    --secondary-foreground: 100 20% 93%;
+
+    --muted: 148 18% 16%;
+    --muted-foreground: 120 10% 62%;
+
+    --accent: 148 20% 19%;
+    --accent-foreground: 100 20% 93%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 148 16% 19%;
+    --input: 148 16% 19%;
+    --ring: 145 50% 58%;
+  }
+
+  /* ============================================================
+   * Olive theme — khaki primary on warm sand neutrals
+   * Applied via class="theme-olive" on <html>
+   * ============================================================ */
+  .theme-olive {
+    --background: 60 25% 96%;
+    --foreground: 70 20% 12%;
+
+    --card: 60 30% 99%;
+    --card-foreground: 70 20% 12%;
+
+    --popover: 60 30% 99%;
+    --popover-foreground: 70 20% 12%;
+
+    --primary: 75 40% 32%;
+    --primary-foreground: 60 30% 97%;
+
+    --secondary: 60 20% 90%;
+    --secondary-foreground: 70 20% 12%;
+
+    --muted: 60 20% 90%;
+    --muted-foreground: 70 10% 42%;
+
+    --accent: 72 30% 85%;
+    --accent-foreground: 70 20% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 60 15% 84%;
+    --input: 60 15% 84%;
+    --ring: 75 40% 36%;
+  }
+
+  /* Dark Olive variant */
+  .dark.theme-olive {
+    --background: 70 15% 8%;
+    --foreground: 60 20% 92%;
+
+    --card: 70 14% 11%;
+    --card-foreground: 60 20% 92%;
+
+    --popover: 70 14% 11%;
+    --popover-foreground: 60 20% 92%;
+
+    --primary: 78 45% 60%;
+    --primary-foreground: 75 30% 8%;
+
+    --secondary: 70 10% 17%;
+    --secondary-foreground: 60 20% 92%;
+
+    --muted: 70 10% 17%;
+    --muted-foreground: 65 8% 62%;
+
+    --accent: 72 14% 20%;
+    --accent-foreground: 60 20% 92%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 70 10% 20%;
+    --input: 70 10% 20%;
+    --ring: 78 45% 60%;
+  }
+
+  /* ============================================================
+   * Honey theme — amber primary on cream
+   * Applied via class="theme-honey" on <html>
+   * ============================================================ */
+  .theme-honey {
+    --background: 42 60% 97%;
+    --foreground: 30 40% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 30 40% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 40% 10%;
+
+    --primary: 36 90% 45%;
+    --primary-foreground: 30 50% 8%;
+
+    --secondary: 42 50% 91%;
+    --secondary-foreground: 30 40% 10%;
+
+    --muted: 42 50% 91%;
+    --muted-foreground: 34 20% 42%;
+
+    --accent: 40 80% 86%;
+    --accent-foreground: 30 40% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 40 40% 85%;
+    --input: 40 40% 85%;
+    --ring: 36 90% 45%;
+  }
+
+  /* Dark Honey variant */
+  .dark.theme-honey {
+    --background: 30 30% 7%;
+    --foreground: 42 40% 93%;
+
+    --card: 30 26% 10%;
+    --card-foreground: 42 40% 93%;
+
+    --popover: 30 26% 10%;
+    --popover-foreground: 42 40% 93%;
+
+    --primary: 40 95% 60%;
+    --primary-foreground: 30 50% 8%;
+
+    --secondary: 32 20% 16%;
+    --secondary-foreground: 42 40% 93%;
+
+    --muted: 32 20% 16%;
+    --muted-foreground: 38 18% 62%;
+
+    --accent: 34 26% 19%;
+    --accent-foreground: 42 40% 93%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 32 20% 19%;
+    --input: 32 20% 19%;
+    --ring: 40 95% 60%;
+  }
+
+  /* ============================================================
+   * Clay theme — terracotta primary on warm earth neutrals
+   * Applied via class="theme-clay" on <html>
+   * ============================================================ */
+  .theme-clay {
+    --background: 28 40% 95%;
+    --foreground: 20 30% 12%;
+
+    --card: 30 45% 98%;
+    --card-foreground: 20 30% 12%;
+
+    --popover: 30 45% 98%;
+    --popover-foreground: 20 30% 12%;
+
+    --primary: 16 65% 45%;
+    --primary-foreground: 30 40% 97%;
+
+    --secondary: 28 30% 89%;
+    --secondary-foreground: 20 30% 12%;
+
+    --muted: 28 30% 89%;
+    --muted-foreground: 22 15% 42%;
+
+    --accent: 20 50% 86%;
+    --accent-foreground: 20 30% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 26 25% 83%;
+    --input: 26 25% 83%;
+    --ring: 16 65% 45%;
+  }
+
+  /* Dark Clay variant */
+  .dark.theme-clay {
+    --background: 20 22% 8%;
+    --foreground: 28 30% 92%;
+
+    --card: 20 20% 11%;
+    --card-foreground: 28 30% 92%;
+
+    --popover: 20 20% 11%;
+    --popover-foreground: 28 30% 92%;
+
+    --primary: 18 75% 62%;
+    --primary-foreground: 20 40% 8%;
+
+    --secondary: 22 16% 17%;
+    --secondary-foreground: 28 30% 92%;
+
+    --muted: 22 16% 17%;
+    --muted-foreground: 26 12% 62%;
+
+    --accent: 20 20% 20%;
+    --accent-foreground: 28 30% 92%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 22 16% 20%;
+    --input: 22 16% 20%;
+    --ring: 18 75% 62%;
+  }
+
+  /* ============================================================
+   * Coral theme — vivid coral on near-white
+   * Applied via class="theme-coral" on <html>
+   * ============================================================ */
+  .theme-coral {
+    --background: 10 60% 98%;
+    --foreground: 350 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 350 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 350 30% 12%;
+
+    --primary: 6 85% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 10 50% 93%;
+    --secondary-foreground: 350 30% 12%;
+
+    --muted: 10 50% 93%;
+    --muted-foreground: 5 18% 46%;
+
+    --accent: 8 80% 90%;
+    --accent-foreground: 350 30% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 8 40% 88%;
+    --input: 8 40% 88%;
+    --ring: 6 85% 58%;
+  }
+
+  /* Dark Coral variant */
+  .dark.theme-coral {
+    --background: 350 25% 7%;
+    --foreground: 10 40% 94%;
+
+    --card: 350 22% 10%;
+    --card-foreground: 10 40% 94%;
+
+    --popover: 350 22% 10%;
+    --popover-foreground: 10 40% 94%;
+
+    --primary: 8 90% 66%;
+    --primary-foreground: 350 40% 8%;
+
+    --secondary: 352 18% 17%;
+    --secondary-foreground: 10 40% 94%;
+
+    --muted: 352 18% 17%;
+    --muted-foreground: 5 14% 64%;
+
+    --accent: 355 22% 20%;
+    --accent-foreground: 10 40% 94%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 352 18% 20%;
+    --input: 352 18% 20%;
+    --ring: 8 90% 66%;
+  }
+
+  /* ============================================================
+   * Violet theme — saturated violet, product-tool feel
+   * Applied via class="theme-violet" on <html>
+   * ============================================================ */
+  .theme-violet {
+    --background: 260 40% 98%;
+    --foreground: 262 40% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 262 40% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 262 40% 12%;
+
+    --primary: 265 70% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 260 30% 93%;
+    --secondary-foreground: 262 40% 12%;
+
+    --muted: 260 30% 93%;
+    --muted-foreground: 262 14% 46%;
+
+    --accent: 262 60% 91%;
+    --accent-foreground: 262 40% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 260 24% 88%;
+    --input: 260 24% 88%;
+    --ring: 265 70% 52%;
+  }
+
+  /* Dark Violet variant */
+  .dark.theme-violet {
+    --background: 262 30% 7%;
+    --foreground: 260 30% 94%;
+
+    --card: 262 26% 10%;
+    --card-foreground: 260 30% 94%;
+
+    --popover: 262 26% 10%;
+    --popover-foreground: 260 30% 94%;
+
+    --primary: 268 80% 72%;
+    --primary-foreground: 262 40% 8%;
+
+    --secondary: 262 20% 17%;
+    --secondary-foreground: 260 30% 94%;
+
+    --muted: 262 20% 17%;
+    --muted-foreground: 260 14% 64%;
+
+    --accent: 264 24% 20%;
+    --accent-foreground: 260 30% 94%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 262 20% 20%;
+    --input: 262 20% 20%;
+    --ring: 268 80% 72%;
+  }
+
+  /* ============================================================
+   * Graphite theme — pure achromatic black & white, max contrast
+   * Applied via class="theme-graphite" on <html>
+   * ============================================================ */
+  .theme-graphite {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 7%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 7%;
+
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 42%;
+
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 7%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 0 0% 9%;
+  }
+
+  /* Dark Graphite variant */
+  .dark.theme-graphite {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 8%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 62%;
+
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 80%;
+  }
+
+  /* ============================================================
+   * Paper theme — parchment ground with ink-brown primary
+   * Applied via class="theme-paper" on <html>
+   * ============================================================ */
+  .theme-paper {
+    --background: 40 35% 93%;
+    --foreground: 30 30% 15%;
+
+    --card: 42 45% 97%;
+    --card-foreground: 30 30% 15%;
+
+    --popover: 42 45% 97%;
+    --popover-foreground: 30 30% 15%;
+
+    --primary: 24 40% 28%;
+    --primary-foreground: 42 40% 96%;
+
+    --secondary: 40 28% 87%;
+    --secondary-foreground: 30 30% 15%;
+
+    --muted: 40 28% 87%;
+    --muted-foreground: 32 14% 42%;
+
+    --accent: 38 35% 82%;
+    --accent-foreground: 30 30% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 36 22% 80%;
+    --input: 36 22% 80%;
+    --ring: 24 40% 28%;
+  }
+
+  /* Dark Paper variant */
+  .dark.theme-paper {
+    --background: 30 15% 9%;
+    --foreground: 40 25% 88%;
+
+    --card: 30 14% 12%;
+    --card-foreground: 40 25% 88%;
+
+    --popover: 30 14% 12%;
+    --popover-foreground: 40 25% 88%;
+
+    --primary: 38 45% 72%;
+    --primary-foreground: 30 20% 8%;
+
+    --secondary: 30 10% 18%;
+    --secondary-foreground: 40 25% 88%;
+
+    --muted: 30 10% 18%;
+    --muted-foreground: 36 10% 60%;
+
+    --accent: 32 12% 22%;
+    --accent-foreground: 40 25% 88%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 10% 21%;
+    --input: 30 10% 21%;
+    --ring: 38 45% 72%;
+  }
+
+</style>
+
+<header class="g-top">
+  <div><h1>Todolist <span>· 10 дизайнов × 10 тем</span></h1></div>
+  <div class="g-meta" id="g-status"></div>
+  <div class="g-seg" role="group" aria-label="Режим мокапов"><button id="b-light" aria-pressed="true">Light</button><button id="b-dark" aria-pressed="false">Dark</button></div>
+</header>
+
+<div class="g-wrap">
+  <aside class="g-rail">
+    <div class="g-panel"><h2>Дизайны</h2><div class="g-designs" id="g-designs"></div></div>
+  </aside>
+
+  <main class="g-center">
+    <div class="g-frame">
+      <div class="g-frame-bar"><i></i><i></i><i></i><span class="url" id="g-url">todo.blonskyi.dev/en</span></div>
+      <div class="g-viewport" id="g-viewport"><div class="stage" id="stage">
+<style>
+#d1 { font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 13px; display: grid; grid-template-columns: 216px 296px 1fr; min-height: 720px; }
+#d1 .side { background: var(--c-muted); border-right: 1px solid var(--c-border); padding: 14px 10px; display: flex; flex-direction: column; gap: 14px; }
+#d1 .brand { display: flex; align-items: center; gap: 8px; padding: 2px 8px; font-weight: 600; }
+#d1 .brand i { width: 20px; height: 20px; border-radius: 6px; background: var(--c-primary); display: grid; place-items: center; color: var(--c-primary-fg); font-size: 11px; font-style: normal; }
+#d1 .search { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--c-border); background: var(--c-card); color: var(--c-muted-fg); font-size: 12px; }
+#d1 .search kbd { font-family: inherit; font-size: 10px; border: 1px solid var(--c-border); border-radius: 4px; padding: 0 4px; }
+#d1 .nav { display: flex; flex-direction: column; gap: 1px; }
+#d1 .nav a { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; color: var(--c-fg); }
+#d1 .nav a.on { background: var(--c-accent); color: var(--c-accent-fg); font-weight: 500; }
+#d1 .nav a .k { margin-left: auto; font-size: 11px; color: var(--c-muted-fg); }
+#d1 .nav svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
+#d1 .grp { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-muted-fg); padding: 0 8px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+#d1 .grp b { font-weight: 500; cursor: pointer; }
+#d1 .user { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12px; }
+#d1 .user .av { border-color: var(--c-muted); }
+#d1 .user small { display: block; color: var(--c-muted-fg); font-size: 11px; }
+
+#d1 .lists { border-right: 1px solid var(--c-border); display: flex; flex-direction: column; }
+#d1 .lists .hd { padding: 14px 14px 10px; display: flex; align-items: center; justify-content: space-between; }
+#d1 .lists h2 { margin: 0; font-size: 15px; font-weight: 600; }
+#d1 .tabs { display: flex; gap: 2px; padding: 0 10px 8px; border-bottom: 1px solid var(--c-border); }
+#d1 .tabs span { padding: 4px 8px; border-radius: 6px; font-size: 12px; color: var(--c-muted-fg); }
+#d1 .tabs span.on { background: var(--c-secondary); color: var(--c-fg); font-weight: 500; }
+#d1 .row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 14px; border-bottom: 1px solid var(--c-border); cursor: pointer; }
+#d1 .row:hover { background: var(--c-muted); }
+#d1 .row.on { background: var(--c-accent); box-shadow: inset 3px 0 0 var(--c-primary); }
+#d1 .row .t { font-weight: 500; }
+#d1 .row .m { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--c-muted-fg); }
+#d1 .row .bar { width: 64px; }
+#d1 .row .due.late { color: var(--c-destructive); font-weight: 500; }
+#d1 .invite { margin: 10px 12px; padding: 10px 12px; border: 1px dashed var(--c-border); border-radius: var(--r); font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
+#d1 .invite .btn { height: 26px; font-size: 11.5px; padding: 0 10px; }
+#d1 .newl { margin: auto 12px 12px; }
+
+#d1 .detail { display: flex; flex-direction: column; min-width: 0; }
+#d1 .crumb { display: flex; align-items: center; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--c-border); font-size: 12px; color: var(--c-muted-fg); }
+#d1 .crumb .right { margin-left: auto; display: flex; gap: 6px; }
+#d1 .body { padding: 22px 28px; display: flex; flex-direction: column; gap: 18px; max-width: 700px; }
+#d1 h1 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+#d1 .props { display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; font-size: 12.5px; align-items: center; }
+#d1 .props dt { color: var(--c-muted-fg); }
+#d1 .props dd { margin: 0; display: flex; align-items: center; gap: 8px; }
+#d1 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--c-border); background: var(--c-card); font-size: 12px; }
+#d1 .sec h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-muted-fg); display: flex; justify-content: space-between; align-items: center; }
+#d1 .task { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 6px; }
+#d1 .task:hover { background: var(--c-muted); }
+#d1 .task .tt { flex: 1; }
+#d1 .task .meta { font-size: 11.5px; color: var(--c-muted-fg); display: flex; gap: 10px; }
+#d1 .task .meta .c::before { content: "💬 "; font-size: 10px; }
+#d1 .task.add { color: var(--c-muted-fg); }
+#d1 .task.add .cb { border-style: dashed; opacity: 0.6; }
+#d1 .cmt { display: grid; grid-template-columns: 24px 1fr; gap: 8px; padding: 6px 0; font-size: 12.5px; }
+#d1 .cmt b { font-weight: 600; margin-right: 6px; }
+#d1 .cmt small { color: var(--c-muted-fg); }
+</style>
+<section class="mock" id="d1">
+  <aside class="side">
+    <div class="brand"><i>✓</i> Todolist</div>
+    <div class="search"><span>Search or jump to…</span><kbd>⌘K</kbd></div>
+    <nav class="nav">
+      <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today <span class="k">3</span></a>
+      <a class="on"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>All lists <span class="k">5</span></a>
+      <a><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>Recurring <span class="k">2</span></a>
+      <a><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 2v4M16 2v4M4 10h16"/></svg>Calendar</a>
+    </nav>
+    <div>
+      <div class="grp">Categories <b>+</b></div>
+      <nav class="nav">
+        <a><span class="dot" style="background:hsl(234 60% 55%)"></span>Work <span class="k">2</span></a>
+        <a><span class="dot" style="background:hsl(150 45% 42%)"></span>Home <span class="k">1</span></a>
+        <a><span class="dot" style="background:hsl(36 90% 50%)"></span>Travel <span class="k">1</span></a>
+        <a><span class="dot" style="background:hsl(300 40% 55%)"></span>Personal <span class="k">1</span></a>
+        <a class="muted"><span class="dot" style="background:var(--c-border)"></span>Uncategorized <span class="k">0</span></a>
+      </nav>
+    </div>
+    <nav class="nav">
+      <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5c.07-.4.1-.8.1-1.2z"/></svg>Settings</a>
+    </nav>
+    <div class="user"><span class="av p">M</span><div>Mykola<small>EN · Light</small></div></div>
+  </aside>
+
+  <div class="lists">
+    <div class="hd"><h2>All lists</h2><span class="btn s o">Sort: due ↑</span></div>
+    <div class="tabs"><span class="on">Active</span><span>Shared with me</span><span>Done</span></div>
+    <div class="invite"><span><b>Olena</b> invited you to <b>Q4 planning</b></span><div style="display:flex;gap:6px"><span class="btn">Accept</span><span class="btn o">Decline</span></div></div>
+    <div class="row"><span class="t">Groceries</span><span class="due muted">Mon 8</span><span class="m"><span class="dot" style="background:hsl(150 45% 42%)"></span>Home · 3/7 <span class="bar"><i style="width:43%"></i></span></span></div>
+    <div class="row on"><span class="t">Launch todo v2</span><span class="due">Fri 12</span><span class="m"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work · 5/12 <span class="bar"><i style="width:42%"></i></span><span class="avs"><span class="av">A</span><span class="av">P</span></span></span></div>
+    <div class="row"><span class="t">Weekly review</span><span class="due late">Yesterday</span><span class="m"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work · 0/5 · ↻ recurring</span></div>
+    <div class="row"><span class="t">Trip to Lisbon</span><span class="due muted">Oct 3</span><span class="m"><span class="dot" style="background:hsl(36 90% 50%)"></span>Travel · 8/9 <span class="bar"><i style="width:89%"></i></span></span></div>
+    <div class="row"><span class="t">Reading list</span><span class="due muted">—</span><span class="m"><span class="dot" style="background:hsl(300 40% 55%)"></span>Personal · 2/10 <span class="bar"><i style="width:20%"></i></span></span></div>
+    <div class="newl inp">+ New list</div>
+  </div>
+
+  <div class="detail">
+    <div class="crumb">Work <span>›</span> <span style="color:var(--c-fg)">Launch todo v2</span>
+      <span class="right"><span class="btn s o">Sync to Google Calendar</span><span class="btn s o">Share</span><span class="btn s g">···</span></span></div>
+    <div class="body">
+      <h1>Launch todo v2</h1>
+      <dl class="props">
+        <dt>Due date</dt><dd><span class="chip">📅 Fri, 12 Sep 2026</span><span class="muted" style="font-size:11.5px">in 6 days</span></dd>
+        <dt>Category</dt><dd><span class="chip"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work ▾</span></dd>
+        <dt>Collaborators</dt><dd><span class="avs"><span class="av p">M</span><span class="av">A</span><span class="av">P</span></span><span class="muted">Mykola (owner), Anna, Petro</span><span class="chip">+ Invite</span></dd>
+        <dt>Progress</dt><dd><span class="bar" style="width:140px"><i style="width:42%"></i></span>5 of 12 done</dd>
+      </dl>
+      <div class="sec">
+        <h3>Tasks <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">Sort: manual</span></h3>
+        <div class="task"><span class="cb on"></span><span class="tt done">Write release notes</span><span class="meta">Sep 5</span></div>
+        <div class="task"><span class="cb on"></span><span class="tt done">Migrate themes to CSS variables</span></div>
+        <div class="task"><span class="cb"></span><span class="tt">Fix drag-reorder on mobile Safari</span><span class="meta"><span class="c">2</span><span>Sep 9</span><span class="av">A</span></span></div>
+        <div class="task"><span class="cb"></span><span class="tt">Update PWA icons (maskable 512)</span><span class="meta"><span class="av">P</span></span></div>
+        <div class="task"><span class="cb"></span><span class="tt">QA pass in Safari &amp; Firefox</span><span class="meta"><span>Sep 11</span></span></div>
+        <div class="task"><span class="cb"></span><span class="tt">Announce in Telegram channel</span><span class="meta"><span>Sep 12</span></span></div>
+        <div class="task add"><span class="cb"></span><span class="tt">Add a task…  <kbd style="font:11px inherit;border:1px solid var(--c-border);border-radius:4px;padding:0 4px">N</kbd></span></div>
+      </div>
+      <div class="sec">
+        <h3>Comments · 2</h3>
+        <div class="cmt"><span class="av">A</span><div><b>Anna</b><small>2 h ago</small><div>Safari's native date input still looks off in dark mode — should we ship a custom picker?</div></div></div>
+        <div class="cmt"><span class="av p">M</span><div><b>Mykola</b><small>40 min ago</small><div>Let's ship native for v2 and track it for 2.1.</div></div></div>
+        <div class="inp" style="margin-top:6px">Write a comment…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+#d2 { font-family: "Manrope", system-ui, sans-serif; font-size: 13px; min-height: 720px; position: relative; overflow: hidden; }
+#d2 .top { display: flex; align-items: center; gap: 14px; padding: 12px 22px; border-bottom: 1px solid var(--c-border); background: var(--c-card); }
+#d2 .top .logo { font-weight: 800; letter-spacing: -0.02em; font-size: 16px; }
+#d2 .top .views { display: inline-flex; background: var(--c-secondary); border-radius: 999px; padding: 3px; }
+#d2 .top .views span { padding: 4px 12px; border-radius: 999px; font-size: 12px; color: var(--c-muted-fg); font-weight: 600; }
+#d2 .top .views span.on { background: var(--c-card); color: var(--c-fg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+#d2 .top .sp { flex: 1; }
+#d2 .top .filt { display: flex; gap: 6px; }
+#d2 .board { display: grid; grid-template-columns: repeat(5, 224px); gap: 14px; padding: 20px 22px; overflow: hidden; }
+#d2 .col { display: flex; flex-direction: column; gap: 10px; }
+#d2 .col .ch { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 12.5px; padding: 0 4px; }
+#d2 .col .ch .n { color: var(--c-muted-fg); font-weight: 600; }
+#d2 .col .ch .plus { margin-left: auto; color: var(--c-muted-fg); }
+#d2 .card { background: var(--c-card); border: 1px solid var(--c-border); border-radius: calc(var(--r) + 4px); padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+#d2 .card.on { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--p-a); }
+#d2 .card .t { font-weight: 700; font-size: 13.5px; letter-spacing: -0.01em; }
+#d2 .card .sub { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--c-muted-fg); }
+#d2 .card .sub .ln { display: flex; align-items: center; gap: 6px; }
+#d2 .card .sub .ln .cb { width: 12px; height: 12px; border-radius: 3px; }
+#d2 .card .ft { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--c-muted-fg); margin-top: 2px; }
+#d2 .card .ft .late { color: var(--c-destructive); font-weight: 700; }
+#d2 .ghost { border: 1.5px dashed var(--c-border); border-radius: calc(var(--r) + 4px); padding: 10px; text-align: center; color: var(--c-muted-fg); font-size: 12px; font-weight: 600; }
+#d2 .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 440px; background: var(--c-card); border-left: 1px solid var(--c-border); box-shadow: -24px 0 48px -32px rgba(0,0,0,0.35); display: flex; flex-direction: column; }
+#d2 .drawer .dh { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--c-border); font-size: 12px; color: var(--c-muted-fg); }
+#d2 .drawer .dh .x { margin-left: auto; font-size: 16px; }
+#d2 .drawer .db { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+#d2 .drawer h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+#d2 .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+#d2 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--c-secondary); font-size: 12px; font-weight: 600; }
+#d2 .pill.p { background: var(--p-a); color: var(--c-primary); }
+#d2 .prog { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; }
+#d2 .prog .bar { flex: 1; height: 8px; }
+#d2 .tl { display: flex; flex-direction: column; gap: 4px; }
+#d2 .tk { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r); border: 1px solid var(--c-border); background: var(--c-bg); }
+#d2 .tk .cb { border-radius: 50%; }
+#d2 .tk .tt { flex: 1; font-weight: 600; font-size: 12.5px; }
+#d2 .tk .due { font-size: 11px; color: var(--c-muted-fg); font-weight: 600; }
+#d2 .tk .due.soon { color: var(--warn); }
+#d2 .tk .h { width: 12px; color: var(--c-muted-fg); letter-spacing: -2px; opacity: 0.6; }
+#d2 .tk.ghost { border-style: dashed; justify-content: flex-start; }
+#d2 .sec h3 { margin: 0 0 8px; font-size: 12px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+#d2 .people { display: flex; align-items: center; gap: 8px; }
+#d2 .people .av { width: 28px; height: 28px; font-size: 11px; }
+#d2 .cmt { display: flex; gap: 8px; font-size: 12px; padding: 6px 0; }
+#d2 .cmt b { font-weight: 700; }
+#d2 .foot { margin-top: auto; padding: 12px 20px; border-top: 1px solid var(--c-border); display: flex; gap: 8px; }
+</style>
+<section class="mock" id="d2">
+  <div class="top">
+    <span class="logo">Todolist</span>
+    <span class="views"><span class="on">Board</span><span>List</span><span>Timeline</span></span>
+    <span class="sp"></span>
+    <span class="filt"><span class="badge o">Group: category ▾</span><span class="badge o">Filter</span><span class="badge o">Sort: due</span></span>
+    <span class="btn">+ New list</span>
+    <span class="av p" style="width:28px;height:28px">M</span>
+  </div>
+  <div class="board">
+    <div class="col">
+      <div class="ch"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work <span class="n">2</span><span class="plus">+</span></div>
+      <div class="card on"><div class="t">Launch todo v2</div>
+        <div class="sub"><span class="ln"><span class="cb on"></span>Write release notes</span><span class="ln"><span class="cb"></span>Fix drag-reorder on mobile</span><span class="ln"><span class="cb"></span>QA in Safari &amp; Firefox</span><span class="ln">+ 9 more</span></div>
+        <div class="bar"><i style="width:42%"></i></div>
+        <div class="ft"><span>5/12 · Fri 12</span><span class="avs"><span class="av">A</span><span class="av">P</span></span></div></div>
+      <div class="card"><div class="t">Weekly review <span class="badge" style="margin-left:4px">↻</span></div>
+        <div class="sub"><span class="ln"><span class="cb"></span>Clear inbox</span><span class="ln"><span class="cb"></span>Review OKRs</span><span class="ln">+ 3 more</span></div>
+        <div class="bar"><i style="width:0%"></i></div>
+        <div class="ft"><span class="late">0/5 · overdue</span></div></div>
+      <div class="ghost">+ Add list</div>
+    </div>
+    <div class="col">
+      <div class="ch"><span class="dot" style="background:hsl(150 45% 42%)"></span>Home <span class="n">1</span><span class="plus">+</span></div>
+      <div class="card"><div class="t">Groceries</div>
+        <div class="sub"><span class="ln"><span class="cb on"></span>Oat milk</span><span class="ln"><span class="cb"></span>Tomatoes</span><span class="ln"><span class="cb"></span>Coffee beans</span><span class="ln">+ 4 more</span></div>
+        <div class="bar"><i style="width:43%"></i></div>
+        <div class="ft"><span>3/7 · Mon 8</span></div></div>
+      <div class="ghost">+ Add list</div>
+    </div>
+    <div class="col">
+      <div class="ch"><span class="dot" style="background:hsl(36 90% 50%)"></span>Travel <span class="n">1</span><span class="plus">+</span></div>
+      <div class="card"><div class="t">Trip to Lisbon</div>
+        <div class="sub"><span class="ln"><span class="cb on"></span>Book flights</span><span class="ln"><span class="cb on"></span>Hotel in Alfama</span><span class="ln"><span class="cb"></span>Travel insurance</span><span class="ln">+ 6 more</span></div>
+        <div class="bar"><i style="width:89%"></i></div>
+        <div class="ft"><span>8/9 · Oct 3</span><span class="avs"><span class="av">O</span></span></div></div>
+      <div class="ghost">+ Add list</div>
+    </div>
+    <div class="col">
+      <div class="ch"><span class="dot" style="background:hsl(300 40% 55%)"></span>Personal <span class="n">1</span><span class="plus">+</span></div>
+      <div class="card"><div class="t">Reading list</div>
+        <div class="sub"><span class="ln"><span class="cb on"></span>Designing Data-Intensive Apps</span><span class="ln"><span class="cb"></span>Refactoring UI</span><span class="ln">+ 8 more</span></div>
+        <div class="bar"><i style="width:20%"></i></div>
+        <div class="ft"><span>2/10</span></div></div>
+      <div class="ghost">+ Add list</div>
+    </div>
+    <div class="col">
+      <div class="ch"><span class="dot" style="background:var(--c-border)"></span>Invites <span class="n">1</span></div>
+      <div class="card" style="border-style:dashed"><div class="t">Q4 planning</div><div class="sub">Olena invited you · 3 tasks</div><div style="display:flex;gap:6px"><span class="btn s">Accept</span><span class="btn s o">Decline</span></div></div>
+    </div>
+  </div>
+
+  <aside class="drawer">
+    <div class="dh"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work <span>/</span> Launch todo v2 <span class="x">×</span></div>
+    <div class="db">
+      <h1>Launch todo v2</h1>
+      <div class="pills"><span class="pill p">📅 Fri 12 Sep</span><span class="pill">Work ▾</span><span class="pill">↗ Google Calendar</span></div>
+      <div class="prog">5/12 <span class="bar"><i style="width:42%"></i></span> 42%</div>
+      <div class="sec"><h3>Tasks <span class="badge o">Drag to reorder</span></h3>
+        <div class="tl">
+          <div class="tk"><span class="h">⋮⋮</span><span class="cb on"></span><span class="tt done">Write release notes</span></div>
+          <div class="tk"><span class="h">⋮⋮</span><span class="cb on"></span><span class="tt done">Migrate themes to CSS variables</span></div>
+          <div class="tk"><span class="h">⋮⋮</span><span class="cb"></span><span class="tt">Fix drag-reorder on mobile Safari</span><span class="due soon">Tue 9</span><span class="av">A</span></div>
+          <div class="tk"><span class="h">⋮⋮</span><span class="cb"></span><span class="tt">Update PWA icons</span><span class="av">P</span></div>
+          <div class="tk"><span class="h">⋮⋮</span><span class="cb"></span><span class="tt">QA pass in Safari &amp; Firefox</span><span class="due">Thu 11</span></div>
+          <div class="tk"><span class="h">⋮⋮</span><span class="cb"></span><span class="tt">Announce in Telegram</span><span class="due">Fri 12</span></div>
+          <div class="tk ghost muted">+ Add task</div>
+        </div></div>
+      <div class="sec"><h3>People</h3><div class="people"><span class="avs"><span class="av p">M</span><span class="av">A</span><span class="av">P</span></span><span class="inp f" style="height:30px">Invite by name or email…</span></div></div>
+      <div class="sec"><h3>Comments <span class="muted" style="font-weight:600">2</span></h3>
+        <div class="cmt"><span class="av">A</span><div><b>Anna</b> <span class="muted">· 2h</span><div>Safari date input still looks off in dark mode.</div></div></div>
+        <div class="cmt"><span class="av p">M</span><div><b>Mykola</b> <span class="muted">· 40m</span><div>Ship native for v2, custom picker in 2.1.</div></div></div></div>
+    </div>
+    <div class="foot"><span class="inp f">Write a comment…</span><span class="btn">Post</span></div>
+  </aside>
+</section>
+
+<style>
+#d3 { font-family: "Public Sans", system-ui, sans-serif; font-size: 13px; min-height: 720px; display: grid; grid-template-columns: 1fr 392px; }
+#d3 .disp { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.01em; }
+#d3 .main { padding: 22px 30px 30px; display: flex; flex-direction: column; gap: 18px; border-right: 1px solid var(--c-border); min-width: 0; }
+#d3 .hd { display: flex; align-items: flex-end; gap: 18px; }
+#d3 .hd h1 { margin: 0; font-size: 34px; line-height: 1; }
+#d3 .hd h1 em { font-style: italic; font-weight: 400; color: var(--c-muted-fg); }
+#d3 .hd .nav { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+#d3 .hd .links { display: flex; gap: 14px; font-size: 12.5px; color: var(--c-muted-fg); }
+#d3 .strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+#d3 .strip .d { text-align: center; padding: 8px 4px; border-radius: var(--r); border: 1px solid transparent; }
+#d3 .strip .d small { display: block; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-muted-fg); }
+#d3 .strip .d b { display: block; font-size: 18px; font-weight: 500; font-family: "Fraunces", Georgia, serif; }
+#d3 .strip .d .pips { display: flex; justify-content: center; gap: 3px; margin-top: 4px; height: 5px; }
+#d3 .strip .d .pips i { width: 5px; height: 5px; border-radius: 50%; background: var(--c-primary); display: block; }
+#d3 .strip .d.today { border-color: var(--c-primary); background: var(--p-a); }
+#d3 .strip .d.wk small, #d3 .strip .d.wk b { color: var(--c-muted-fg); }
+#d3 .grp { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding-top: 14px; border-top: 1px solid var(--c-border); }
+#d3 .grp .lab { font-family: "Fraunces", Georgia, serif; font-size: 17px; line-height: 1.2; }
+#d3 .grp .lab small { display: block; font-family: "Public Sans", sans-serif; font-size: 11px; color: var(--c-muted-fg); margin-top: 3px; }
+#d3 .grp .lab.late { color: var(--c-destructive); }
+#d3 .items { display: flex; flex-direction: column; gap: 6px; }
+#d3 .it { display: grid; grid-template-columns: 4px 1fr auto; gap: 12px; align-items: center; padding: 9px 12px 9px 10px; border-radius: var(--r); background: var(--c-card); border: 1px solid var(--c-border); }
+#d3 .it .rail { height: 100%; min-height: 28px; border-radius: 2px; }
+#d3 .it .t { font-weight: 600; }
+#d3 .it .t small { font-weight: 400; color: var(--c-muted-fg); margin-left: 8px; }
+#d3 .it .s { font-size: 11.5px; color: var(--c-muted-fg); display: flex; gap: 10px; align-items: center; }
+#d3 .it.task { background: transparent; border-style: dashed; }
+#d3 .it.task .t { font-weight: 500; }
+#d3 .it.on { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--p-a); }
+#d3 .empty { color: var(--c-muted-fg); font-size: 12.5px; padding: 6px 0; font-style: italic; font-family: "Fraunces", Georgia, serif; }
+#d3 .pane { padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; background: var(--c-card); }
+#d3 .pane .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-muted-fg); }
+#d3 .pane h2 { margin: 0; font-size: 26px; line-height: 1.1; }
+#d3 .meta { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 12.5px; }
+#d3 .meta dt { color: var(--c-muted-fg); }
+#d3 .meta dd { margin: 0; display: flex; gap: 6px; align-items: center; }
+#d3 .tk { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--c-border); }
+#d3 .tk .cb { border-radius: 50%; transform: translateY(2px); }
+#d3 .tk .d { font-size: 11px; color: var(--c-muted-fg); }
+#d3 .tk .d.late { color: var(--c-destructive); }
+#d3 .cal { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r); background: var(--c-secondary); font-size: 12px; }
+#d3 .cal b { font-weight: 600; }
+#d3 .cmt { font-size: 12.5px; display: flex; gap: 8px; }
+#d3 .cmt b { font-weight: 600; }
+</style>
+<section class="mock" id="d3">
+  <div class="main">
+    <div class="hd">
+      <h1 class="disp">This week <em>7 – 13 September</em></h1>
+      <div class="nav"><span class="links"><span>All lists</span><span>Recurring</span><span>Settings</span></span><span class="btn o s">‹</span><span class="btn o s">Today</span><span class="btn o s">›</span><span class="btn s">+ New list</span></div>
+    </div>
+    <div class="strip">
+      <div class="d"><small>Mon</small><b>7</b><div class="pips"></div></div>
+      <div class="d"><small>Tue</small><b>8</b><div class="pips"><i></i><i></i></div></div>
+      <div class="d"><small>Wed</small><b>9</b><div class="pips"><i></i></div></div>
+      <div class="d"><small>Thu</small><b>10</b><div class="pips"></div></div>
+      <div class="d"><small>Fri</small><b>11</b><div class="pips"><i></i></div></div>
+      <div class="d wk"><small>Sat</small><b>12</b><div class="pips"><i></i><i></i></div></div>
+      <div class="d wk"><small>Sun</small><b>13</b><div class="pips"></div></div>
+    </div>
+
+    <div class="grp"><div class="lab late">Overdue<small>1 list</small></div><div class="items">
+      <div class="it"><span class="rail" style="background:var(--c-destructive)"></span><span class="t">Weekly review<small>Work · generated Sat 5</small></span><span class="s">0/5 <span class="badge o">↻ weekly</span></span></div>
+    </div></div>
+
+    <div class="grp"><div class="lab">Tuesday<small>8 Sep · 2 items</small></div><div class="items">
+      <div class="it on"><span class="rail" style="background:hsl(150 45% 42%)"></span><span class="t">Groceries<small>Home</small></span><span class="s">3/7 <span class="bar" style="width:56px"><i style="width:43%"></i></span></span></div>
+      <div class="it task"><span class="rail" style="background:hsl(234 60% 55%)"></span><span class="t"><span class="cb" style="display:inline-grid;vertical-align:-3px;margin-right:8px;border-radius:50%"></span>Fix drag-reorder on mobile Safari<small>in Launch todo v2</small></span><span class="s"><span class="av">A</span></span></div>
+    </div></div>
+
+    <div class="grp"><div class="lab">Wednesday<small>9 Sep</small></div><div class="items"><div class="empty">Nothing due — a good day for the reading list.</div></div></div>
+
+    <div class="grp"><div class="lab">Friday<small>11 Sep · 1 item</small></div><div class="items">
+      <div class="it task"><span class="rail" style="background:hsl(234 60% 55%)"></span><span class="t"><span class="cb" style="display:inline-grid;vertical-align:-3px;margin-right:8px;border-radius:50%"></span>QA pass in Safari &amp; Firefox<small>in Launch todo v2</small></span><span class="s"></span></div>
+    </div></div>
+
+    <div class="grp"><div class="lab">Saturday<small>12 Sep · 2 items</small></div><div class="items">
+      <div class="it"><span class="rail" style="background:hsl(234 60% 55%)"></span><span class="t">Launch todo v2<small>Work · shared</small></span><span class="s">5/12 <span class="bar" style="width:56px"><i style="width:42%"></i></span><span class="avs"><span class="av">A</span><span class="av">P</span></span></span></div>
+      <div class="it task"><span class="rail" style="background:hsl(234 60% 55%)"></span><span class="t"><span class="cb" style="display:inline-grid;vertical-align:-3px;margin-right:8px;border-radius:50%"></span>Announce in Telegram channel<small>in Launch todo v2</small></span><span class="s"></span></div>
+    </div></div>
+
+    <div class="grp"><div class="lab">Later<small>Oct and beyond</small></div><div class="items">
+      <div class="it"><span class="rail" style="background:hsl(36 90% 50%)"></span><span class="t">Trip to Lisbon<small>Travel · 3 Oct</small></span><span class="s">8/9</span></div>
+      <div class="it"><span class="rail" style="background:var(--c-border)"></span><span class="t">Reading list<small>Personal · no due date</small></span><span class="s">2/10</span></div>
+    </div></div>
+  </div>
+
+  <aside class="pane">
+    <span class="k">Home · due Tuesday</span>
+    <h2 class="disp">Groceries</h2>
+    <dl class="meta"><dt>Due</dt><dd>Tue, 8 Sep <span class="badge o">change</span></dd><dt>Category</dt><dd><span class="dot" style="background:hsl(150 45% 42%)"></span>Home</dd><dt>People</dt><dd><span class="av p">M</span> only you <span class="badge o">+ share</span></dd></dl>
+    <div class="cal">📅 <span><b>Synced</b> to Google Calendar · updates on save</span></div>
+    <div>
+      <div class="tk"><span class="cb on"></span><span class="done">Oat milk ×2</span><span class="d"></span></div>
+      <div class="tk"><span class="cb on"></span><span class="done">Eggs</span><span class="d"></span></div>
+      <div class="tk"><span class="cb on"></span><span class="done">Bread from the corner bakery</span><span class="d"></span></div>
+      <div class="tk"><span class="cb"></span><span>Tomatoes, basil</span><span class="d"></span></div>
+      <div class="tk"><span class="cb"></span><span>Coffee beans (medium roast)</span><span class="d late">Mon 7</span></div>
+      <div class="tk"><span class="cb"></span><span>Olive oil</span><span class="d"></span></div>
+      <div class="tk"><span class="cb"></span><span>Dish soap</span><span class="d"></span></div>
+      <div class="tk" style="border:0"><span class="cb" style="border-style:dashed;opacity:.5"></span><span class="muted">New task…</span><span></span></div>
+    </div>
+    <div>
+      <span class="k">Comments</span>
+      <div class="cmt" style="margin-top:8px"><span class="av p">M</span><div><b>Mykola</b> <span class="muted">· Fri</span><div>Bakery closes at 14:00 on Tuesdays.</div></div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:auto"><span class="inp f">Write a comment…</span><span class="btn">Post</span></div>
+  </aside>
+</section>
+
+<style>
+#d4 { font-family: "DM Sans", system-ui, sans-serif; font-size: 15px; min-height: 720px; display: grid; grid-template-columns: 1fr 1fr; }
+#d4 .ser { font-family: "Newsreader", Georgia, serif; font-weight: 400; letter-spacing: -0.015em; }
+#d4 .scr { padding: 52px 64px 40px; display: flex; flex-direction: column; gap: 26px; position: relative; }
+#d4 .scr + .scr { border-left: 1px solid var(--c-border); }
+#d4 .tiny { position: absolute; top: 18px; left: 64px; right: 64px; display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-muted-fg); }
+#d4 h1 { margin: 0; font-size: 44px; line-height: 1.02; }
+#d4 h1 em { font-style: italic; color: var(--c-muted-fg); }
+#d4 .sub { color: var(--c-muted-fg); font-size: 14px; }
+#d4 .quick { font-family: "Newsreader", Georgia, serif; font-size: 22px; color: var(--c-muted-fg); border-bottom: 1px solid var(--c-fg); padding: 8px 0; display: flex; justify-content: space-between; }
+#d4 .quick kbd { font: 11px "DM Sans", sans-serif; letter-spacing: 0.08em; color: var(--c-muted-fg); align-self: center; }
+#d4 .ls { display: flex; flex-direction: column; }
+#d4 .l { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--c-border); }
+#d4 .l .t { font-family: "Newsreader", Georgia, serif; font-size: 24px; line-height: 1.15; }
+#d4 .l .t small { font-family: "DM Sans", sans-serif; font-size: 12px; color: var(--c-muted-fg); margin-left: 10px; }
+#d4 .l .r { font-size: 12px; color: var(--c-muted-fg); display: flex; gap: 12px; }
+#d4 .l .r b { color: var(--c-fg); font-weight: 500; }
+#d4 .l.on .t { color: var(--c-primary); }
+#d4 .l.on .t::before { content: "→ "; }
+#d4 .foot { margin-top: auto; display: flex; gap: 18px; font-size: 11.5px; color: var(--c-muted-fg); }
+#d4 .foot kbd { font-family: inherit; border: 1px solid var(--c-border); border-radius: 4px; padding: 0 5px; margin-right: 4px; }
+#d4 .back { font-size: 12px; color: var(--c-muted-fg); }
+#d4 .tk { display: grid; grid-template-columns: 22px 1fr auto; gap: 14px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--c-border); font-family: "Newsreader", Georgia, serif; font-size: 21px; line-height: 1.2; }
+#d4 .tk .cb { width: 18px; height: 18px; border-radius: 50%; transform: translateY(2px); }
+#d4 .tk .d { font-family: "DM Sans", sans-serif; font-size: 11.5px; color: var(--c-muted-fg); }
+#d4 .tk.cur { box-shadow: -14px 0 0 0 var(--c-bg), -16px 0 0 0 var(--c-primary); }
+#d4 .inline { font-family: "Newsreader", Georgia, serif; font-size: 21px; color: var(--c-muted-fg); padding: 11px 0; display: grid; grid-template-columns: 22px 1fr; gap: 14px; }
+#d4 .inline .cb { border-style: dashed; opacity: 0.5; border-radius: 50%; width: 18px; height: 18px; }
+#d4 .metal { display: flex; gap: 16px; font-size: 12.5px; color: var(--c-muted-fg); }
+#d4 .metal b { color: var(--c-fg); font-weight: 500; }
+#d4 .cm { font-size: 13.5px; color: var(--c-muted-fg); border-left: 2px solid var(--c-border); padding-left: 12px; }
+#d4 .cm b { color: var(--c-fg); font-weight: 500; }
+</style>
+<section class="mock" id="d4">
+  <div class="scr">
+    <div class="tiny"><span>Todolist</span><span>Sun 6 Sep · 3 due this week</span></div>
+    <h1 class="ser">Your lists <em>five</em></h1>
+    <div class="quick"><span>Start a new list…</span><kbd>ENTER</kbd></div>
+    <div class="ls">
+      <div class="l on"><span class="t">Launch todo v2<small>Work · with Anna, Petro</small></span><span class="r"><b>5</b>/12<span>Fri 12</span></span></div>
+      <div class="l"><span class="t">Weekly review<small>Work · recurring</small></span><span class="r"><b style="color:var(--c-destructive)">overdue</b></span></div>
+      <div class="l"><span class="t">Groceries<small>Home</small></span><span class="r"><b>3</b>/7<span>Tue 8</span></span></div>
+      <div class="l"><span class="t">Trip to Lisbon<small>Travel</small></span><span class="r"><b>8</b>/9<span>3 Oct</span></span></div>
+      <div class="l"><span class="t">Reading list<small>Personal</small></span><span class="r"><b>2</b>/10</span></div>
+    </div>
+    <div class="sub">Olena invited you to <b style="color:var(--c-fg);font-weight:500">Q4 planning</b> — <u>accept</u> · <u>decline</u></div>
+    <div class="foot"><span><kbd>↑↓</kbd>move</span><span><kbd>⏎</kbd>open</span><span><kbd>c</kbd>categories</span><span><kbd>r</kbd>recurring</span><span><kbd>,</kbd>settings</span></div>
+  </div>
+  <div class="scr">
+    <div class="tiny"><span>← Back · esc</span><span>Work · due Fri 12 Sep</span></div>
+    <h1 class="ser">Launch todo v2</h1>
+    <div class="metal"><span><b>5</b> of 12 done</span><span>Anna, Petro</span><span>Synced to Calendar</span><span>Category: Work</span></div>
+    <div>
+      <div class="tk"><span class="cb on"></span><span class="done">Write release notes</span><span class="d">Sep 5</span></div>
+      <div class="tk"><span class="cb on"></span><span class="done">Migrate themes to CSS variables</span><span class="d"></span></div>
+      <div class="tk cur"><span class="cb"></span><span>Fix drag-reorder on mobile Safari</span><span class="d">Tue 9 · 2 comments</span></div>
+      <div class="tk"><span class="cb"></span><span>Update PWA icons</span><span class="d"></span></div>
+      <div class="tk"><span class="cb"></span><span>QA pass in Safari &amp; Firefox</span><span class="d">Thu 11</span></div>
+      <div class="tk"><span class="cb"></span><span>Announce in Telegram channel</span><span class="d">Fri 12</span></div>
+      <div class="inline"><span class="cb"></span><span>Add a task…</span></div>
+    </div>
+    <div class="cm"><b>Anna</b> · Safari's date input still looks off in dark mode — custom picker?<br><b>You</b> · Native for v2, custom in 2.1.</div>
+    <div class="foot"><span><kbd>space</kbd>done</span><span><kbd>e</kbd>edit</span><span><kbd>⌥↑↓</kbd>reorder</span><span><kbd>d</kbd>due date</span><span><kbd>s</kbd>share</span><span><kbd>⌫</kbd>delete</span></div>
+  </div>
+</section>
+
+<style>
+#d5 { font-family: "Sora", system-ui, sans-serif; font-size: 12.5px; min-height: 720px; }
+#d5 .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+#d5 .top { display: flex; align-items: center; gap: 22px; padding: 12px 24px; background: var(--c-card); border-bottom: 1px solid var(--c-border); }
+#d5 .top .logo { font-weight: 700; letter-spacing: -0.02em; }
+#d5 .top nav { display: flex; gap: 4px; }
+#d5 .top nav span { padding: 6px 10px; border-radius: 6px; color: var(--c-muted-fg); font-weight: 500; }
+#d5 .top nav span.on { color: var(--c-fg); background: var(--c-secondary); }
+#d5 .top .sp { flex: 1; }
+#d5 .wrap { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+#d5 .hdr { display: flex; align-items: baseline; gap: 12px; }
+#d5 .hdr h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+#d5 .hdr .d { color: var(--c-muted-fg); }
+#d5 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+#d5 .st { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--r); padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px; }
+#d5 .st .k { font-size: 11px; color: var(--c-muted-fg); text-transform: uppercase; letter-spacing: 0.06em; grid-column: 1 / -1; }
+#d5 .st .v { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+#d5 .st .v.bad { color: var(--c-destructive); }
+#d5 .st .tr { font-size: 11px; color: var(--c-muted-fg); align-self: end; }
+#d5 .st svg { width: 72px; height: 26px; grid-row: 2 / 4; align-self: center; }
+#d5 .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 320px; gap: 12px; }
+#d5 .card { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--r); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+#d5 .card .ch { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 13px; }
+#d5 .card .ch small { color: var(--c-muted-fg); font-weight: 500; }
+#d5 .ring { position: relative; width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(var(--c-primary) calc(var(--p) * 1%), var(--c-secondary) 0); display: grid; place-items: center; flex: none; }
+#d5 .ring::after { content: attr(data-v); width: 42px; height: 42px; border-radius: 50%; background: var(--c-card); display: grid; place-items: center; font-size: 11px; font-weight: 600; font-family: "JetBrains Mono", monospace; }
+#d5 .lst { display: flex; align-items: center; gap: 12px; }
+#d5 .lst .t { font-weight: 600; font-size: 13.5px; }
+#d5 .lst .m { color: var(--c-muted-fg); font-size: 11.5px; display: flex; flex-direction: column; gap: 2px; }
+#d5 .lst .m .late { color: var(--c-destructive); font-weight: 600; }
+#d5 .side { grid-column: 4; grid-row: 1 / 3; display: flex; flex-direction: column; gap: 12px; }
+#d5 .row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--c-border); font-size: 12px; }
+#d5 .row:first-of-type { border-top: 0; }
+#d5 .row .sp { flex: 1; }
+#d5 .row .when { color: var(--c-muted-fg); font-family: "JetBrains Mono", monospace; font-size: 11px; }
+#d5 .detail { grid-column: 1 / 4; }
+#d5 table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#d5 th { text-align: left; font-weight: 500; color: var(--c-muted-fg); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid var(--c-border); }
+#d5 td { padding: 7px 8px; border-bottom: 1px solid var(--c-border); vertical-align: middle; }
+#d5 tr:last-child td { border-bottom: 0; }
+#d5 .pill { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: "JetBrains Mono", monospace; }
+#d5 .pill.todo { background: var(--c-secondary); color: var(--c-muted-fg); }
+#d5 .pill.done { background: hsl(152 60% 38% / 0.14); color: var(--ok); }
+#d5 .pill.soon { background: hsl(36 90% 48% / 0.16); color: var(--warn); }
+</style>
+<section class="mock" id="d5">
+  <div class="top"><span class="logo">Todolist</span><nav><span class="on">Overview</span><span>Lists</span><span>Recurring</span><span>Categories</span><span>Settings</span></nav><span class="sp"></span><span class="inp" style="width:220px;height:30px">Search lists and tasks…</span><span class="btn s">+ New list</span><span class="av p">M</span></div>
+  <div class="wrap">
+    <div class="hdr"><h1>Good evening, Mykola</h1><span class="d">Sunday, 6 September · week 37</span></div>
+    <div class="stats">
+      <div class="st"><span class="k">Due today</span><span class="v">0</span><span class="tr">next: Groceries · Tue</span></div>
+      <div class="st"><span class="k">Overdue</span><span class="v bad">1</span><span class="tr">Weekly review</span></div>
+      <div class="st"><span class="k">Done this week</span><span class="v">14</span><svg viewBox="0 0 72 26" preserveAspectRatio="none"><path d="M0 20 L10 18 L20 21 L30 14 L40 15 L50 9 L60 11 L72 4" fill="none" stroke="var(--c-primary)" stroke-width="1.8"/><path d="M0 20 L10 18 L20 21 L30 14 L40 15 L50 9 L60 11 L72 4 V26 H0Z" fill="var(--c-primary)" opacity="0.12"/><circle cx="72" cy="4" r="2.2" fill="var(--c-primary)"/></svg><span class="tr">+40% vs last week</span></div>
+      <div class="st"><span class="k">Open tasks</span><span class="v">25</span><span class="tr">across 5 lists · 2 shared</span></div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="lst"><span class="ring" style="--p:42" data-v="42%"></span><div><div class="t">Launch todo v2</div><div class="m"><span>Work · due Fri 12</span><span>5/12 · Anna, Petro</span></div></div></div></div>
+      <div class="card"><div class="lst"><span class="ring" style="--p:43" data-v="3/7"></span><div><div class="t">Groceries</div><div class="m"><span>Home · due Tue 8</span><span>synced to Calendar</span></div></div></div></div>
+      <div class="card"><div class="lst"><span class="ring" style="--p:0" data-v="0/5"></span><div><div class="t">Weekly review</div><div class="m"><span class="late">Overdue · Sat 5</span><span>↻ weekly on Mon</span></div></div></div></div>
+      <div class="card side">
+        <div class="ch">Pending invites <small>1</small></div>
+        <div class="row"><span class="av">O</span><span><b>Q4 planning</b><br><span class="muted">from Olena</span></span><span class="sp"></span><span class="btn s">Accept</span><span class="btn s g">✕</span></div>
+        <div class="ch" style="margin-top:6px">Recurring templates <small>2</small></div>
+        <div class="row"><span class="dot" style="background:var(--ok)"></span>Weekly review<span class="sp"></span><span class="when">MON</span></div>
+        <div class="row"><span class="dot" style="background:var(--c-border)"></span>Water plants <span class="badge o">paused</span><span class="sp"></span><span class="when">EVERY 3D</span></div>
+        <div class="ch" style="margin-top:6px">Upcoming</div>
+        <div class="row">Coffee beans<span class="sp"></span><span class="when">MON 7</span></div>
+        <div class="row">Fix drag-reorder<span class="sp"></span><span class="when">TUE 9</span></div>
+        <div class="row">QA pass<span class="sp"></span><span class="when">THU 11</span></div>
+        <div class="row">Trip to Lisbon<span class="sp"></span><span class="when">OCT 3</span></div>
+      </div>
+      <div class="card detail">
+        <div class="ch">Launch todo v2 <small>Work · 12 tasks · <span style="color:var(--c-primary)">open list →</span></small></div>
+        <table>
+          <thead><tr><th style="width:24px"></th><th>Task</th><th>Status</th><th>Due</th><th>Owner</th><th>Comments</th></tr></thead>
+          <tbody>
+            <tr><td><span class="cb on"></span></td><td class="done">Write release notes</td><td><span class="pill done">DONE</span></td><td class="mono">05 SEP</td><td><span class="av p">M</span></td><td>—</td></tr>
+            <tr><td><span class="cb on"></span></td><td class="done">Migrate themes to CSS variables</td><td><span class="pill done">DONE</span></td><td class="mono">—</td><td><span class="av p">M</span></td><td>—</td></tr>
+            <tr><td><span class="cb"></span></td><td>Fix drag-reorder on mobile Safari</td><td><span class="pill soon">DUE SOON</span></td><td class="mono">09 SEP</td><td><span class="av">A</span></td><td>2</td></tr>
+            <tr><td><span class="cb"></span></td><td>Update PWA icons</td><td><span class="pill todo">TODO</span></td><td class="mono">—</td><td><span class="av">P</span></td><td>—</td></tr>
+            <tr><td><span class="cb"></span></td><td>QA pass in Safari &amp; Firefox</td><td><span class="pill todo">TODO</span></td><td class="mono">11 SEP</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+#d6 { font-family: "Lora", Georgia, serif; font-size: 14px; min-height: 720px; padding: 34px 40px; background: var(--c-bg); background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px); background-size: 18px 18px; position: relative; }
+#d6 .hand { font-family: "Caveat", cursive; }
+#d6 .bar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; font-size: 12px; color: var(--c-muted-fg); }
+#d6 .bar-top b { font-family: "Caveat", cursive; font-size: 22px; color: var(--c-fg); font-weight: 600; }
+#d6 .spread { display: grid; grid-template-columns: 1fr 1fr; position: relative; box-shadow: 0 24px 50px -30px rgba(0,0,0,0.45); }
+#d6 .page { background: var(--c-card); min-height: 600px; padding: 44px 40px 36px 52px; position: relative; line-height: 32px;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, hsl(var(--border)) 31px 32px); background-position: 0 44px; background-origin: content-box; }
+#d6 .page::before { content: ""; position: absolute; top: 0; bottom: 0; left: 40px; width: 1px; background: hsl(var(--destructive) / 0.45); }
+#d6 .page.l { border-radius: 6px 0 0 6px; box-shadow: inset -18px 0 24px -20px rgba(0,0,0,0.35); }
+#d6 .page.r { border-radius: 0 6px 6px 0; box-shadow: inset 18px 0 24px -20px rgba(0,0,0,0.35); }
+#d6 .page h2 { margin: 0 0 8px; font-family: "Caveat", cursive; font-size: 36px; font-weight: 600; line-height: 32px; }
+#d6 .page .sub { font-size: 12px; color: var(--c-muted-fg); font-style: italic; }
+#d6 .toc { list-style: none; margin: 16px 0 0; padding: 0; }
+#d6 .toc li { display: flex; align-items: baseline; gap: 6px; }
+#d6 .toc .t { white-space: nowrap; }
+#d6 .toc .t small { color: var(--c-muted-fg); font-size: 11px; margin-left: 6px; font-family: "Caveat", cursive; font-size: 15px; }
+#d6 .toc .dots { flex: 1; border-bottom: 2px dotted var(--c-muted-fg); transform: translateY(-6px); opacity: 0.6; }
+#d6 .toc .pg { font-variant-numeric: tabular-nums; color: var(--c-muted-fg); font-size: 13px; }
+#d6 .toc li.on .t { color: var(--c-primary); font-weight: 600; }
+#d6 .toc li.late .pg::after { content: " !"; color: var(--c-destructive); font-family: "Caveat", cursive; font-size: 20px; }
+#d6 .tabs { position: absolute; right: -26px; top: 70px; display: flex; flex-direction: column; gap: 6px; }
+#d6 .tabs span { writing-mode: vertical-rl; padding: 10px 5px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 0 4px 4px 0; color: #fff; box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
+#d6 .tabs span.on { padding-right: 9px; }
+#d6 .add { margin-top: 14px; color: var(--c-muted-fg); font-family: "Caveat", cursive; font-size: 20px; }
+#d6 .tk { display: flex; align-items: baseline; gap: 12px; }
+#d6 .tk .box { width: 15px; height: 15px; border: 1.5px solid var(--c-fg); border-radius: 2px; flex: none; transform: translateY(2px); position: relative; }
+#d6 .tk .box.on::after { content: "✓"; position: absolute; left: 0px; top: -14px; font-family: "Caveat", cursive; font-size: 26px; font-weight: 700; color: var(--c-primary); line-height: 1; }
+#d6 .tk .t { flex: 1; }
+#d6 .tk .t.done { text-decoration: line-through; text-decoration-color: var(--c-primary); text-decoration-thickness: 1.5px; color: var(--c-muted-fg); }
+#d6 .tk .d { font-family: "Caveat", cursive; font-size: 17px; color: var(--c-muted-fg); }
+#d6 .tk .d.late { color: var(--c-destructive); }
+#d6 .meta { font-size: 12px; color: var(--c-muted-fg); display: flex; gap: 14px; margin-bottom: 8px; }
+#d6 .meta u { text-decoration-style: dotted; }
+#d6 .sticky { position: absolute; right: 26px; bottom: 44px; width: 190px; padding: 12px 14px; background: var(--c-accent); color: var(--c-accent-fg); font-family: "Caveat", cursive; font-size: 17px; line-height: 1.25; transform: rotate(-2.5deg); box-shadow: 2px 4px 10px rgba(0,0,0,0.18); }
+#d6 .sticky::before { content: ""; position: absolute; top: -8px; left: 50%; width: 46px; height: 14px; margin-left: -23px; background: hsl(var(--foreground) / 0.08); }
+#d6 .clip { position: absolute; top: -10px; right: 60px; font-size: 12px; background: var(--c-secondary); padding: 3px 10px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transform: rotate(3deg); }
+#d6 .pn { position: absolute; bottom: 14px; font-size: 11px; color: var(--c-muted-fg); }
+#d6 .page.l .pn { left: 52px; } #d6 .page.r .pn { right: 40px; }
+</style>
+<section class="mock" id="d6">
+  <div class="bar-top"><b>Todolist</b><span>Sun 6 Sep &nbsp;·&nbsp; <u>Recurring</u> &nbsp;·&nbsp; <u>Categories</u> &nbsp;·&nbsp; <u>Settings</u> &nbsp;·&nbsp; Mykola</span></div>
+  <div class="spread">
+    <div class="page l">
+      <h2>Contents</h2>
+      <div class="sub">5 lists · 1 invitation from Olena (Q4 planning) — <u>accept</u> / <u>decline</u></div>
+      <ul class="toc">
+        <li class="on"><span class="t">Launch todo v2<small>Work · Fri 12</small></span><span class="dots"></span><span class="pg">5 / 12</span></li>
+        <li class="late"><span class="t">Weekly review<small>Work · recurring</small></span><span class="dots"></span><span class="pg">0 / 5</span></li>
+        <li><span class="t">Groceries<small>Home · Tue 8</small></span><span class="dots"></span><span class="pg">3 / 7</span></li>
+        <li><span class="t">Trip to Lisbon<small>Travel · 3 Oct</small></span><span class="dots"></span><span class="pg">8 / 9</span></li>
+        <li><span class="t">Reading list<small>Personal</small></span><span class="dots"></span><span class="pg">2 / 10</span></li>
+      </ul>
+      <div class="add">+ start a new page…</div>
+      <div class="pn">— 1 —</div>
+    </div>
+    <div class="page r">
+      <span class="clip">📎 shared with Anna, Petro</span>
+      <h2>Launch todo v2</h2>
+      <div class="meta"><span>Work</span><span>due <u>Fri, 12 Sep</u></span><span>↗ Google Calendar</span></div>
+      <div class="tk"><span class="box on"></span><span class="t done">Write release notes</span><span class="d">Sep 5</span></div>
+      <div class="tk"><span class="box on"></span><span class="t done">Migrate themes to CSS variables</span></div>
+      <div class="tk"><span class="box"></span><span class="t">Fix drag-reorder on mobile Safari</span><span class="d">Tue 9 · Anna</span></div>
+      <div class="tk"><span class="box"></span><span class="t">Update PWA icons</span><span class="d">Petro</span></div>
+      <div class="tk"><span class="box"></span><span class="t">QA pass in Safari &amp; Firefox</span><span class="d">Thu 11</span></div>
+      <div class="tk"><span class="box"></span><span class="t">Announce in Telegram channel</span><span class="d">Fri 12</span></div>
+      <div class="add">+ add a task…</div>
+      <div class="sticky">Anna: Safari date input looks off in dark mode 🤔<br>Me: native for v2, custom in 2.1</div>
+      <div class="tabs"><span class="on" style="background:hsl(234 60% 55%)">Work</span><span style="background:hsl(150 45% 42%)">Home</span><span style="background:hsl(36 90% 50%)">Travel</span><span style="background:hsl(300 40% 55%)">Personal</span></div>
+      <div class="pn">— 2 —</div>
+    </div>
+  </div>
+</section>
+
+<style>
+#d7 { font-family: "Archivo", system-ui, sans-serif; font-size: 13px; min-height: 720px; --bw: 2.5px; --sh: 6px 6px 0 var(--c-fg); }
+#d7 .blk { font-family: "Archivo Black", "Archivo", sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: -0.01em; }
+#d7 .top { display: grid; grid-template-columns: auto 1fr auto; align-items: stretch; border-bottom: var(--bw) solid var(--c-fg); }
+#d7 .top > * { padding: 14px 20px; border-right: var(--bw) solid var(--c-fg); display: flex; align-items: center; gap: 18px; }
+#d7 .top > *:last-child { border-right: 0; }
+#d7 .top .logo { font-size: 22px; background: var(--c-primary); color: var(--c-primary-fg); }
+#d7 .top nav span { font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.04em; }
+#d7 .top nav span.on { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
+#d7 .top .r { gap: 10px; }
+#d7 .bb { border: var(--bw) solid var(--c-fg); background: var(--c-card); box-shadow: var(--sh); }
+#d7 .btn { border: var(--bw) solid var(--c-fg); border-radius: 0; box-shadow: 3px 3px 0 var(--c-fg); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; height: 32px; }
+#d7 .btn.o { background: var(--c-card); }
+#d7 .wrap { display: grid; grid-template-columns: 1fr 420px; }
+#d7 .grid { padding: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-content: start; border-right: var(--bw) solid var(--c-fg); }
+#d7 .hd { grid-column: 1 / -1; display: flex; align-items: flex-end; justify-content: space-between; }
+#d7 .hd h1 { margin: 0; font-size: 40px; line-height: 0.95; }
+#d7 .hd .f { display: flex; gap: 8px; }
+#d7 .hd .f span { border: var(--bw) solid var(--c-fg); padding: 4px 10px; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+#d7 .hd .f span.on { background: var(--c-fg); color: var(--c-bg); }
+#d7 .tile { padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 150px; position: relative; }
+#d7 .tile .cat { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: inline-block; padding: 2px 6px; border: 2px solid var(--c-fg); align-self: flex-start; }
+#d7 .tile .n { font-family: "Archivo Black", sans-serif; font-size: 44px; line-height: 0.9; }
+#d7 .tile .n small { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 14px; }
+#d7 .tile .t { font-weight: 700; font-size: 15px; text-transform: uppercase; }
+#d7 .tile .d { font-size: 11px; font-weight: 600; margin-top: auto; }
+#d7 .tile.on { background: var(--c-primary); color: var(--c-primary-fg); }
+#d7 .tile.on .cat { border-color: currentColor; }
+#d7 .tile.late { background: var(--c-destructive); color: var(--c-destructive-fg); }
+#d7 .tile.late .cat { border-color: currentColor; }
+#d7 .tile.new { border-style: dashed; box-shadow: none; justify-content: center; align-items: center; font-weight: 700; text-transform: uppercase; background: transparent; }
+#d7 .tile .pb { height: 10px; border: 2px solid currentColor; }
+#d7 .tile .pb i { display: block; height: 100%; background: currentColor; }
+#d7 .det { padding: 26px; display: flex; flex-direction: column; gap: 18px; background: var(--c-secondary); }
+#d7 .det h2 { margin: 0; font-size: 30px; line-height: 0.95; }
+#d7 .det .k { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+#d7 .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: var(--bw) solid var(--c-fg); background: var(--c-card); }
+#d7 .meta div { padding: 8px 10px; border-right: var(--bw) solid var(--c-fg); border-bottom: var(--bw) solid var(--c-fg); }
+#d7 .meta div:nth-child(2n) { border-right: 0; }
+#d7 .meta div:nth-last-child(-n+2) { border-bottom: 0; }
+#d7 .meta b { display: block; font-weight: 700; font-size: 13px; margin-top: 2px; }
+#d7 .tk { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border: var(--bw) solid var(--c-fg); background: var(--c-card); margin-top: -2.5px; }
+#d7 .tk .bx { width: 18px; height: 18px; border: var(--bw) solid var(--c-fg); flex: none; display: grid; place-items: center; }
+#d7 .tk .bx.on { background: var(--c-fg); }
+#d7 .tk .bx.on::after { content: "✕"; color: var(--c-bg); font-size: 12px; font-weight: 900; }
+#d7 .tk .t { flex: 1; font-weight: 600; }
+#d7 .tk .t.done { text-decoration: line-through; text-decoration-thickness: 2px; }
+#d7 .tk .due { font-size: 10px; font-weight: 700; padding: 2px 6px; border: 2px solid var(--c-fg); }
+#d7 .tk .due.soon { background: var(--warn); }
+#d7 .tks { box-shadow: var(--sh); margin-bottom: 8px; }
+#d7 .cm { border: var(--bw) solid var(--c-fg); background: var(--c-card); padding: 10px 12px; font-size: 12px; box-shadow: var(--sh); }
+#d7 .cm b { text-transform: uppercase; }
+#d7 .inp { border: var(--bw) solid var(--c-fg); border-radius: 0; height: 36px; font-weight: 600; color: var(--c-muted-fg); }
+</style>
+<section class="mock" id="d7">
+  <div class="top">
+    <div class="logo blk">Todo—list</div>
+    <nav><span class="on">Lists</span><span>Recurring</span><span>Categories</span><span>Settings</span></nav>
+    <div class="r"><span class="badge o" style="border:2px solid var(--c-fg);border-radius:0;color:var(--c-fg);font-weight:700">1 invite</span><span class="btn">+ New list</span><span class="av p" style="border-radius:0;border:2px solid var(--c-fg);width:30px;height:30px">M</span></div>
+  </div>
+  <div class="wrap">
+    <div class="grid">
+      <div class="hd"><h1 class="blk">Your<br>lists</h1><div class="f"><span class="on">All</span><span>Work</span><span>Home</span><span>Travel</span><span>Personal</span></div></div>
+      <div class="tile bb on"><span class="cat">Work · shared</span><span class="n">5<small>/12</small></span><span class="t">Launch todo v2</span><div class="pb"><i style="width:42%"></i></div><span class="d">DUE FRI 12 SEP · ANNA, PETRO</span></div>
+      <div class="tile bb late"><span class="cat">Work · ↻ weekly</span><span class="n">0<small>/5</small></span><span class="t">Weekly review</span><div class="pb"><i style="width:0"></i></div><span class="d">OVERDUE SINCE SAT 5</span></div>
+      <div class="tile bb"><span class="cat">Home</span><span class="n">3<small>/7</small></span><span class="t">Groceries</span><div class="pb"><i style="width:43%"></i></div><span class="d">DUE TUE 8 SEP</span></div>
+      <div class="tile bb"><span class="cat">Travel</span><span class="n">8<small>/9</small></span><span class="t">Trip to Lisbon</span><div class="pb"><i style="width:89%"></i></div><span class="d">DUE 3 OCT</span></div>
+      <div class="tile bb"><span class="cat">Personal</span><span class="n">2<small>/10</small></span><span class="t">Reading list</span><div class="pb"><i style="width:20%"></i></div><span class="d">NO DUE DATE</span></div>
+      <div class="tile bb new">+ New list</div>
+    </div>
+    <div class="det">
+      <span class="k">Work / 12 tasks / owner: you</span>
+      <h2 class="blk">Launch todo v2</h2>
+      <div class="meta"><div><span class="k">Due</span><b>Fri 12 Sep</b></div><div><span class="k">Progress</span><b>42 %</b></div><div><span class="k">People</span><b>Mykola, Anna, Petro</b></div><div><span class="k">Calendar</span><b>Synced ↗</b></div></div>
+      <div class="tks">
+        <div class="tk"><span class="bx on"></span><span class="t done">Write release notes</span></div>
+        <div class="tk"><span class="bx on"></span><span class="t done">Migrate themes to CSS vars</span></div>
+        <div class="tk"><span class="bx"></span><span class="t">Fix drag-reorder on mobile Safari</span><span class="due soon">TUE 9</span></div>
+        <div class="tk"><span class="bx"></span><span class="t">Update PWA icons</span></div>
+        <div class="tk"><span class="bx"></span><span class="t">QA in Safari &amp; Firefox</span><span class="due">THU 11</span></div>
+        <div class="tk"><span class="bx"></span><span class="t">Announce in Telegram</span><span class="due">FRI 12</span></div>
+      </div>
+      <div style="display:flex;gap:10px"><span class="inp f">NEW TASK…</span><span class="btn">Add</span></div>
+      <div class="cm"><b>Anna</b> — Safari date input still off in dark mode.<br><b>You</b> — native for v2, custom picker in 2.1.</div>
+      <div style="display:flex;gap:10px;margin-top:auto"><span class="btn o">Share</span><span class="btn o">Sync calendar</span><span class="btn o" style="margin-left:auto;color:var(--c-destructive)">Delete</span></div>
+    </div>
+  </div>
+</section>
+
+<style>
+#d8 { font-family: "Nunito", system-ui, sans-serif; font-size: 14px; min-height: 720px; padding: 34px 0; display: flex; justify-content: center; gap: 34px; align-items: flex-start; background: var(--c-secondary); }
+#d8 .ph { width: 340px; height: 680px; border-radius: 40px; background: var(--c-bg); border: 8px solid hsl(var(--foreground) / 0.9); box-shadow: 0 30px 60px -30px rgba(0,0,0,0.5); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+#d8 .ph::before { content: ""; position: absolute; top: 10px; left: 50%; width: 96px; height: 26px; margin-left: -48px; background: hsl(var(--foreground) / 0.9); border-radius: 20px; z-index: 3; }
+#d8 .sb { display: flex; justify-content: space-between; padding: 14px 24px 0; font-size: 12px; font-weight: 700; }
+#d8 .scr { flex: 1; padding: 14px 18px 0; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+#d8 h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+#d8 h1 small { display: block; font-size: 12px; font-weight: 600; color: var(--c-muted-fg); letter-spacing: 0; margin-bottom: 4px; }
+#d8 .chips { display: flex; gap: 6px; overflow: hidden; }
+#d8 .chips span { padding: 6px 12px; border-radius: 999px; background: var(--c-card); border: 1px solid var(--c-border); font-size: 12px; font-weight: 700; white-space: nowrap; }
+#d8 .chips span.on { background: var(--c-primary); color: var(--c-primary-fg); border-color: var(--c-primary); }
+#d8 .inv { background: var(--c-accent); color: var(--c-accent-fg); border-radius: calc(var(--r) + 6px); padding: 12px 14px; font-size: 12.5px; display: flex; align-items: center; gap: 10px; }
+#d8 .inv .btn { height: 28px; padding: 0 10px; font-size: 12px; margin-left: auto; border-radius: 999px; }
+#d8 .lc { background: var(--c-card); border-radius: calc(var(--r) + 6px); padding: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+#d8 .lc .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; flex: none; }
+#d8 .lc .t { font-weight: 800; font-size: 15px; }
+#d8 .lc .m { font-size: 12px; color: var(--c-muted-fg); font-weight: 600; }
+#d8 .lc .m .late { color: var(--c-destructive); }
+#d8 .lc .ring { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; background: conic-gradient(var(--c-primary) calc(var(--p) * 1%), var(--c-secondary) 0); display: grid; place-items: center; flex: none; }
+#d8 .lc .ring::after { content: ""; width: 24px; height: 24px; border-radius: 50%; background: var(--c-card); }
+#d8 .fab { position: absolute; right: 18px; bottom: 86px; width: 56px; height: 56px; border-radius: 18px; background: var(--c-primary); color: var(--c-primary-fg); display: grid; place-items: center; font-size: 28px; font-weight: 300; box-shadow: 0 10px 24px -8px hsl(var(--primary) / 0.6); }
+#d8 .tab { display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 6px 20px; border-top: 1px solid var(--c-border); background: var(--c-card); font-size: 10px; font-weight: 700; color: var(--c-muted-fg); text-align: center; }
+#d8 .tab span { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+#d8 .tab span.on { color: var(--c-primary); }
+#d8 .tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#d8 .nav { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 13px; }
+#d8 .nav .back { color: var(--c-primary); }
+#d8 .prog { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: var(--c-muted-fg); }
+#d8 .prog .bar { flex: 1; height: 8px; }
+#d8 .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+#d8 .meta span { font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: var(--c-card); border: 1px solid var(--c-border); }
+#d8 .tk { display: flex; align-items: center; gap: 12px; background: var(--c-card); border-radius: calc(var(--r) + 4px); padding: 12px 14px; font-weight: 700; font-size: 14px; position: relative; overflow: hidden; }
+#d8 .tk .cb { width: 22px; height: 22px; border-radius: 50%; border-width: 2px; }
+#d8 .tk .cb.on::after { width: 6px; height: 11px; }
+#d8 .tk .t { flex: 1; }
+#d8 .tk .d { font-size: 11px; color: var(--c-muted-fg); }
+#d8 .tk .d.soon { color: var(--warn); }
+#d8 .swipewrap { display: flex; overflow: hidden; border-radius: calc(var(--r) + 4px); }
+#d8 .swipewrap .tk { flex: 1; min-width: 0; border-radius: 0; }
+#d8 .swipewrap::after { content: "Done"; width: 72px; flex: none; background: var(--ok); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+#d8 .sheet { margin: auto -18px 0; background: var(--c-card); border-radius: 22px 22px 0 0; padding: 12px 18px 16px; box-shadow: 0 -10px 30px -20px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 10px; }
+#d8 .sheet::before { content: ""; width: 40px; height: 4px; border-radius: 2px; background: var(--c-border); margin: 0 auto 4px; }
+#d8 .sheet .inp { border-radius: 14px; height: 44px; font-size: 14px; }
+#d8 .sheet .row { display: flex; gap: 8px; }
+#d8 .sheet .row span { flex: 1; text-align: center; padding: 8px; border-radius: 12px; background: var(--c-secondary); font-size: 12px; font-weight: 700; }
+#d8 .sheet .btn { height: 44px; border-radius: 14px; font-size: 14px; font-weight: 800; }
+#d8 .sec { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-muted-fg); }
+#d8 .setrow { display: flex; align-items: center; gap: 12px; background: var(--c-card); padding: 12px 14px; font-weight: 700; border-bottom: 1px solid var(--c-border); font-size: 13.5px; }
+#d8 .setrow:first-child { border-radius: 16px 16px 0 0; } #d8 .setrow:last-child { border-bottom: 0; border-radius: 0 0 16px 16px; }
+#d8 .setrow .v { margin-left: auto; color: var(--c-muted-fg); font-weight: 600; font-size: 12.5px; }
+#d8 .sw2 { width: 40px; height: 24px; border-radius: 12px; background: var(--c-primary); position: relative; margin-left: auto; }
+#d8 .sw2::after { content: ""; position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--c-primary-fg); }
+#d8 .swatches { display: flex; gap: 8px; margin-left: auto; }
+#d8 .swatches i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--c-border); }
+#d8 .swatches i.on { border-color: var(--c-fg); }
+</style>
+<section class="mock" id="d8">
+  <div class="ph">
+    <div class="sb"><span>9:41</span><span>●●● ᯤ ▮</span></div>
+    <div class="scr">
+      <h1><small>Sunday, 6 September</small>Your lists</h1>
+      <div class="chips"><span class="on">All</span><span>Work 2</span><span>Home 1</span><span>Travel 1</span><span>Personal</span></div>
+      <div class="inv"><span class="av">O</span><span><b>Olena</b> invited you to<br><b>Q4 planning</b></span><span class="btn">Accept</span></div>
+      <div class="lc"><span class="ic" style="background:hsl(234 60% 55% / .15)">🚀</span><div><div class="t">Launch todo v2</div><div class="m">Work · Fri 12 · Anna, Petro</div></div><span class="ring" style="--p:42"></span></div>
+      <div class="lc"><span class="ic" style="background:hsl(234 60% 55% / .15)">↻</span><div><div class="t">Weekly review</div><div class="m"><span class="late">Overdue</span> · 0/5</div></div><span class="ring" style="--p:0"></span></div>
+      <div class="lc"><span class="ic" style="background:hsl(150 45% 42% / .15)">🛒</span><div><div class="t">Groceries</div><div class="m">Home · Tue 8 · 3/7</div></div><span class="ring" style="--p:43"></span></div>
+      <div class="lc"><span class="ic" style="background:hsl(36 90% 50% / .15)">✈️</span><div><div class="t">Trip to Lisbon</div><div class="m">Travel · 3 Oct · 8/9</div></div><span class="ring" style="--p:89"></span></div>
+      <div class="lc"><span class="ic" style="background:hsl(300 40% 55% / .15)">📚</span><div><div class="t">Reading list</div><div class="m">Personal · 2/10</div></div><span class="ring" style="--p:20"></span></div>
+    </div>
+    <span class="fab">+</span>
+    <div class="tab"><span class="on"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Lists</span><span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</span><span><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>Recurring</span><span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>Settings</span></div>
+  </div>
+
+  <div class="ph">
+    <div class="sb"><span>9:41</span><span>●●● ᯤ ▮</span></div>
+    <div class="scr">
+      <div class="nav"><span class="back">‹ Lists</span><span>···</span></div>
+      <h1><small>Work · shared with Anna, Petro</small>Launch todo v2</h1>
+      <div class="prog">5/12 <span class="bar"><i style="width:42%"></i></span> 42%</div>
+      <div class="meta"><span>📅 Fri 12 Sep</span><span>↗ Calendar</span><span>💬 2</span></div>
+      <div class="tk"><span class="cb on"></span><span class="t done">Write release notes</span></div>
+      <div class="swipewrap"><div class="tk"><span class="cb"></span><span class="t">Fix drag-reorder on mobile Safari</span><span class="d soon">Tue 9</span></div></div>
+      <div class="tk"><span class="cb"></span><span class="t">Update PWA icons</span><span class="av">P</span></div>
+      <div class="tk"><span class="cb"></span><span class="t">QA pass in Safari &amp; Firefox</span><span class="d">Thu 11</span></div>
+      <div class="sheet"><span class="inp">Add a task…</span><div class="row"><span>📅 Due date</span><span>👤 Assign</span><span>💬 Note</span></div><span class="btn">Add task</span></div>
+    </div>
+  </div>
+
+  <div class="ph">
+    <div class="sb"><span>9:41</span><span>●●● ᯤ ▮</span></div>
+    <div class="scr">
+      <h1>Settings</h1>
+      <span class="sec">Appearance</span>
+      <div><div class="setrow">Theme<span class="swatches"><i style="background:#fff"></i><i style="background:#0b1020"></i><i class="on" style="background:var(--c-primary)"></i><i style="background:#e0577d"></i></span></div><div class="setrow">Dark mode<span class="v">System</span></div><div class="setrow">Language<span class="v">English ›</span></div></div>
+      <span class="sec">Integrations</span>
+      <div><div class="setrow">Google Calendar<span class="badge" style="margin-left:auto;background:hsl(152 60% 38% / .15);color:var(--ok)">Connected</span></div><div class="setrow">Sync new lists automatically<span class="sw2"></span></div></div>
+      <span class="sec">Account</span>
+      <div><div class="setrow"><span class="av p">M</span>Mykola<span class="v">blonskyi.dev ›</span></div><div class="setrow" style="color:var(--c-destructive)">Sign out</div></div>
+    </div>
+    <div class="tab"><span><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Lists</span><span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</span><span><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>Recurring</span><span class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>Settings</span></div>
+  </div>
+</section>
+
+<style>
+#d9 { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; line-height: 1.6; min-height: 720px; display: grid; grid-template-rows: auto 1fr auto; }
+#d9 .sbar { display: flex; align-items: center; gap: 0; background: var(--c-primary); color: var(--c-primary-fg); font-size: 11.5px; }
+#d9 .sbar span { padding: 4px 12px; }
+#d9 .sbar .mode { background: var(--c-fg); color: var(--c-bg); font-weight: 700; }
+#d9 .sbar .sp { flex: 1; }
+#d9 .body { display: grid; grid-template-columns: 300px 1fr 300px; }
+#d9 .col { padding: 14px 16px; border-right: 1px solid var(--c-border); overflow: hidden; }
+#d9 .col:last-child { border-right: 0; }
+#d9 .h { color: var(--c-muted-fg); text-transform: uppercase; letter-spacing: 0.1em; font-size: 10.5px; margin-bottom: 6px; }
+#d9 .h::before { content: "── "; } #d9 .h::after { content: " ──"; }
+#d9 .tree { white-space: pre; }
+#d9 .tree .dir { color: var(--c-primary); font-weight: 600; }
+#d9 .tree .k { color: var(--c-muted-fg); }
+#d9 .tree .on { background: var(--c-accent); color: var(--c-accent-fg); display: inline-block; padding: 0 4px; margin-left: -4px; }
+#d9 .tree .late { color: var(--c-destructive); }
+#d9 .title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+#d9 .title::before { content: "# "; color: var(--c-muted-fg); }
+#d9 .meta { color: var(--c-muted-fg); font-size: 11.5px; margin-bottom: 12px; }
+#d9 .meta b { color: var(--c-fg); font-weight: 500; }
+#d9 .ln { display: grid; grid-template-columns: 26px 34px 1fr auto; gap: 8px; padding: 1px 6px; margin: 0 -6px; border-radius: 3px; }
+#d9 .ln .no { color: var(--c-muted-fg); text-align: right; font-size: 11px; opacity: 0.6; }
+#d9 .ln .bx { color: var(--c-muted-fg); }
+#d9 .ln .bx.on { color: var(--c-primary); font-weight: 700; }
+#d9 .ln .tag { color: var(--c-muted-fg); font-size: 11px; }
+#d9 .ln .tag .due { color: var(--warn); }
+#d9 .ln .tag .at { color: var(--c-primary); }
+#d9 .ln.cur { background: var(--c-accent); color: var(--c-accent-fg); }
+#d9 .ln.cur .bx, #d9 .ln.cur .tag { color: inherit; }
+#d9 .ln .done { color: var(--c-muted-fg); text-decoration: line-through; }
+#d9 .cursor { display: inline-block; width: 8px; height: 15px; background: var(--c-fg); vertical-align: -3px; animation: d9blink 1s steps(2) infinite; }
+@keyframes d9blink { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #d9 .cursor { animation: none; } }
+#d9 .cmts { margin-top: 14px; font-size: 12px; }
+#d9 .cmts .c { display: grid; grid-template-columns: 62px 1fr; gap: 8px; color: var(--c-muted-fg); }
+#d9 .cmts .c b { color: var(--c-primary); font-weight: 600; }
+#d9 .cmts .c span { color: var(--c-fg); }
+#d9 .side .row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+#d9 .side .row .v { color: var(--c-muted-fg); }
+#d9 .side .row .v.ok { color: var(--ok); }
+#d9 .side .row .v.bad { color: var(--c-destructive); }
+#d9 .side .blk { margin-bottom: 16px; }
+#d9 .keys { display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; font-size: 11.5px; color: var(--c-muted-fg); }
+#d9 .keys kbd { font-family: inherit; color: var(--c-fg); background: var(--c-secondary); padding: 0 5px; border-radius: 3px; font-size: 11px; }
+#d9 .cmd { border-top: 1px solid var(--c-border); background: var(--c-card); padding: 8px 16px; display: flex; gap: 10px; align-items: center; }
+#d9 .cmd .p { color: var(--c-primary); font-weight: 700; }
+#d9 .cmd .hint { margin-left: auto; color: var(--c-muted-fg); font-size: 11px; }
+#d9 .sug { position: absolute; }
+#d9 .pal { margin: 6px 0 0 26px; border: 1px solid var(--c-border); background: var(--c-card); border-radius: 4px; font-size: 11.5px; width: 380px; box-shadow: 0 10px 30px -18px rgba(0,0,0,0.5); }
+#d9 .pal div { padding: 3px 10px; display: flex; justify-content: space-between; color: var(--c-muted-fg); }
+#d9 .pal div.on { background: var(--c-accent); color: var(--c-accent-fg); }
+#d9 .pal b { color: var(--c-fg); font-weight: 600; }
+#d9 .bottom { display: flex; flex-direction: column; }
+</style>
+<section class="mock" id="d9">
+  <div class="sbar"><span class="mode">NORMAL</span><span>todolist</span><span>~/lists/work/launch-todo-v2</span><span class="sp"></span><span>5/12 done</span><span>⎇ synced</span><span>mykola@blonskyi.dev</span><span>en</span></div>
+  <div class="body">
+    <div class="col">
+      <div class="h">lists</div>
+<div class="tree"><span class="dir">▾ work</span>  <span class="k">2</span>
+  <span class="on">launch-todo-v2</span>   5/12
+  <span class="late">weekly-review</span>    0/5 <span class="k">↻ !</span>
+<span class="dir">▾ home</span>  <span class="k">1</span>
+  groceries        3/7
+<span class="dir">▾ travel</span>  <span class="k">1</span>
+  trip-to-lisbon   8/9
+<span class="dir">▾ personal</span>  <span class="k">1</span>
+  reading-list     2/10
+<span class="dir">▸ shared-with-me</span>  <span class="k">0</span>
+<span class="dir">▸ invites</span>  <span class="k">1 new</span>
+
+<span class="k">  + new list        :n</span></div>
+      <div class="h" style="margin-top:18px">recurring</div>
+<div class="tree">weekly-review     <span class="k">mon</span>
+water-plants      <span class="k">3d  paused</span></div>
+    </div>
+
+    <div class="col">
+      <div class="title">launch-todo-v2</div>
+      <div class="meta">work · due <b>2026-09-12</b> · owner <b>mykola</b> · with <b>anna</b>, <b>petro</b> · gcal <b>on</b></div>
+      <div class="ln"><span class="no">1</span><span class="bx on">[x]</span><span class="done">Write release notes</span><span class="tag">2026-09-05</span></div>
+      <div class="ln"><span class="no">2</span><span class="bx on">[x]</span><span class="done">Migrate themes to CSS variables</span><span class="tag"></span></div>
+      <div class="ln cur"><span class="no">3</span><span class="bx">[ ]</span><span>Fix drag-reorder on mobile Safari<span class="cursor"></span></span><span class="tag"><span class="due">due:09-09</span> <span class="at">@anna</span> 💬2</span></div>
+      <div class="ln"><span class="no">4</span><span class="bx">[ ]</span><span>Update PWA icons (maskable 512)</span><span class="tag"><span class="at">@petro</span></span></div>
+      <div class="ln"><span class="no">5</span><span class="bx">[ ]</span><span>QA pass in Safari &amp; Firefox</span><span class="tag"><span class="due">due:09-11</span></span></div>
+      <div class="ln"><span class="no">6</span><span class="bx">[ ]</span><span>Announce in Telegram channel</span><span class="tag"><span class="due">due:09-12</span></span></div>
+      <div class="ln"><span class="no">7</span><span class="bx">[ ]</span><span>Write migration guide for self-hosters</span><span class="tag"></span></div>
+      <div class="ln"><span class="no">8</span><span class="bx">[ ]</span><span>Bump service worker cache version</span><span class="tag"></span></div>
+      <div class="ln"><span class="no">~</span><span class="bx"></span><span class="muted">o  — new task below</span><span></span></div>
+      <div class="cmts">
+        <div class="h">comments (2)</div>
+        <div class="c"><b>anna</b><span>Safari date input still looks off in dark mode — custom picker?</span></div>
+        <div class="c"><b>mykola</b><span>native for v2, custom in 2.1</span></div>
+      </div>
+    </div>
+
+    <div class="col side">
+      <div class="blk"><div class="h">status</div>
+        <div class="row"><span>progress</span><span class="v">██████░░░░░░░░ 42%</span></div>
+        <div class="row"><span>due</span><span class="v">in 6 days</span></div>
+        <div class="row"><span>overdue lists</span><span class="v bad">1</span></div>
+        <div class="row"><span>calendar</span><span class="v ok">synced 12:40</span></div>
+        <div class="row"><span>invites</span><span class="v">1 pending</span></div></div>
+      <div class="blk"><div class="h">people</div>
+        <div class="row"><span>mykola</span><span class="v">owner</span></div>
+        <div class="row"><span>anna</span><span class="v">editor</span></div>
+        <div class="row"><span>petro</span><span class="v">editor</span></div></div>
+      <div class="blk"><div class="h">keys</div>
+        <div class="keys"><kbd>j/k</kbd><span>move</span><kbd>x</kbd><span>toggle done</span><kbd>o</kbd><span>new task</span><kbd>e</kbd><span>edit</span><kbd>J/K</kbd><span>reorder</span><kbd>d</kbd><span>set due</span><kbd>@</kbd><span>assign</span><kbd>c</kbd><span>comment</span><kbd>:</kbd><span>command</span><kbd>?</kbd><span>help</span></div></div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="cmd"><span class="p">:</span><span>share anna@</span><span class="cursor"></span><span class="hint">tab to complete · esc to cancel</span></div>
+    <div class="pal" style="margin:0 0 10px 26px;position:relative;top:-2px"><div class="on"><b>share</b> &lt;user&gt; — invite to this list</div><div><b>sync</b> — push to Google Calendar</div><div><b>due</b> &lt;date&gt; — set list due date</div><div><b>cat</b> &lt;name&gt; — assign category</div><div><b>template</b> — save as recurring</div></div>
+  </div>
+</section>
+
+<style>
+#d10 { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 13px; min-height: 720px; display: flex; flex-direction: column; }
+#d10 .top { display: flex; align-items: center; gap: 16px; padding: 10px 20px; border-bottom: 1px solid var(--c-border); background: var(--c-card); }
+#d10 .top .logo { font-weight: 700; }
+#d10 .top .crumbs { color: var(--c-muted-fg); }
+#d10 .top .crumbs b { color: var(--c-fg); font-weight: 600; }
+#d10 .top .sp { flex: 1; }
+#d10 .tb { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--c-border); }
+#d10 .tb .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--c-border); font-size: 12px; background: var(--c-card); }
+#d10 .tb .chip.on { border-color: var(--c-primary); background: var(--p-a); color: var(--c-primary); font-weight: 600; }
+#d10 .tb .chip .x { opacity: 0.6; }
+#d10 .tb .sp { flex: 1; }
+#d10 .tb .cnt { color: var(--c-muted-fg); font-size: 12px; }
+#d10 .tb .cols { display: inline-flex; border: 1px solid var(--c-border); border-radius: 6px; overflow: hidden; }
+#d10 .tb .cols span { padding: 4px 8px; font-size: 12px; color: var(--c-muted-fg); }
+#d10 .tb .cols span.on { background: var(--c-secondary); color: var(--c-fg); }
+#d10 table { width: 100%; border-collapse: collapse; }
+#d10 th { text-align: left; font-weight: 600; font-size: 11.5px; color: var(--c-muted-fg); padding: 8px 12px; border-bottom: 1px solid var(--c-border); background: var(--c-muted); white-space: nowrap; position: sticky; top: 0; }
+#d10 th.sort { color: var(--c-fg); }
+#d10 th.sort::after { content: " ↑"; }
+#d10 td { padding: 9px 12px; border-bottom: 1px solid var(--c-border); vertical-align: middle; white-space: nowrap; }
+#d10 tr.l:hover td { background: var(--c-muted); }
+#d10 tr.l td:first-child { width: 28px; }
+#d10 .t { font-weight: 600; }
+#d10 .t .sub { display: block; font-weight: 400; font-size: 11px; color: var(--c-muted-fg); }
+#d10 .cat { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+#d10 .pr { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+#d10 .pr .bar { width: 90px; }
+#d10 .pr .n { color: var(--c-muted-fg); font-size: 12px; width: 40px; }
+#d10 .due.late { color: var(--c-destructive); font-weight: 600; }
+#d10 .due.soon { color: var(--warn); font-weight: 600; }
+#d10 .caret { display: inline-block; width: 18px; height: 18px; border-radius: 4px; text-align: center; line-height: 18px; color: var(--c-muted-fg); font-size: 11px; }
+#d10 tr.open td { background: var(--c-accent); border-bottom-color: transparent; }
+#d10 tr.open .caret { transform: rotate(90deg); color: var(--c-fg); }
+#d10 tr.exp td { padding: 0 12px 16px 52px; background: var(--c-accent); }
+#d10 .inner { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--r); overflow: hidden; }
+#d10 .inner .ih { display: flex; gap: 18px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--c-border); font-size: 12px; }
+#d10 .inner .ih .k { color: var(--c-muted-fg); margin-right: 4px; }
+#d10 .inner .ih .sp { flex: 1; }
+#d10 .inner table th { background: transparent; position: static; font-size: 11px; }
+#d10 .inner table td { padding: 7px 14px; }
+#d10 .inner tr:last-child td { border-bottom: 0; }
+#d10 .inner .cb { width: 15px; height: 15px; }
+#d10 .st { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+#d10 .st.d { background: hsl(152 60% 38% / 0.14); color: var(--ok); }
+#d10 .st.o { background: var(--c-secondary); color: var(--c-muted-fg); }
+#d10 .st.s { background: hsl(36 90% 48% / 0.16); color: var(--warn); }
+#d10 .iact { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--c-border); align-items: center; }
+#d10 .foot { margin-top: auto; display: flex; justify-content: space-between; padding: 10px 20px; border-top: 1px solid var(--c-border); font-size: 12px; color: var(--c-muted-fg); }
+#d10 .foot kbd { font-family: inherit; border: 1px solid var(--c-border); border-radius: 4px; padding: 0 5px; font-size: 11px; }
+</style>
+<section class="mock" id="d10">
+  <div class="top"><span class="logo">Todolist</span><span class="crumbs">Lists / <b>All</b></span><span class="sp"></span><span class="inp" style="width:260px;height:30px">Search… &nbsp;<span style="margin-left:auto;font-size:11px">/</span></span><span class="btn s o">Recurring</span><span class="btn s o">Categories</span><span class="btn s o">Settings</span><span class="btn s">+ New list</span><span class="av p">M</span></div>
+  <div class="tb"><span class="chip on">Status: active <span class="x">×</span></span><span class="chip">Category: any ▾</span><span class="chip">Due: any ▾</span><span class="chip">Shared ▾</span><span class="chip" style="border-style:dashed">+ Filter</span><span class="sp"></span><span class="cnt">5 lists · 41 tasks · 1 invite</span><span class="cols"><span class="on">Table</span><span>Cards</span></span><span class="chip">⚙ Columns</span></div>
+  <table>
+    <thead><tr><th></th><th>List</th><th>Category</th><th>Progress</th><th class="sort">Due</th><th>People</th><th>Updated</th><th>Calendar</th><th></th></tr></thead>
+    <tbody>
+      <tr class="l"><td><span class="caret">▶</span></td><td class="t">Weekly review<span class="sub">↻ generated weekly on Mon</span></td><td><span class="cat"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work</span></td><td><span class="pr"><span class="bar"><i style="width:0%"></i></span><span class="n">0 / 5</span></span></td><td class="due late">Sat 5 Sep</td><td><span class="av p">M</span></td><td class="muted">yesterday</td><td class="muted">—</td><td class="muted">···</td></tr>
+      <tr class="l"><td><span class="caret">▶</span></td><td class="t">Groceries</td><td><span class="cat"><span class="dot" style="background:hsl(150 45% 42%)"></span>Home</span></td><td><span class="pr"><span class="bar"><i style="width:43%"></i></span><span class="n">3 / 7</span></span></td><td class="due soon">Tue 8 Sep</td><td><span class="av p">M</span></td><td class="muted">2 h ago</td><td><span class="st d">synced</span></td><td class="muted">···</td></tr>
+      <tr class="l open"><td><span class="caret">▶</span></td><td class="t">Launch todo v2</td><td><span class="cat"><span class="dot" style="background:hsl(234 60% 55%)"></span>Work</span></td><td><span class="pr"><span class="bar"><i style="width:42%"></i></span><span class="n">5 / 12</span></span></td><td class="due">Fri 12 Sep</td><td><span class="avs"><span class="av p">M</span><span class="av">A</span><span class="av">P</span></span></td><td class="muted">40 min ago</td><td><span class="st d">synced</span></td><td class="muted">···</td></tr>
+      <tr class="exp"><td colspan="9">
+        <div class="inner">
+          <div class="ih"><span><span class="k">Due</span><b>Fri, 12 Sep 2026</b> ✎</span><span><span class="k">Category</span><b>Work</b> ▾</span><span><span class="k">Owner</span><b>Mykola</b></span><span><span class="k">Collaborators</span><b>Anna, Petro</b> <span class="badge o">+ invite</span></span><span class="sp"></span><span class="btn s o">Sync to Calendar</span><span class="btn s o">Open full page ↗</span></div>
+          <table>
+            <thead><tr><th style="width:30px"></th><th>#</th><th>Task</th><th>Status</th><th>Due</th><th>Assignee</th><th>Comments</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><span class="cb on"></span></td><td class="muted">1</td><td class="done">Write release notes</td><td><span class="st d">done</span></td><td class="muted">5 Sep</td><td><span class="av p">M</span></td><td class="muted">0</td><td class="muted">↑ ↓ ✎ 🗑</td></tr>
+              <tr><td><span class="cb on"></span></td><td class="muted">2</td><td class="done">Migrate themes to CSS variables</td><td><span class="st d">done</span></td><td class="muted">—</td><td><span class="av p">M</span></td><td class="muted">0</td><td class="muted">↑ ↓ ✎ 🗑</td></tr>
+              <tr><td><span class="cb"></span></td><td class="muted">3</td><td>Fix drag-reorder on mobile Safari</td><td><span class="st s">due soon</span></td><td class="due soon">Tue 9 Sep</td><td><span class="av">A</span></td><td>2</td><td class="muted">↑ ↓ ✎ 🗑</td></tr>
+              <tr><td><span class="cb"></span></td><td class="muted">4</td><td>Update PWA icons (maskable 512)</td><td><span class="st o">open</span></td><td class="muted">—</td><td><span class="av">P</span></td><td class="muted">0</td><td class="muted">↑ ↓ ✎ 🗑</td></tr>
+              <tr><td><span class="cb"></span></td><td class="muted">5</td><td>QA pass in Safari &amp; Firefox</td><td><span class="st o">open</span></td><td>Thu 11 Sep</td><td class="muted">—</td><td class="muted">0</td><td class="muted">↑ ↓ ✎ 🗑</td></tr>
+            </tbody>
+          </table>
+          <div class="iact"><span class="inp f" style="height:30px">New task title</span><span class="inp" style="height:30px;width:120px">Due date</span><span class="btn s">Add</span><span class="muted" style="margin-left:auto;font-size:12px">+7 more tasks · 2 comments on list</span></div>
+        </div>
+      </td></tr>
+      <tr class="l"><td><span class="caret">▶</span></td><td class="t">Trip to Lisbon</td><td><span class="cat"><span class="dot" style="background:hsl(36 90% 50%)"></span>Travel</span></td><td><span class="pr"><span class="bar"><i style="width:89%"></i></span><span class="n">8 / 9</span></span></td><td class="due">Sat 3 Oct</td><td><span class="avs"><span class="av p">M</span><span class="av">O</span></span></td><td class="muted">3 d ago</td><td><span class="st d">synced</span></td><td class="muted">···</td></tr>
+      <tr class="l"><td><span class="caret">▶</span></td><td class="t">Reading list</td><td><span class="cat"><span class="dot" style="background:hsl(300 40% 55%)"></span>Personal</span></td><td><span class="pr"><span class="bar"><i style="width:20%"></i></span><span class="n">2 / 10</span></span></td><td class="muted">—</td><td><span class="av p">M</span></td><td class="muted">2 w ago</td><td class="muted">—</td><td class="muted">···</td></tr>
+      <tr class="l" style="opacity:.75"><td></td><td class="t">Q4 planning<span class="sub">invitation from Olena</span></td><td><span class="cat"><span class="dot" style="background:var(--c-border)"></span>—</span></td><td class="muted">3 tasks</td><td class="muted">—</td><td><span class="av">O</span></td><td class="muted">1 d ago</td><td></td><td><span class="btn s">Accept</span> <span class="btn s g">Decline</span></td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span><kbd>↑↓</kbd> rows · <kbd>→</kbd> expand · <kbd>⏎</kbd> open · <kbd>/</kbd> search</span><span>Showing 5 of 5 · sorted by due date</span></div>
+</section>
+
+      </div></div>
+    </div>
+    <section class="g-desc" id="g-desc"></section>
+  </main>
+
+  <aside class="g-rail">
+    <div class="g-panel"><h2>Темы</h2><div class="g-themes" id="g-themes"></div></div>
+    <div class="g-panel">
+      <h2>CSS темы</h2>
+      <div class="g-actions"><button class="g-btn primary" id="copy-one">Копировать эту тему</button><button class="g-btn" id="copy-all">Все 10 тем</button></div>
+      <details><summary>Показать CSS</summary><pre class="g-code" id="g-code"></pre></details>
+      <details><summary>Как подключить в проект</summary>
+        <p class="g-note">Уже сделано в ветке <code>feat/layouts-and-palettes</code> (ADR-017): палитры лежат в <code>frontend/src/app/globals.css</code>, id — в <code>src/features/preferences/types.ts</code> и в Prisma-enum <code>UserPalette</code>; переключатель — в Settings любого лейаута.</p>
+        <p class="g-note">Палитра и light/dark — независимые оси: у каждой палитры есть <code>.theme-x</code> и <code>.dark.theme-x</code>.</p>
+      </details>
+    </div>
+  </aside>
+</div>
+<textarea id="g-clip" aria-hidden="true" tabindex="-1" style="position:fixed;left:-9999px;top:0;height:1px;width:1px;opacity:0"></textarea>
+<div class="g-toast" id="g-toast">Скопировано</div>
+
+<script>
+const DESIGNS = [{"id": "d1", "name": "Workspace", "tag": "три панели: навигация · списки · детали", "fonts": "IBM Plex Sans", "desc": "Всё на одном экране, как в Linear или Things: слева постоянная навигация с категориями и счётчиками, посередине колонка списков с прогрессом и дедлайнами, справа — открытый список с задачами, комментариями и шарингом. Переход «главная → список» исчезает: списки переключаются без перезагрузки страницы, а ⌘K открывает быстрый поиск.", "ux": "Категории становятся первичной навигацией (сейчас — select-фильтр). Приглашения и рекуррентные шаблоны получают свои пункты меню вместо ссылок в шапке."}, {"id": "d2", "name": "Board", "tag": "канбан: категории — колонки, списки — карточки", "fonts": "Manrope", "desc": "Списки превращаются в карточки с превью первых задач и прогресс-баром, а категории — в колонки доски. Перетащил карточку в другую колонку — сменил категорию. Открытый список выезжает справа как drawer поверх доски, не теряя контекст.", "ux": "Смена категории — drag-and-drop вместо select. Приглашения — отдельная колонка «Invites». Переключатель Board / List / Timeline в шапке оставляет привычный вид доступным."}, {"id": "d3", "name": "Agenda", "tag": "календарная лента: всё сгруппировано по дате", "fonts": "Fraunces + Public Sans", "desc": "Главная страница отвечает на вопрос «что когда»: полоска недели с точками-маркерами, ниже — группы Overdue / по дням / Later. В ленту попадают и списки, и отдельные задачи с дедлайнами. Справа — выбранный список с быстрым редактированием даты и блоком Google Calendar.", "ux": "Дедлайны задач и списков — центр композиции, интеграция с календарём становится очевидной. Просроченное нельзя не заметить."}, {"id": "d4", "name": "Focus", "tag": "одна колонка, крупный шрифт, клавиатура", "fonts": "Newsreader + DM Sans", "desc": "Почти без интерфейса: крупная гарнитура, тонкие линейки, ни одной карточки. Списки и задачи — строки текста с минимумом метаданных; действия скрыты за клавишами, подсказки внизу. Идеально для тех, кто хочет «открыть и писать».", "ux": "Кнопки ↑↓ / Edit / Delete у каждой задачи уходят в клавиатурные шорткаты и hover-меню. Форма «New list» становится одной строкой ввода."}, {"id": "d5", "name": "Dashboard", "tag": "обзор: метрики, кольца прогресса, таблица задач", "fonts": "Sora + JetBrains Mono", "desc": "Главная — не список списков, а сводка: сколько горит сегодня, что просрочено, сколько закрыто за неделю (со спарклайном). Ниже карточки списков с кольцами прогресса, боковая колонка с приглашениями, шаблонами и ближайшими дедлайнами, а выбранный список — таблицей с статусами.", "ux": "Появляется агрегированное состояние (сейчас его нет вообще). Рекуррентные шаблоны и приглашения видны с главной без переходов."}, {"id": "d6", "name": "Notebook", "tag": "скевоморфный блокнот с закладками-категориями", "fonts": "Lora + Caveat", "desc": "Разворот бумажного блокнота: слева оглавление со списками и точечными отточиями, справа страница списка с линейкой, рукописными галочками и стикером для комментариев. Категории — цветные закладки на обрезе, приглашение — скрепка.", "ux": "Метафора «одна страница — один список» делает структуру очевидной для нетехнических пользователей. Игривая тема для личного использования, менее подходит для рабочих команд."}, {"id": "d7", "name": "Brutalist", "tag": "жирные рамки, плоские тени, большие цифры", "fonts": "Archivo Black + Archivo", "desc": "Нео-брутализм: толстые обводки, жёсткие смещённые тени, никаких скруглений, счётчики выполненных задач размером с заголовок. Списки — плитки, просроченное залито красным целиком, открытый список — правая панель на цветной подложке.", "ux": "Главная метрика каждого списка (сделано / всего) читается с двух метров. Фильтр по категориям — переключатели-табы в заголовке."}, {"id": "d8", "name": "Pocket", "tag": "mobile-first: таб-бар, FAB, свайпы, bottom sheet", "fonts": "Nunito", "desc": "Приложение проектируется от телефона (у вас уже есть PWA): нижний таб-бар Lists / Today / Recurring / Settings, плавающая кнопка создания, свайп по задаче = выполнить, добавление задачи — через bottom sheet с датой и исполнителем. На десктопе то же самое растягивается в двухколоночный вид.", "ux": "Кнопки Edit / Delete / ↑↓ заменены жестами и long-press. Настройки темы и языка переезжают в отдельный экран Settings вместо двух select в шапке."}, {"id": "d9", "name": "Terminal", "tag": "TUI-эстетика: дерево, [x], командная строка", "fonts": "IBM Plex Mono", "desc": "Интерфейс как терминальное приложение: строка состояния, дерево списков по категориям, задачи с номерами строк и маркерами [x], справа статус и шпаргалка клавиш. Внизу командная строка с автодополнением: :share, :sync, :due — все действия доступны без мыши.", "ux": "Для опытных пользователей: vim-подобная навигация, команды вместо кнопок. Дедлайны и исполнители — инлайн-теги в строке задачи (due:09-09 @anna)."}, {"id": "d10", "name": "Ledger", "tag": "плотная таблица с фильтрами и раскрытием строк", "fonts": "Atkinson Hyperlegible", "desc": "Списки — строки таблицы с сортируемыми колонками: категория, прогресс, дедлайн, участники, дата обновления, статус синхронизации. Строка раскрывается прямо на месте во вложенную таблицу задач с быстрым добавлением. Фильтры — чипы над таблицей, как в Airtable.", "ux": "Масштабируется на десятки списков. Все атрибуты списка редактируются inline, страница списка остаётся как «Open full page» для длинных обсуждений."}];
+const THEMES = [{"id": "indigo", "label": "Indigo", "ru": "Индиго", "tag": "холодный серо-синий, индиго-акцент — спокойная рабочая тема", "radius": "0.5rem", "light": {"bg": "220 20% 98%", "fg": "222 30% 12%", "card": "0 0% 100%", "primary": "234 60% 50%", "primaryFg": "0 0% 100%", "secondary": "220 18% 93%", "mutedFg": "220 12% 45%", "accent": "230 40% 92%", "border": "220 16% 88%", "ring": "234 60% 50%"}, "dark": {"bg": "224 24% 8%", "fg": "220 20% 94%", "card": "224 22% 11%", "primary": "234 70% 68%", "primaryFg": "226 40% 10%", "secondary": "224 18% 17%", "mutedFg": "220 12% 62%", "accent": "228 24% 20%", "border": "224 16% 20%", "ring": "234 70% 68%"}, "css": "  /* ============================================================\n   * Indigo theme — cool blue-grey neutrals with an indigo accent\n   * Applied via class=\"theme-indigo\" on <html>\n   * ============================================================ */\n  .theme-indigo {\n    --background: 220 20% 98%;\n    --foreground: 222 30% 12%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 222 30% 12%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 222 30% 12%;\n\n    --primary: 234 60% 50%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 220 18% 93%;\n    --secondary-foreground: 222 30% 12%;\n\n    --muted: 220 18% 93%;\n    --muted-foreground: 220 12% 45%;\n\n    --accent: 230 40% 92%;\n    --accent-foreground: 222 30% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 220 16% 88%;\n    --input: 220 16% 88%;\n    --ring: 234 60% 50%;\n  }\n\n  /* Dark Indigo variant */\n  .dark.theme-indigo {\n    --background: 224 24% 8%;\n    --foreground: 220 20% 94%;\n\n    --card: 224 22% 11%;\n    --card-foreground: 220 20% 94%;\n\n    --popover: 224 22% 11%;\n    --popover-foreground: 220 20% 94%;\n\n    --primary: 234 70% 68%;\n    --primary-foreground: 226 40% 10%;\n\n    --secondary: 224 18% 17%;\n    --secondary-foreground: 220 20% 94%;\n\n    --muted: 224 18% 17%;\n    --muted-foreground: 220 12% 62%;\n\n    --accent: 228 24% 20%;\n    --accent-foreground: 220 20% 94%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 224 16% 20%;\n    --input: 224 16% 20%;\n    --ring: 234 70% 68%;\n  }\n"}, {"id": "ocean", "label": "Ocean", "ru": "Океан", "tag": "бирюза и глубокий teal — свежо, но не кричаще", "radius": "0.625rem", "light": {"bg": "190 40% 97%", "fg": "200 50% 10%", "card": "0 0% 100%", "primary": "186 72% 32%", "primaryFg": "0 0% 100%", "secondary": "190 35% 92%", "mutedFg": "196 20% 42%", "accent": "184 50% 88%", "border": "190 28% 86%", "ring": "186 72% 36%"}, "dark": {"bg": "200 45% 7%", "fg": "190 30% 93%", "card": "200 40% 10%", "primary": "182 65% 55%", "primaryFg": "200 50% 8%", "secondary": "198 30% 16%", "mutedFg": "192 18% 62%", "accent": "196 32% 19%", "border": "198 28% 19%", "ring": "182 65% 55%"}, "css": "  /* ============================================================\n   * Ocean theme — teal primary on airy aqua neutrals\n   * Applied via class=\"theme-ocean\" on <html>\n   * ============================================================ */\n  .theme-ocean {\n    --background: 190 40% 97%;\n    --foreground: 200 50% 10%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 200 50% 10%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 200 50% 10%;\n\n    --primary: 186 72% 32%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 190 35% 92%;\n    --secondary-foreground: 200 50% 10%;\n\n    --muted: 190 35% 92%;\n    --muted-foreground: 196 20% 42%;\n\n    --accent: 184 50% 88%;\n    --accent-foreground: 200 50% 10%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 190 28% 86%;\n    --input: 190 28% 86%;\n    --ring: 186 72% 36%;\n  }\n\n  /* Dark Ocean variant */\n  .dark.theme-ocean {\n    --background: 200 45% 7%;\n    --foreground: 190 30% 93%;\n\n    --card: 200 40% 10%;\n    --card-foreground: 190 30% 93%;\n\n    --popover: 200 40% 10%;\n    --popover-foreground: 190 30% 93%;\n\n    --primary: 182 65% 55%;\n    --primary-foreground: 200 50% 8%;\n\n    --secondary: 198 30% 16%;\n    --secondary-foreground: 190 30% 93%;\n\n    --muted: 198 30% 16%;\n    --muted-foreground: 192 18% 62%;\n\n    --accent: 196 32% 19%;\n    --accent-foreground: 190 30% 93%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 198 28% 19%;\n    --input: 198 28% 19%;\n    --ring: 182 65% 55%;\n  }\n"}, {"id": "forest", "label": "Forest", "ru": "Лес", "tag": "глубокий зелёный на светлом мху — сосредоточенная, «тихая» тема", "radius": "0.5rem", "light": {"bg": "100 20% 97%", "fg": "140 30% 10%", "card": "0 0% 100%", "primary": "150 45% 28%", "primaryFg": "0 0% 100%", "secondary": "110 18% 92%", "mutedFg": "130 12% 42%", "accent": "140 30% 88%", "border": "110 14% 86%", "ring": "150 45% 32%"}, "dark": {"bg": "150 25% 7%", "fg": "100 20% 93%", "card": "150 22% 10%", "primary": "145 50% 58%", "primaryFg": "150 40% 8%", "secondary": "148 18% 16%", "mutedFg": "120 10% 62%", "accent": "148 20% 19%", "border": "148 16% 19%", "ring": "145 50% 58%"}, "css": "  /* ============================================================\n   * Forest theme — deep green on pale moss\n   * Applied via class=\"theme-forest\" on <html>\n   * ============================================================ */\n  .theme-forest {\n    --background: 100 20% 97%;\n    --foreground: 140 30% 10%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 140 30% 10%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 140 30% 10%;\n\n    --primary: 150 45% 28%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 110 18% 92%;\n    --secondary-foreground: 140 30% 10%;\n\n    --muted: 110 18% 92%;\n    --muted-foreground: 130 12% 42%;\n\n    --accent: 140 30% 88%;\n    --accent-foreground: 140 30% 10%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 110 14% 86%;\n    --input: 110 14% 86%;\n    --ring: 150 45% 32%;\n  }\n\n  /* Dark Forest variant */\n  .dark.theme-forest {\n    --background: 150 25% 7%;\n    --foreground: 100 20% 93%;\n\n    --card: 150 22% 10%;\n    --card-foreground: 100 20% 93%;\n\n    --popover: 150 22% 10%;\n    --popover-foreground: 100 20% 93%;\n\n    --primary: 145 50% 58%;\n    --primary-foreground: 150 40% 8%;\n\n    --secondary: 148 18% 16%;\n    --secondary-foreground: 100 20% 93%;\n\n    --muted: 148 18% 16%;\n    --muted-foreground: 120 10% 62%;\n\n    --accent: 148 20% 19%;\n    --accent-foreground: 100 20% 93%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 148 16% 19%;\n    --input: 148 16% 19%;\n    --ring: 145 50% 58%;\n  }\n"}, {"id": "olive", "label": "Olive", "ru": "Олива", "tag": "хаки и тёплый песок — приглушённая, «бумажно-полевая»", "radius": "0.375rem", "light": {"bg": "60 25% 96%", "fg": "70 20% 12%", "card": "60 30% 99%", "primary": "75 40% 32%", "primaryFg": "60 30% 97%", "secondary": "60 20% 90%", "mutedFg": "70 10% 42%", "accent": "72 30% 85%", "border": "60 15% 84%", "ring": "75 40% 36%"}, "dark": {"bg": "70 15% 8%", "fg": "60 20% 92%", "card": "70 14% 11%", "primary": "78 45% 60%", "primaryFg": "75 30% 8%", "secondary": "70 10% 17%", "mutedFg": "65 8% 62%", "accent": "72 14% 20%", "border": "70 10% 20%", "ring": "78 45% 60%"}, "css": "  /* ============================================================\n   * Olive theme — khaki primary on warm sand neutrals\n   * Applied via class=\"theme-olive\" on <html>\n   * ============================================================ */\n  .theme-olive {\n    --background: 60 25% 96%;\n    --foreground: 70 20% 12%;\n\n    --card: 60 30% 99%;\n    --card-foreground: 70 20% 12%;\n\n    --popover: 60 30% 99%;\n    --popover-foreground: 70 20% 12%;\n\n    --primary: 75 40% 32%;\n    --primary-foreground: 60 30% 97%;\n\n    --secondary: 60 20% 90%;\n    --secondary-foreground: 70 20% 12%;\n\n    --muted: 60 20% 90%;\n    --muted-foreground: 70 10% 42%;\n\n    --accent: 72 30% 85%;\n    --accent-foreground: 70 20% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 60 15% 84%;\n    --input: 60 15% 84%;\n    --ring: 75 40% 36%;\n  }\n\n  /* Dark Olive variant */\n  .dark.theme-olive {\n    --background: 70 15% 8%;\n    --foreground: 60 20% 92%;\n\n    --card: 70 14% 11%;\n    --card-foreground: 60 20% 92%;\n\n    --popover: 70 14% 11%;\n    --popover-foreground: 60 20% 92%;\n\n    --primary: 78 45% 60%;\n    --primary-foreground: 75 30% 8%;\n\n    --secondary: 70 10% 17%;\n    --secondary-foreground: 60 20% 92%;\n\n    --muted: 70 10% 17%;\n    --muted-foreground: 65 8% 62%;\n\n    --accent: 72 14% 20%;\n    --accent-foreground: 60 20% 92%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 70 10% 20%;\n    --input: 70 10% 20%;\n    --ring: 78 45% 60%;\n  }\n"}, {"id": "honey", "label": "Honey", "ru": "Мёд", "tag": "янтарный акцент на кремовом фоне — тёплая и бодрая", "radius": "0.75rem", "light": {"bg": "42 60% 97%", "fg": "30 40% 10%", "card": "0 0% 100%", "primary": "36 90% 45%", "primaryFg": "30 50% 8%", "secondary": "42 50% 91%", "mutedFg": "34 20% 42%", "accent": "40 80% 86%", "border": "40 40% 85%", "ring": "36 90% 45%"}, "dark": {"bg": "30 30% 7%", "fg": "42 40% 93%", "card": "30 26% 10%", "primary": "40 95% 60%", "primaryFg": "30 50% 8%", "secondary": "32 20% 16%", "mutedFg": "38 18% 62%", "accent": "34 26% 19%", "border": "32 20% 19%", "ring": "40 95% 60%"}, "css": "  /* ============================================================\n   * Honey theme — amber primary on cream\n   * Applied via class=\"theme-honey\" on <html>\n   * ============================================================ */\n  .theme-honey {\n    --background: 42 60% 97%;\n    --foreground: 30 40% 10%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 30 40% 10%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 30 40% 10%;\n\n    --primary: 36 90% 45%;\n    --primary-foreground: 30 50% 8%;\n\n    --secondary: 42 50% 91%;\n    --secondary-foreground: 30 40% 10%;\n\n    --muted: 42 50% 91%;\n    --muted-foreground: 34 20% 42%;\n\n    --accent: 40 80% 86%;\n    --accent-foreground: 30 40% 10%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 40 40% 85%;\n    --input: 40 40% 85%;\n    --ring: 36 90% 45%;\n  }\n\n  /* Dark Honey variant */\n  .dark.theme-honey {\n    --background: 30 30% 7%;\n    --foreground: 42 40% 93%;\n\n    --card: 30 26% 10%;\n    --card-foreground: 42 40% 93%;\n\n    --popover: 30 26% 10%;\n    --popover-foreground: 42 40% 93%;\n\n    --primary: 40 95% 60%;\n    --primary-foreground: 30 50% 8%;\n\n    --secondary: 32 20% 16%;\n    --secondary-foreground: 42 40% 93%;\n\n    --muted: 32 20% 16%;\n    --muted-foreground: 38 18% 62%;\n\n    --accent: 34 26% 19%;\n    --accent-foreground: 42 40% 93%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 32 20% 19%;\n    --input: 32 20% 19%;\n    --ring: 40 95% 60%;\n  }\n"}, {"id": "clay", "label": "Clay", "ru": "Глина", "tag": "терракота и обожжённая охра — земляная, уютная", "radius": "0.625rem", "light": {"bg": "28 40% 95%", "fg": "20 30% 12%", "card": "30 45% 98%", "primary": "16 65% 45%", "primaryFg": "30 40% 97%", "secondary": "28 30% 89%", "mutedFg": "22 15% 42%", "accent": "20 50% 86%", "border": "26 25% 83%", "ring": "16 65% 45%"}, "dark": {"bg": "20 22% 8%", "fg": "28 30% 92%", "card": "20 20% 11%", "primary": "18 75% 62%", "primaryFg": "20 40% 8%", "secondary": "22 16% 17%", "mutedFg": "26 12% 62%", "accent": "20 20% 20%", "border": "22 16% 20%", "ring": "18 75% 62%"}, "css": "  /* ============================================================\n   * Clay theme — terracotta primary on warm earth neutrals\n   * Applied via class=\"theme-clay\" on <html>\n   * ============================================================ */\n  .theme-clay {\n    --background: 28 40% 95%;\n    --foreground: 20 30% 12%;\n\n    --card: 30 45% 98%;\n    --card-foreground: 20 30% 12%;\n\n    --popover: 30 45% 98%;\n    --popover-foreground: 20 30% 12%;\n\n    --primary: 16 65% 45%;\n    --primary-foreground: 30 40% 97%;\n\n    --secondary: 28 30% 89%;\n    --secondary-foreground: 20 30% 12%;\n\n    --muted: 28 30% 89%;\n    --muted-foreground: 22 15% 42%;\n\n    --accent: 20 50% 86%;\n    --accent-foreground: 20 30% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 26 25% 83%;\n    --input: 26 25% 83%;\n    --ring: 16 65% 45%;\n  }\n\n  /* Dark Clay variant */\n  .dark.theme-clay {\n    --background: 20 22% 8%;\n    --foreground: 28 30% 92%;\n\n    --card: 20 20% 11%;\n    --card-foreground: 28 30% 92%;\n\n    --popover: 20 20% 11%;\n    --popover-foreground: 28 30% 92%;\n\n    --primary: 18 75% 62%;\n    --primary-foreground: 20 40% 8%;\n\n    --secondary: 22 16% 17%;\n    --secondary-foreground: 28 30% 92%;\n\n    --muted: 22 16% 17%;\n    --muted-foreground: 26 12% 62%;\n\n    --accent: 20 20% 20%;\n    --accent-foreground: 28 30% 92%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 22 16% 20%;\n    --input: 22 16% 20%;\n    --ring: 18 75% 62%;\n  }\n"}, {"id": "coral", "label": "Coral", "ru": "Коралл", "tag": "сочный коралловый на почти белом — энергичная, дружелюбная", "radius": "0.875rem", "light": {"bg": "10 60% 98%", "fg": "350 30% 12%", "card": "0 0% 100%", "primary": "6 85% 58%", "primaryFg": "0 0% 100%", "secondary": "10 50% 93%", "mutedFg": "5 18% 46%", "accent": "8 80% 90%", "border": "8 40% 88%", "ring": "6 85% 58%"}, "dark": {"bg": "350 25% 7%", "fg": "10 40% 94%", "card": "350 22% 10%", "primary": "8 90% 66%", "primaryFg": "350 40% 8%", "secondary": "352 18% 17%", "mutedFg": "5 14% 64%", "accent": "355 22% 20%", "border": "352 18% 20%", "ring": "8 90% 66%"}, "css": "  /* ============================================================\n   * Coral theme — vivid coral on near-white\n   * Applied via class=\"theme-coral\" on <html>\n   * ============================================================ */\n  .theme-coral {\n    --background: 10 60% 98%;\n    --foreground: 350 30% 12%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 350 30% 12%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 350 30% 12%;\n\n    --primary: 6 85% 58%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 10 50% 93%;\n    --secondary-foreground: 350 30% 12%;\n\n    --muted: 10 50% 93%;\n    --muted-foreground: 5 18% 46%;\n\n    --accent: 8 80% 90%;\n    --accent-foreground: 350 30% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 8 40% 88%;\n    --input: 8 40% 88%;\n    --ring: 6 85% 58%;\n  }\n\n  /* Dark Coral variant */\n  .dark.theme-coral {\n    --background: 350 25% 7%;\n    --foreground: 10 40% 94%;\n\n    --card: 350 22% 10%;\n    --card-foreground: 10 40% 94%;\n\n    --popover: 350 22% 10%;\n    --popover-foreground: 10 40% 94%;\n\n    --primary: 8 90% 66%;\n    --primary-foreground: 350 40% 8%;\n\n    --secondary: 352 18% 17%;\n    --secondary-foreground: 10 40% 94%;\n\n    --muted: 352 18% 17%;\n    --muted-foreground: 5 14% 64%;\n\n    --accent: 355 22% 20%;\n    --accent-foreground: 10 40% 94%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 352 18% 20%;\n    --input: 352 18% 20%;\n    --ring: 8 90% 66%;\n  }\n"}, {"id": "violet", "label": "Violet", "ru": "Фиалка", "tag": "насыщенный фиолетовый — «продуктовая» тема в духе Linear", "radius": "0.75rem", "light": {"bg": "260 40% 98%", "fg": "262 40% 12%", "card": "0 0% 100%", "primary": "265 70% 52%", "primaryFg": "0 0% 100%", "secondary": "260 30% 93%", "mutedFg": "262 14% 46%", "accent": "262 60% 91%", "border": "260 24% 88%", "ring": "265 70% 52%"}, "dark": {"bg": "262 30% 7%", "fg": "260 30% 94%", "card": "262 26% 10%", "primary": "268 80% 72%", "primaryFg": "262 40% 8%", "secondary": "262 20% 17%", "mutedFg": "260 14% 64%", "accent": "264 24% 20%", "border": "262 20% 20%", "ring": "268 80% 72%"}, "css": "  /* ============================================================\n   * Violet theme — saturated violet, product-tool feel\n   * Applied via class=\"theme-violet\" on <html>\n   * ============================================================ */\n  .theme-violet {\n    --background: 260 40% 98%;\n    --foreground: 262 40% 12%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 262 40% 12%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 262 40% 12%;\n\n    --primary: 265 70% 52%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 260 30% 93%;\n    --secondary-foreground: 262 40% 12%;\n\n    --muted: 260 30% 93%;\n    --muted-foreground: 262 14% 46%;\n\n    --accent: 262 60% 91%;\n    --accent-foreground: 262 40% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 260 24% 88%;\n    --input: 260 24% 88%;\n    --ring: 265 70% 52%;\n  }\n\n  /* Dark Violet variant */\n  .dark.theme-violet {\n    --background: 262 30% 7%;\n    --foreground: 260 30% 94%;\n\n    --card: 262 26% 10%;\n    --card-foreground: 260 30% 94%;\n\n    --popover: 262 26% 10%;\n    --popover-foreground: 260 30% 94%;\n\n    --primary: 268 80% 72%;\n    --primary-foreground: 262 40% 8%;\n\n    --secondary: 262 20% 17%;\n    --secondary-foreground: 260 30% 94%;\n\n    --muted: 262 20% 17%;\n    --muted-foreground: 260 14% 64%;\n\n    --accent: 264 24% 20%;\n    --accent-foreground: 260 30% 94%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 262 20% 20%;\n    --input: 262 20% 20%;\n    --ring: 268 80% 72%;\n  }\n"}, {"id": "graphite", "label": "Graphite", "ru": "Графит", "tag": "чистый чёрно-белый без оттенка — максимальный контраст", "radius": "0.25rem", "light": {"bg": "0 0% 100%", "fg": "0 0% 7%", "card": "0 0% 100%", "primary": "0 0% 9%", "primaryFg": "0 0% 98%", "secondary": "0 0% 94%", "mutedFg": "0 0% 42%", "accent": "0 0% 90%", "border": "0 0% 85%", "ring": "0 0% 9%"}, "dark": {"bg": "0 0% 5%", "fg": "0 0% 95%", "card": "0 0% 8%", "primary": "0 0% 95%", "primaryFg": "0 0% 8%", "secondary": "0 0% 14%", "mutedFg": "0 0% 62%", "accent": "0 0% 18%", "border": "0 0% 18%", "ring": "0 0% 80%"}, "css": "  /* ============================================================\n   * Graphite theme — pure achromatic black & white, max contrast\n   * Applied via class=\"theme-graphite\" on <html>\n   * ============================================================ */\n  .theme-graphite {\n    --background: 0 0% 100%;\n    --foreground: 0 0% 7%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 0 0% 7%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 0 0% 7%;\n\n    --primary: 0 0% 9%;\n    --primary-foreground: 0 0% 98%;\n\n    --secondary: 0 0% 94%;\n    --secondary-foreground: 0 0% 7%;\n\n    --muted: 0 0% 94%;\n    --muted-foreground: 0 0% 42%;\n\n    --accent: 0 0% 90%;\n    --accent-foreground: 0 0% 7%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 0 0% 85%;\n    --input: 0 0% 85%;\n    --ring: 0 0% 9%;\n  }\n\n  /* Dark Graphite variant */\n  .dark.theme-graphite {\n    --background: 0 0% 5%;\n    --foreground: 0 0% 95%;\n\n    --card: 0 0% 8%;\n    --card-foreground: 0 0% 95%;\n\n    --popover: 0 0% 8%;\n    --popover-foreground: 0 0% 95%;\n\n    --primary: 0 0% 95%;\n    --primary-foreground: 0 0% 8%;\n\n    --secondary: 0 0% 14%;\n    --secondary-foreground: 0 0% 95%;\n\n    --muted: 0 0% 14%;\n    --muted-foreground: 0 0% 62%;\n\n    --accent: 0 0% 18%;\n    --accent-foreground: 0 0% 95%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 0 0% 18%;\n    --input: 0 0% 18%;\n    --ring: 0 0% 80%;\n  }\n"}, {"id": "paper", "label": "Paper", "ru": "Бумага", "tag": "пергамент и чернильно-коричневый — для долгого чтения", "radius": "0.375rem", "light": {"bg": "40 35% 93%", "fg": "30 30% 15%", "card": "42 45% 97%", "primary": "24 40% 28%", "primaryFg": "42 40% 96%", "secondary": "40 28% 87%", "mutedFg": "32 14% 42%", "accent": "38 35% 82%", "border": "36 22% 80%", "ring": "24 40% 28%"}, "dark": {"bg": "30 15% 9%", "fg": "40 25% 88%", "card": "30 14% 12%", "primary": "38 45% 72%", "primaryFg": "30 20% 8%", "secondary": "30 10% 18%", "mutedFg": "36 10% 60%", "accent": "32 12% 22%", "border": "30 10% 21%", "ring": "38 45% 72%"}, "css": "  /* ============================================================\n   * Paper theme — parchment ground with ink-brown primary\n   * Applied via class=\"theme-paper\" on <html>\n   * ============================================================ */\n  .theme-paper {\n    --background: 40 35% 93%;\n    --foreground: 30 30% 15%;\n\n    --card: 42 45% 97%;\n    --card-foreground: 30 30% 15%;\n\n    --popover: 42 45% 97%;\n    --popover-foreground: 30 30% 15%;\n\n    --primary: 24 40% 28%;\n    --primary-foreground: 42 40% 96%;\n\n    --secondary: 40 28% 87%;\n    --secondary-foreground: 30 30% 15%;\n\n    --muted: 40 28% 87%;\n    --muted-foreground: 32 14% 42%;\n\n    --accent: 38 35% 82%;\n    --accent-foreground: 30 30% 15%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 36 22% 80%;\n    --input: 36 22% 80%;\n    --ring: 24 40% 28%;\n  }\n\n  /* Dark Paper variant */\n  .dark.theme-paper {\n    --background: 30 15% 9%;\n    --foreground: 40 25% 88%;\n\n    --card: 30 14% 12%;\n    --card-foreground: 40 25% 88%;\n\n    --popover: 30 14% 12%;\n    --popover-foreground: 40 25% 88%;\n\n    --primary: 38 45% 72%;\n    --primary-foreground: 30 20% 8%;\n\n    --secondary: 30 10% 18%;\n    --secondary-foreground: 40 25% 88%;\n\n    --muted: 30 10% 18%;\n    --muted-foreground: 36 10% 60%;\n\n    --accent: 32 12% 22%;\n    --accent-foreground: 40 25% 88%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 30 10% 21%;\n    --input: 30 10% 21%;\n    --ring: 38 45% 72%;\n  }\n"}];
+const CURRENT = {id:"", label:"Текущая", ru:"как сейчас", tag:"shadcn default — для сравнения",
+  light:{bg:"0 0% 100%",fg:"222.2 84% 4.9%",primary:"222.2 47.4% 11.2%",accent:"210 40% 96.1%"},
+  dark:{bg:"222.2 84% 4.9%",fg:"210 40% 98%",primary:"210 40% 98%",accent:"217.2 32.6% 17.5%"}};
+const ALL_THEMES = [CURRENT, ...THEMES];
+const ALL_CSS = "/* ------------------------------------------------------------------\n * 10 additional themes for todolist \u2014 drop-in for frontend/src/app/globals.css\n *\n * Same token contract as the existing light / .dark / .theme-rose blocks:\n * paste the whole file inside the first `@layer base { ... }` after\n * `.dark.theme-rose`, then register the ids in\n *   - src/features/preferences/types.ts      (themes tuple)\n *   - src/app/[locale]/layout.tsx           (ThemeProvider themes=[...])\n *   - src/features/preferences/ThemeToggle  (labels) + messages/*.json\n * Every theme ships a light block (.theme-x) and a dark block (.dark.theme-x),\n * so next-themes can keep toggling `dark` independently of the palette.\n * ------------------------------------------------------------------ */\n\n  /* ============================================================\n   * Indigo theme \u2014 cool blue-grey neutrals with an indigo accent\n   * Applied via class=\"theme-indigo\" on <html>\n   * ============================================================ */\n  .theme-indigo {\n    --background: 220 20% 98%;\n    --foreground: 222 30% 12%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 222 30% 12%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 222 30% 12%;\n\n    --primary: 234 60% 50%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 220 18% 93%;\n    --secondary-foreground: 222 30% 12%;\n\n    --muted: 220 18% 93%;\n    --muted-foreground: 220 12% 45%;\n\n    --accent: 230 40% 92%;\n    --accent-foreground: 222 30% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 220 16% 88%;\n    --input: 220 16% 88%;\n    --ring: 234 60% 50%;\n  }\n\n  /* Dark Indigo variant */\n  .dark.theme-indigo {\n    --background: 224 24% 8%;\n    --foreground: 220 20% 94%;\n\n    --card: 224 22% 11%;\n    --card-foreground: 220 20% 94%;\n\n    --popover: 224 22% 11%;\n    --popover-foreground: 220 20% 94%;\n\n    --primary: 234 70% 68%;\n    --primary-foreground: 226 40% 10%;\n\n    --secondary: 224 18% 17%;\n    --secondary-foreground: 220 20% 94%;\n\n    --muted: 224 18% 17%;\n    --muted-foreground: 220 12% 62%;\n\n    --accent: 228 24% 20%;\n    --accent-foreground: 220 20% 94%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 224 16% 20%;\n    --input: 224 16% 20%;\n    --ring: 234 70% 68%;\n  }\n\n  /* ============================================================\n   * Ocean theme \u2014 teal primary on airy aqua neutrals\n   * Applied via class=\"theme-ocean\" on <html>\n   * ============================================================ */\n  .theme-ocean {\n    --background: 190 40% 97%;\n    --foreground: 200 50% 10%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 200 50% 10%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 200 50% 10%;\n\n    --primary: 186 72% 32%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 190 35% 92%;\n    --secondary-foreground: 200 50% 10%;\n\n    --muted: 190 35% 92%;\n    --muted-foreground: 196 20% 42%;\n\n    --accent: 184 50% 88%;\n    --accent-foreground: 200 50% 10%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 190 28% 86%;\n    --input: 190 28% 86%;\n    --ring: 186 72% 36%;\n  }\n\n  /* Dark Ocean variant */\n  .dark.theme-ocean {\n    --background: 200 45% 7%;\n    --foreground: 190 30% 93%;\n\n    --card: 200 40% 10%;\n    --card-foreground: 190 30% 93%;\n\n    --popover: 200 40% 10%;\n    --popover-foreground: 190 30% 93%;\n\n    --primary: 182 65% 55%;\n    --primary-foreground: 200 50% 8%;\n\n    --secondary: 198 30% 16%;\n    --secondary-foreground: 190 30% 93%;\n\n    --muted: 198 30% 16%;\n    --muted-foreground: 192 18% 62%;\n\n    --accent: 196 32% 19%;\n    --accent-foreground: 190 30% 93%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 198 28% 19%;\n    --input: 198 28% 19%;\n    --ring: 182 65% 55%;\n  }\n\n  /* ============================================================\n   * Forest theme \u2014 deep green on pale moss\n   * Applied via class=\"theme-forest\" on <html>\n   * ============================================================ */\n  .theme-forest {\n    --background: 100 20% 97%;\n    --foreground: 140 30% 10%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 140 30% 10%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 140 30% 10%;\n\n    --primary: 150 45% 28%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 110 18% 92%;\n    --secondary-foreground: 140 30% 10%;\n\n    --muted: 110 18% 92%;\n    --muted-foreground: 130 12% 42%;\n\n    --accent: 140 30% 88%;\n    --accent-foreground: 140 30% 10%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 110 14% 86%;\n    --input: 110 14% 86%;\n    --ring: 150 45% 32%;\n  }\n\n  /* Dark Forest variant */\n  .dark.theme-forest {\n    --background: 150 25% 7%;\n    --foreground: 100 20% 93%;\n\n    --card: 150 22% 10%;\n    --card-foreground: 100 20% 93%;\n\n    --popover: 150 22% 10%;\n    --popover-foreground: 100 20% 93%;\n\n    --primary: 145 50% 58%;\n    --primary-foreground: 150 40% 8%;\n\n    --secondary: 148 18% 16%;\n    --secondary-foreground: 100 20% 93%;\n\n    --muted: 148 18% 16%;\n    --muted-foreground: 120 10% 62%;\n\n    --accent: 148 20% 19%;\n    --accent-foreground: 100 20% 93%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 148 16% 19%;\n    --input: 148 16% 19%;\n    --ring: 145 50% 58%;\n  }\n\n  /* ============================================================\n   * Olive theme \u2014 khaki primary on warm sand neutrals\n   * Applied via class=\"theme-olive\" on <html>\n   * ============================================================ */\n  .theme-olive {\n    --background: 60 25% 96%;\n    --foreground: 70 20% 12%;\n\n    --card: 60 30% 99%;\n    --card-foreground: 70 20% 12%;\n\n    --popover: 60 30% 99%;\n    --popover-foreground: 70 20% 12%;\n\n    --primary: 75 40% 32%;\n    --primary-foreground: 60 30% 97%;\n\n    --secondary: 60 20% 90%;\n    --secondary-foreground: 70 20% 12%;\n\n    --muted: 60 20% 90%;\n    --muted-foreground: 70 10% 42%;\n\n    --accent: 72 30% 85%;\n    --accent-foreground: 70 20% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 60 15% 84%;\n    --input: 60 15% 84%;\n    --ring: 75 40% 36%;\n  }\n\n  /* Dark Olive variant */\n  .dark.theme-olive {\n    --background: 70 15% 8%;\n    --foreground: 60 20% 92%;\n\n    --card: 70 14% 11%;\n    --card-foreground: 60 20% 92%;\n\n    --popover: 70 14% 11%;\n    --popover-foreground: 60 20% 92%;\n\n    --primary: 78 45% 60%;\n    --primary-foreground: 75 30% 8%;\n\n    --secondary: 70 10% 17%;\n    --secondary-foreground: 60 20% 92%;\n\n    --muted: 70 10% 17%;\n    --muted-foreground: 65 8% 62%;\n\n    --accent: 72 14% 20%;\n    --accent-foreground: 60 20% 92%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 70 10% 20%;\n    --input: 70 10% 20%;\n    --ring: 78 45% 60%;\n  }\n\n  /* ============================================================\n   * Honey theme \u2014 amber primary on cream\n   * Applied via class=\"theme-honey\" on <html>\n   * ============================================================ */\n  .theme-honey {\n    --background: 42 60% 97%;\n    --foreground: 30 40% 10%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 30 40% 10%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 30 40% 10%;\n\n    --primary: 36 90% 45%;\n    --primary-foreground: 30 50% 8%;\n\n    --secondary: 42 50% 91%;\n    --secondary-foreground: 30 40% 10%;\n\n    --muted: 42 50% 91%;\n    --muted-foreground: 34 20% 42%;\n\n    --accent: 40 80% 86%;\n    --accent-foreground: 30 40% 10%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 40 40% 85%;\n    --input: 40 40% 85%;\n    --ring: 36 90% 45%;\n  }\n\n  /* Dark Honey variant */\n  .dark.theme-honey {\n    --background: 30 30% 7%;\n    --foreground: 42 40% 93%;\n\n    --card: 30 26% 10%;\n    --card-foreground: 42 40% 93%;\n\n    --popover: 30 26% 10%;\n    --popover-foreground: 42 40% 93%;\n\n    --primary: 40 95% 60%;\n    --primary-foreground: 30 50% 8%;\n\n    --secondary: 32 20% 16%;\n    --secondary-foreground: 42 40% 93%;\n\n    --muted: 32 20% 16%;\n    --muted-foreground: 38 18% 62%;\n\n    --accent: 34 26% 19%;\n    --accent-foreground: 42 40% 93%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 32 20% 19%;\n    --input: 32 20% 19%;\n    --ring: 40 95% 60%;\n  }\n\n  /* ============================================================\n   * Clay theme \u2014 terracotta primary on warm earth neutrals\n   * Applied via class=\"theme-clay\" on <html>\n   * ============================================================ */\n  .theme-clay {\n    --background: 28 40% 95%;\n    --foreground: 20 30% 12%;\n\n    --card: 30 45% 98%;\n    --card-foreground: 20 30% 12%;\n\n    --popover: 30 45% 98%;\n    --popover-foreground: 20 30% 12%;\n\n    --primary: 16 65% 45%;\n    --primary-foreground: 30 40% 97%;\n\n    --secondary: 28 30% 89%;\n    --secondary-foreground: 20 30% 12%;\n\n    --muted: 28 30% 89%;\n    --muted-foreground: 22 15% 42%;\n\n    --accent: 20 50% 86%;\n    --accent-foreground: 20 30% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 26 25% 83%;\n    --input: 26 25% 83%;\n    --ring: 16 65% 45%;\n  }\n\n  /* Dark Clay variant */\n  .dark.theme-clay {\n    --background: 20 22% 8%;\n    --foreground: 28 30% 92%;\n\n    --card: 20 20% 11%;\n    --card-foreground: 28 30% 92%;\n\n    --popover: 20 20% 11%;\n    --popover-foreground: 28 30% 92%;\n\n    --primary: 18 75% 62%;\n    --primary-foreground: 20 40% 8%;\n\n    --secondary: 22 16% 17%;\n    --secondary-foreground: 28 30% 92%;\n\n    --muted: 22 16% 17%;\n    --muted-foreground: 26 12% 62%;\n\n    --accent: 20 20% 20%;\n    --accent-foreground: 28 30% 92%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 22 16% 20%;\n    --input: 22 16% 20%;\n    --ring: 18 75% 62%;\n  }\n\n  /* ============================================================\n   * Coral theme \u2014 vivid coral on near-white\n   * Applied via class=\"theme-coral\" on <html>\n   * ============================================================ */\n  .theme-coral {\n    --background: 10 60% 98%;\n    --foreground: 350 30% 12%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 350 30% 12%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 350 30% 12%;\n\n    --primary: 6 85% 58%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 10 50% 93%;\n    --secondary-foreground: 350 30% 12%;\n\n    --muted: 10 50% 93%;\n    --muted-foreground: 5 18% 46%;\n\n    --accent: 8 80% 90%;\n    --accent-foreground: 350 30% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 8 40% 88%;\n    --input: 8 40% 88%;\n    --ring: 6 85% 58%;\n  }\n\n  /* Dark Coral variant */\n  .dark.theme-coral {\n    --background: 350 25% 7%;\n    --foreground: 10 40% 94%;\n\n    --card: 350 22% 10%;\n    --card-foreground: 10 40% 94%;\n\n    --popover: 350 22% 10%;\n    --popover-foreground: 10 40% 94%;\n\n    --primary: 8 90% 66%;\n    --primary-foreground: 350 40% 8%;\n\n    --secondary: 352 18% 17%;\n    --secondary-foreground: 10 40% 94%;\n\n    --muted: 352 18% 17%;\n    --muted-foreground: 5 14% 64%;\n\n    --accent: 355 22% 20%;\n    --accent-foreground: 10 40% 94%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 352 18% 20%;\n    --input: 352 18% 20%;\n    --ring: 8 90% 66%;\n  }\n\n  /* ============================================================\n   * Violet theme \u2014 saturated violet, product-tool feel\n   * Applied via class=\"theme-violet\" on <html>\n   * ============================================================ */\n  .theme-violet {\n    --background: 260 40% 98%;\n    --foreground: 262 40% 12%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 262 40% 12%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 262 40% 12%;\n\n    --primary: 265 70% 52%;\n    --primary-foreground: 0 0% 100%;\n\n    --secondary: 260 30% 93%;\n    --secondary-foreground: 262 40% 12%;\n\n    --muted: 260 30% 93%;\n    --muted-foreground: 262 14% 46%;\n\n    --accent: 262 60% 91%;\n    --accent-foreground: 262 40% 12%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 260 24% 88%;\n    --input: 260 24% 88%;\n    --ring: 265 70% 52%;\n  }\n\n  /* Dark Violet variant */\n  .dark.theme-violet {\n    --background: 262 30% 7%;\n    --foreground: 260 30% 94%;\n\n    --card: 262 26% 10%;\n    --card-foreground: 260 30% 94%;\n\n    --popover: 262 26% 10%;\n    --popover-foreground: 260 30% 94%;\n\n    --primary: 268 80% 72%;\n    --primary-foreground: 262 40% 8%;\n\n    --secondary: 262 20% 17%;\n    --secondary-foreground: 260 30% 94%;\n\n    --muted: 262 20% 17%;\n    --muted-foreground: 260 14% 64%;\n\n    --accent: 264 24% 20%;\n    --accent-foreground: 260 30% 94%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 262 20% 20%;\n    --input: 262 20% 20%;\n    --ring: 268 80% 72%;\n  }\n\n  /* ============================================================\n   * Graphite theme \u2014 pure achromatic black & white, max contrast\n   * Applied via class=\"theme-graphite\" on <html>\n   * ============================================================ */\n  .theme-graphite {\n    --background: 0 0% 100%;\n    --foreground: 0 0% 7%;\n\n    --card: 0 0% 100%;\n    --card-foreground: 0 0% 7%;\n\n    --popover: 0 0% 100%;\n    --popover-foreground: 0 0% 7%;\n\n    --primary: 0 0% 9%;\n    --primary-foreground: 0 0% 98%;\n\n    --secondary: 0 0% 94%;\n    --secondary-foreground: 0 0% 7%;\n\n    --muted: 0 0% 94%;\n    --muted-foreground: 0 0% 42%;\n\n    --accent: 0 0% 90%;\n    --accent-foreground: 0 0% 7%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 0 0% 85%;\n    --input: 0 0% 85%;\n    --ring: 0 0% 9%;\n  }\n\n  /* Dark Graphite variant */\n  .dark.theme-graphite {\n    --background: 0 0% 5%;\n    --foreground: 0 0% 95%;\n\n    --card: 0 0% 8%;\n    --card-foreground: 0 0% 95%;\n\n    --popover: 0 0% 8%;\n    --popover-foreground: 0 0% 95%;\n\n    --primary: 0 0% 95%;\n    --primary-foreground: 0 0% 8%;\n\n    --secondary: 0 0% 14%;\n    --secondary-foreground: 0 0% 95%;\n\n    --muted: 0 0% 14%;\n    --muted-foreground: 0 0% 62%;\n\n    --accent: 0 0% 18%;\n    --accent-foreground: 0 0% 95%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 0 0% 18%;\n    --input: 0 0% 18%;\n    --ring: 0 0% 80%;\n  }\n\n  /* ============================================================\n   * Paper theme \u2014 parchment ground with ink-brown primary\n   * Applied via class=\"theme-paper\" on <html>\n   * ============================================================ */\n  .theme-paper {\n    --background: 40 35% 93%;\n    --foreground: 30 30% 15%;\n\n    --card: 42 45% 97%;\n    --card-foreground: 30 30% 15%;\n\n    --popover: 42 45% 97%;\n    --popover-foreground: 30 30% 15%;\n\n    --primary: 24 40% 28%;\n    --primary-foreground: 42 40% 96%;\n\n    --secondary: 40 28% 87%;\n    --secondary-foreground: 30 30% 15%;\n\n    --muted: 40 28% 87%;\n    --muted-foreground: 32 14% 42%;\n\n    --accent: 38 35% 82%;\n    --accent-foreground: 30 30% 15%;\n\n    --destructive: 0 84% 60%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 36 22% 80%;\n    --input: 36 22% 80%;\n    --ring: 24 40% 28%;\n  }\n\n  /* Dark Paper variant */\n  .dark.theme-paper {\n    --background: 30 15% 9%;\n    --foreground: 40 25% 88%;\n\n    --card: 30 14% 12%;\n    --card-foreground: 40 25% 88%;\n\n    --popover: 30 14% 12%;\n    --popover-foreground: 40 25% 88%;\n\n    --primary: 38 45% 72%;\n    --primary-foreground: 30 20% 8%;\n\n    --secondary: 30 10% 18%;\n    --secondary-foreground: 40 25% 88%;\n\n    --muted: 30 10% 18%;\n    --muted-foreground: 36 10% 60%;\n\n    --accent: 32 12% 22%;\n    --accent-foreground: 40 25% 88%;\n\n    --destructive: 0 70% 52%;\n    --destructive-foreground: 0 0% 98%;\n\n    --border: 30 10% 21%;\n    --input: 30 10% 21%;\n    --ring: 38 45% 72%;\n  }\n";
+
+const state = { design: "d1", theme: "slate", dark: false };
+try { Object.assign(state, JSON.parse(localStorage.getItem("todolist-gallery") || "{}")); } catch (e) {}
+function save() { try { localStorage.setItem("todolist-gallery", JSON.stringify(state)); } catch (e) {} }
+
+const $ = (s) => document.querySelector(s);
+const stage = $("#stage"), viewport = $("#g-viewport");
+
+function hslc(v) { const p = v.split(" "); return `hsl(${p[0]} ${p[1]} ${p[2]})`; }
+
+function renderRails() {
+  $("#g-designs").innerHTML = DESIGNS.map((d, i) =>
+    `<button data-d="${d.id}" aria-pressed="${d.id === state.design}"><span class="n">${String(i + 1).padStart(2, "0")}</span><span><b>${d.name}</b><small>${d.tag}</small></span></button>`).join("");
+  $("#g-themes").innerHTML = ALL_THEMES.map((t) => {
+    const p = state.dark ? t.dark : t.light;
+    return `<button data-t="${t.id}" aria-pressed="${t.id === state.theme}"><span class="sw"><i style="background:${hslc(p.bg)}"></i><i style="background:${hslc(p.primary)}"></i><i style="background:${hslc(p.accent)}"></i><i style="background:${hslc(p.fg)}"></i></span><span><b>${t.label} <span style="font-weight:400;color:var(--g-muted)">· ${t.ru}</span></b><small>${t.tag}</small></span></button>`;
+  }).join("");
+}
+
+function apply() {
+  stage.className = "stage" + (state.theme ? " theme-" + state.theme : "") + (state.dark ? " dark" : "");
+  document.querySelectorAll(".mock").forEach((m) => m.classList.toggle("on", m.id === state.design));
+  document.querySelectorAll("#g-designs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.d === state.design));
+  document.querySelectorAll("#g-themes button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.t === state.theme));
+  $("#b-light").setAttribute("aria-pressed", !state.dark); $("#b-dark").setAttribute("aria-pressed", state.dark);
+  const d = DESIGNS.find((x) => x.id === state.design), t = ALL_THEMES.find((x) => x.id === state.theme) || CURRENT;
+  const i = DESIGNS.indexOf(d) + 1;
+  $("#g-desc").innerHTML = `<div><h3>${String(i).padStart(2, "0")} · ${d.name} — ${d.tag}</h3><p>${d.desc}</p></div>
+    <dl><dt>Что меняется в UX</dt><dd>${d.ux}</dd><dt>Шрифты</dt><dd>${d.fonts}</dd><dt>Тема на превью</dt><dd>${t.label}${t.id ? " (<code>theme-" + t.id + "</code>)" : ""} · ${state.dark ? "dark" : "light"}</dd></dl>`;
+  $("#g-status").textContent = `${d.name} · ${t.label} · ${state.dark ? "dark" : "light"}`;
+  $("#g-url").textContent = "todo.blonskyi.dev/en" + (state.design === "d1" || state.design === "d2" || state.design === "d10" ? "" : state.design === "d5" ? "/overview" : state.design === "d3" ? "/week" : "");
+  $("#g-code").textContent = t.css || "/* текущая тема уже в globals.css */";
+  save(); fit();
+}
+
+function fit() {
+  const w = viewport.clientWidth || 1180;
+  const s = Math.min(1, w / 1180);
+  stage.style.transform = "scale(" + s + ")";
+  viewport.style.height = Math.ceil(stage.offsetHeight * s) + "px";
+}
+
+function copy(text, label) {
+  const done = () => { const t = $("#g-toast"); t.textContent = label; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1600); };
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, () => fallback()); } else fallback();
+  function fallback() { const ta = $("#g-clip"); ta.value = text; ta.select(); try { document.execCommand("copy"); done(); } catch (e) { const det = $("#g-code").closest("details"); det.open = true; } }
+}
+
+renderRails();
+$("#g-designs").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { state.design = b.dataset.d; apply(); } });
+$("#g-themes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { state.theme = b.dataset.t; apply(); } });
+$("#b-light").addEventListener("click", () => { state.dark = false; renderRails(); apply(); });
+$("#b-dark").addEventListener("click", () => { state.dark = true; renderRails(); apply(); });
+$("#copy-one").addEventListener("click", () => { const t = THEMES.find((x) => x.id === state.theme); copy(t ? t.css : ALL_CSS, t ? "Тема " + t.label + " скопирована" : "Скопированы все темы"); });
+$("#copy-all").addEventListener("click", () => copy(ALL_CSS, "Все 10 тем скопированы"));
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input,textarea")) return;
+  const i = DESIGNS.findIndex((d) => d.id === state.design);
+  if (e.key === "ArrowRight" || e.key === "j") { state.design = DESIGNS[(i + 1) % DESIGNS.length].id; apply(); }
+  if (e.key === "ArrowLeft" || e.key === "k") { state.design = DESIGNS[(i + DESIGNS.length - 1) % DESIGNS.length].id; apply(); }
+  if (e.key === "t") { const j = ALL_THEMES.findIndex((t) => t.id === state.theme); state.theme = ALL_THEMES[(j + 1) % ALL_THEMES.length].id; apply(); }
+  if (e.key === "d") { state.dark = !state.dark; renderRails(); apply(); }
+});
+window.addEventListener("resize", fit);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+apply();
+setTimeout(fit, 300); setTimeout(fit, 1500);
+</script>

@@ -1,39 +1,32 @@
-import { graphqlFetch } from '@shared/lib/graphql-client';
-import { ListSummary } from '@shared/types/lists';
-import { TodosList } from '@features/todos-list';
-import type { PendingInvite } from '@features/list-sharing';
-import type { Category } from '@features/categories';
+import { getAppearance } from '@features/preferences/server';
+import { getLayoutViews } from '@/layouts/registry';
+import {
+  applyCategoryFilter,
+  fetchNavData,
+  parseCategoryFilter,
+} from '@/layouts/data';
 
 interface HomePageProps {
   searchParams: Promise<{ categoryId?: string; uncategorized?: string }>;
 }
 
+// Lists overview. Data is the per-request cached nav fetch (shared with the
+// shell); the URL-driven category filter is applied here so the shell keeps
+// seeing every list for its counts.
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { categoryId, uncategorized } = await searchParams;
-  const uncategorizedOnly = uncategorized === 'true';
-
-  const {
-    myLists: lists,
-    pendingInvites,
-    myCategories: categories,
-  } = await graphqlFetch<{
-    myLists: ListSummary[];
-    pendingInvites: PendingInvite[];
-    myCategories: Category[];
-  }>(
-    `query HomePage($categoryId: ID, $uncategorizedOnly: Boolean) {
-      myLists(categoryId: $categoryId, uncategorizedOnly: $uncategorizedOnly) { id title }
-      pendingInvites { id invitedAt list { id title } }
-      myCategories { id name createdAt }
-    }`,
-    { categoryId: categoryId ?? null, uncategorizedOnly },
-  );
+  const [params, nav, appearance] = await Promise.all([
+    searchParams,
+    fetchNavData(),
+    getAppearance(),
+  ]);
+  const filter = parseCategoryFilter(params);
+  const { ListsPage } = getLayoutViews(appearance.layout);
 
   return (
-    <TodosList
-      lists={lists}
-      pendingInvites={pendingInvites}
-      categories={categories}
+    <ListsPage
+      nav={nav}
+      lists={applyCategoryFilter(nav.lists, filter)}
+      filter={filter}
     />
   );
 }

@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import { graphqlFetch, GraphQLRequestError } from '@shared/lib/graphql-client';
-import { ListDetail, type ListDetailData } from '@features/todo-list';
-import type { Category } from '@features/categories';
+import type { ListDetailData } from '@features/todo-list';
+import { getAppearance } from '@features/preferences/server';
+import { getLayoutViews } from '@/layouts/registry';
+import { fetchNavData } from '@/layouts/data';
 
 interface ListDetailPageProps {
   params: Promise<{ id: string }>;
@@ -11,17 +13,9 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
   const { id } = await params;
 
   let list: ListDetailData;
-  let myUserId: string;
-  let googleCalendarConnected: boolean;
-  let categories: Category[];
   try {
-    const data = await graphqlFetch<{
-      me: { id: string; googleCalendarConnected: boolean };
-      list: ListDetailData;
-      myCategories: Category[];
-    }>(
+    const data = await graphqlFetch<{ list: ListDetailData }>(
       `query ListDetail($id: ID!) {
-        me { id googleCalendarConnected }
         list(id: $id) {
           id
           title
@@ -39,14 +33,10 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
           comments { id body createdAt author { id email name } }
           myCategory { id name }
         }
-        myCategories { id name createdAt }
       }`,
       { id },
     );
     list = data.list;
-    myUserId = data.me.id;
-    googleCalendarConnected = data.me.googleCalendarConnected;
-    categories = data.myCategories;
   } catch (error) {
     if (error instanceof GraphQLRequestError) {
       notFound();
@@ -54,12 +44,11 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
     throw error;
   }
 
-  return (
-    <ListDetail
-      list={list}
-      myUserId={myUserId}
-      googleCalendarConnected={googleCalendarConnected}
-      categories={categories}
-    />
-  );
+  const [nav, appearance] = await Promise.all([
+    fetchNavData(),
+    getAppearance(),
+  ]);
+  const { ListDetailPage: View } = getLayoutViews(appearance.layout);
+
+  return <View nav={nav} list={list} />;
 }

@@ -13,6 +13,8 @@ interface MeQueryResponse {
       name: string | null;
       locale: string;
       theme: string;
+      palette: string;
+      layout: string;
     };
   } | null;
   errors?: { extensions: { code: string } }[];
@@ -38,7 +40,9 @@ describe('me query (GraphQL)', () => {
     const res = await request(app.getHttpServer())
       .post('/graphql')
       .set(headers)
-      .send({ query: 'query { me { id email name locale theme } }' });
+      .send({
+        query: 'query { me { id email name locale theme palette layout } }',
+      });
     return res.body as MeQueryResponse;
   }
 
@@ -62,6 +66,8 @@ describe('me query (GraphQL)', () => {
       name: 'Owner',
       locale: 'en',
       theme: 'light',
+      palette: 'classic',
+      layout: 'workspace',
     });
 
     const rows = await testDb.user.findMany({

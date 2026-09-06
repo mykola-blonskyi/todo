@@ -23,21 +23,56 @@ enum UserLocale {
   es
 }
 
+// Light/dark mode only - the colour palette is a separate axis (UserPalette)
+// since every palette ships both a light and a dark variant. `system` follows
+// the OS preference (resolved client-side by next-themes).
 enum UserTheme {
   light
   dark
-  theme_rose @map("theme-rose")
+  system
+}
+
+// Colour palette, one of the `.theme-*` CSS variable sets in
+// frontend/src/app/globals.css. `classic` is the shadcn default the app
+// shipped with (no class on <html>).
+enum UserPalette {
+  classic
+  rose
+  indigo
+  ocean
+  forest
+  olive
+  honey
+  clay
+  coral
+  violet
+  graphite
+  paper
+}
+
+// App shell / page composition, one of frontend/src/layouts/*. Each is a
+// full UX variant of every screen, not just a skin - see the layouts ADR in
+// docs/decisions.md.
+enum UserLayout {
+  workspace
+  board
+  notebook
+  pocket
+  terminal
+  ledger
 }
 
 model User {
-  id          String     @id @default(uuid())
-  identitySub String     @unique
-  email       String     @unique
+  id          String      @id @default(uuid())
+  identitySub String      @unique
+  email       String      @unique
   name        String?
   image       String?
-  locale      UserLocale @default(en)
-  theme       UserTheme  @default(light)
-  createdAt   DateTime   @default(now())
+  locale      UserLocale  @default(en)
+  theme       UserTheme   @default(light)
+  palette     UserPalette @default(classic)
+  layout      UserLayout  @default(workspace)
+  createdAt   DateTime    @default(now())
 
   ownedLists               List[]
   listShares               ListShare[]

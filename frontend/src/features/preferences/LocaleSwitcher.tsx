@@ -5,12 +5,17 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@shared/lib/i18n/navigation';
 import { locales, type Locale } from '@shared/lib/i18n/config';
 import { updateLocaleAction } from './actions';
+import { preferenceSelectClassName } from './select-class';
 
 // Unlike the hub's own LocaleSwitcher (which always redirects to a fixed
 // page), this navigates to the *same* pathname under the new locale prefix -
 // this header is used from deep List pages, where the hub's shortcut would
 // lose the User's place.
-export function LocaleSwitcher() {
+interface LocaleSwitcherProps {
+  className?: string;
+}
+
+export function LocaleSwitcher({ className }: LocaleSwitcherProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
@@ -31,7 +36,7 @@ export function LocaleSwitcher() {
       onChange={handleChange}
       disabled={isPending}
       aria-label={t('label')}
-      className="h-9 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+      className={preferenceSelectClassName(className)}
     >
       {locales.map((loc) => (
         <option key={loc} value={loc}>

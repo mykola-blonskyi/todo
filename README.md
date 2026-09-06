@@ -17,7 +17,8 @@ schema are in place, and implementation is underway ticket by ticket — see
 - Share a List with other hub-authorized users — they can toggle tasks done and comment, but not
   edit the list's content
 - Optional, one-way, manual sync of due-dated Tasks to your own Google Calendar
-- Themed (light/dark/rose) and localized (en/ru/uk/es), matching the hub
+- Six switchable layouts (Workspace, Board, Notebook, Pocket, Terminal, Ledger), twelve colour
+  palettes, light/dark/system — all per-user; localized (en/ru/uk/es), matching the hub
 
 ## Tech stack
 

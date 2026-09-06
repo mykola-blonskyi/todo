@@ -690,3 +690,95 @@ is presented — and every existing association (Lists, ListShares, ...) keeps p
   `identitySub`) instead of colliding on `User.email`'s unique constraint, which is what the
   original upsert did. This same live verification is what caught the `profile.sub`-vs-`user.id`
   bug above; static review alone would not have.
+
+## ADR-017: Six switchable layouts and twelve colour palettes, as three independent user preferences
+
+Date: 2026-09-06
+
+Status: Accepted
+
+### Context
+The shipped UI was the shadcn default: one centred column, one `theme` select whose three values
+(`light`, `dark`, `theme-rose`) mixed two different things — light/dark *mode* and a colour
+*palette*. A design pass produced ten UX directions and ten palettes as mockups
+(`docs/design/redesign-gallery.html`); six of the directions (Workspace, Board, Notebook, Pocket,
+Terminal, Ledger) and all ten palettes were chosen, with the brief that every screen — not just
+the two the mockups covered — gets a genuine version in each direction, and that the user picks
+the direction like they pick a theme.
+
+### Decision
+**Appearance is three orthogonal axes, each its own `User` column and its own control:**
+
+| axis | values | where it lives | who applies it |
+|---|---|---|---|
+| `theme` (mode) | `light` · `dark` · `system` | `next-themes` (localStorage + `dark` class), mirrored to `User.theme` | client |
+| `palette` | `classic` · `rose` · `indigo` · `ocean` · `forest` · `olive` · `honey` · `clay` · `coral` · `violet` · `graphite` · `paper` | cookie `todolist-palette` + `User.palette` | server renders `<html class="theme-<id>">`; the switcher flips the class synchronously too |
+| `layout` | `workspace` · `board` · `notebook` · `pocket` · `terminal` · `ledger` | cookie `todolist-layout` + `User.layout` | server picks the shell + page components |
+
+The old `theme-rose` value is migrated to `theme=light, palette=rose` (migration
+`20260906210000_add_palette_and_layout_preferences`).
+
+**Palettes are colour only.** Every palette is a `.theme-<id>` block plus a `.dark.theme-<id>`
+block in `globals.css`, the same token contract shadcn already used, so any palette composes with
+either mode and with any layout. `--radius` is deliberately *not* a palette token — it belongs to
+the layout. The palette blocks sit outside `@layer base` because Tailwind v3 tree-shakes `@layer`
+classes it can't find in the content files, and these class names are assembled at runtime.
+
+**Layouts are whole UX variants, not skins.** `frontend/src/layouts/<id>/` implements
+`LayoutViews` (`layouts/types.ts`): a `Shell` (navigation chrome) and one component per screen —
+Lists, List detail, Templates, Template form, Categories, Settings, Login. `layouts/registry.ts`
+maps the id to the views; the route files under `app/[locale]/` only fetch data and delegate. The
+shell and all overview screens share one per-request-cached GraphQL fetch (`layouts/data.ts`,
+`fetchNavData`) so adding a sidebar full of counts costs no extra round-trip. Per-layout
+typography/radius/primitive feel is CSS keyed on `<html data-layout>` (with `ui-*` hook classes on
+the shadcn primitives); the actual behaviour — Server Actions, `TaskRow`, `ShareSearch`,
+`TemplateForm`, comment threads — is shared, composed differently, and restyled through those
+hooks. The List detail page was decomposed into `features/todo-list/ListDetailBlocks.tsx` for
+exactly this reason; the layouts are sync Server Components using `useTranslations`, which also
+makes them renderable under RTL (`tests/layouts.test.tsx` smoke-renders every screen of every
+layout).
+
+**Cookies are the render source of truth; the `User` row is the cross-device backup.** The shell is
+server-rendered, so the server must know the layout before the first byte — a client-only
+preference would flash. `updateLayoutAction`/`updatePaletteAction` set the cookie first (Next.js
+re-renders the route after a cookie-setting Server Action, which is what swaps the shell with no
+reload) and then persist. A browser with no cookie yet (new device) is served from the `User` row
+once (`preferences/server.ts`) and back-fills its cookies client-side.
+
+Default for everyone is `workspace` / `classic` / `light` — the closest to what shipped before.
+
+### Alternatives Considered
+- **One combined `theme` enum of every mode × palette pair** — rejected: 24 values, no way to add
+  `system`, and the palette CSS already ships light and dark blocks per palette; two selects that
+  compose is what the CSS models.
+- **Palette/layout in `localStorage` only, like mode** — rejected: the layout is server-rendered.
+  A client-only value means rendering the default shell and swapping after hydration (a visible
+  flash) or blocking render on a client script. Cookies give the server the value up front.
+- **One layout by default and the others behind `?layout=`** — rejected by the owner: the brief was
+  a real preference, not a comparison mode.
+- **Layout-specific versions of only the two mocked screens** — rejected by the owner (option B):
+  Templates, Categories, Settings and Login each get their own composition per layout; the
+  shared blocks keep that from multiplying the behaviour.
+- **A drag-and-drop library for the Board** — rejected for now: native HTML5 DnD with an
+  optimistic re-file covers "drag a card to another column"; touch DnD and multi-select can come
+  with real demand.
+
+### Consequences
+- New GraphQL mutations `updatePalette` / `updateLayout`; `me` exposes `palette` and `layout`.
+  `UserTheme` gains `system` and loses `theme_rose`.
+- New message namespaces (`Nav`, `Overview`, `Appearance`, `PaletteSwitcher`, `LayoutSwitcher`,
+  `Board`, `Notebook`, `Pocket`, `Terminal`, `Ledger`) in all four locales.
+- Nine Google-Fonts families are self-hosted via `next/font` (one or two per layout); browsers only
+  download the ones the active layout's CSS actually uses.
+- `TaskRow` changed for every layout: secondary actions are icon buttons revealed on hover/focus
+  (always visible on touch), the comment toggle sits inline and the thread opens below — the
+  old always-visible button strip did not survive contact with the narrow Pocket column or the
+  ruled Notebook page.
+- The pre-layouts `Header`, `TodosList`, `ListRow`, `ListDetail`, `TemplatesList`,
+  `CategoriesList` and `ThemeToggle` are gone; their responsibilities live in the shells, the
+  layout pages and `ModeToggle`. Nothing references them.
+- Adding a layout = a folder implementing `LayoutViews`, an id in `features/preferences/types.ts`,
+  a value in `UserLayout`, a `[data-layout]` block in `globals.css`, a label in each locale.
+- Read-side wiring of the persisted `User.theme` (mode) on a fresh device is still not done — mode
+  stays a client/localStorage-first preference exactly as before; only palette and layout are
+  read back from the row.

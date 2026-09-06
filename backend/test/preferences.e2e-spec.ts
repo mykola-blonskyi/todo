@@ -10,7 +10,7 @@ interface GraphQLResponse<T> {
   errors?: { extensions: { code: string } }[];
 }
 
-describe('Theme/locale preferences (GraphQL)', () => {
+describe('Theme/palette/layout/locale preferences (GraphQL)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
@@ -59,6 +59,84 @@ describe('Theme/locale preferences (GraphQL)', () => {
       where: { identitySub: 'hub-1' },
     });
     expect(row.theme).toBe('dark');
+  });
+
+  it("persists the caller's own palette", async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+
+    const body = await graphql<{ updatePalette: { palette: string } }>(
+      `
+        mutation {
+          updatePalette(palette: ocean) {
+            palette
+          }
+        }
+      `,
+      owner,
+    );
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.updatePalette.palette).toBe('ocean');
+
+    const row = await testDb.user.findUniqueOrThrow({
+      where: { identitySub: 'hub-1' },
+    });
+    expect(row.palette).toBe('ocean');
+    // The other appearance axes are independent - untouched by a palette change.
+    expect(row.theme).toBe('light');
+    expect(row.layout).toBe('workspace');
+  });
+
+  it("persists the caller's own layout", async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+
+    const body = await graphql<{ updateLayout: { layout: string } }>(
+      `
+        mutation {
+          updateLayout(layout: terminal) {
+            layout
+          }
+        }
+      `,
+      owner,
+    );
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.updateLayout.layout).toBe('terminal');
+
+    const row = await testDb.user.findUniqueOrThrow({
+      where: { identitySub: 'hub-1' },
+    });
+    expect(row.layout).toBe('terminal');
+  });
+
+  it('accepts `system` as a theme and rejects the retired theme_rose value', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+
+    const ok = await graphql<{ updateTheme: { theme: string } }>(
+      `
+        mutation {
+          updateTheme(theme: system) {
+            theme
+          }
+        }
+      `,
+      owner,
+    );
+    expect(ok.errors).toBeUndefined();
+    expect(ok.data?.updateTheme.theme).toBe('system');
+
+    const rejected = await graphql<{ updateTheme: unknown }>(
+      `
+        mutation {
+          updateTheme(theme: theme_rose) {
+            theme
+          }
+        }
+      `,
+      owner,
+    );
+    expect(rejected.errors).toBeDefined();
   });
 
   it("persists the caller's own locale", async () => {

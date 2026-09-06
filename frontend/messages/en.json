@@ -3,13 +3,24 @@
     "appName": "todolist"
   },
   "Nav": {
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "primary": "Main navigation",
+    "lists": "Lists",
+    "allLists": "All lists",
+    "templates": "Recurring",
+    "categories": "Categories",
+    "settings": "Settings",
+    "uncategorized": "Uncategorized",
+    "pendingInvites": "Invites",
+    "selectList": "Select a list",
+    "selectListHint": "Pick a list on the left, or create a new one to get started.",
+    "back": "Back"
   },
   "ThemeSwitcher": {
-    "toggleTheme": "Toggle theme",
+    "toggleTheme": "Mode",
     "light": "Light",
     "dark": "Dark",
-    "rose": "Rose"
+    "system": "System"
   },
   "LocaleSwitcher": {
     "label": "Switch language",
@@ -24,7 +35,10 @@
     "connectButton": "Connect Google Calendar",
     "connected": "Connected",
     "connectSuccess": "Google Calendar connected.",
-    "connectError": "Couldn't connect Google Calendar. Please try again."
+    "connectError": "Couldn't connect Google Calendar. Please try again.",
+    "appearanceTitle": "Appearance",
+    "accountTitle": "Account",
+    "signedInAs": "Signed in as {email}"
   },
   "Lists": {
     "title": "Your Lists",
@@ -38,7 +52,8 @@
     "deleteButton": "Delete",
     "deleteConfirm": "Delete this list? This can't be undone.",
     "generatedFromTemplate": "Generated from a recurring template",
-    "dueDateLabel": "Due date"
+    "dueDateLabel": "Due date",
+    "titleLabel": "List title"
   },
   "Tasks": {
     "title": "Tasks",
@@ -148,5 +163,145 @@
     "signInButton": "Continue to login.blonskyi.dev",
     "signInError": "Couldn't prepare the sign-in form. Please try again.",
     "retryButton": "Try again"
+  },
+  "PaletteSwitcher": {
+    "label": "Palette",
+    "classic": "Classic",
+    "rose": "Rose",
+    "indigo": "Indigo",
+    "ocean": "Ocean",
+    "forest": "Forest",
+    "olive": "Olive",
+    "honey": "Honey",
+    "clay": "Clay",
+    "coral": "Coral",
+    "violet": "Violet",
+    "graphite": "Graphite",
+    "paper": "Paper"
+  },
+  "LayoutSwitcher": {
+    "label": "Layout",
+    "workspace": "Workspace",
+    "board": "Board",
+    "notebook": "Notebook",
+    "pocket": "Pocket",
+    "terminal": "Terminal",
+    "ledger": "Ledger"
+  },
+  "Appearance": {
+    "layout": "Layout",
+    "palette": "Palette",
+    "mode": "Mode",
+    "language": "Language",
+    "layoutHint": {
+      "workspace": "Three panes: navigation, lists, detail.",
+      "board": "Kanban board - categories as columns.",
+      "notebook": "A paper notebook with an index and tabs.",
+      "pocket": "Phone-first: tab bar and big targets.",
+      "terminal": "Keyboard-driven text UI.",
+      "ledger": "Dense table with filters and expandable rows."
+    }
+  },
+  "Overview": {
+    "overdue": "Overdue",
+    "dueToday": "Due today",
+    "dueThisWeek": "Due this week",
+    "openTasks": "Open tasks",
+    "doneOf": "{done} of {total} done",
+    "progress": "Progress",
+    "due": "Due",
+    "people": "People",
+    "onlyYou": "Only you",
+    "noDueDate": "No due date",
+    "recurring": "Recurring",
+    "shared": "Shared",
+    "owner": "Owner",
+    "updated": "Updated",
+    "emptyCategory": "No lists here yet.",
+    "emptyFiltered": "No lists match this filter.",
+    "moreTasks": "+{count} more",
+    "tasks": "Tasks",
+    "noTasks": "No tasks yet",
+    "later": "Later",
+    "today": "Today"
+  },
+  "Board": {
+    "invites": "Invites",
+    "addList": "Add list",
+    "dropHint": "Drop to move here",
+    "close": "Close",
+    "cancel": "Cancel"
+  },
+  "Notebook": {
+    "contents": "Contents",
+    "newPage": "start a new page…",
+    "thisWeek": "This week",
+    "nothingDue": "Nothing due — a quiet week.",
+    "invitesSticky": "You've been invited:",
+    "sharedWith": "shared with {names}",
+    "recurringPages": "Recurring pages",
+    "recurringHint": "These pages copy themselves onto the schedule you set.",
+    "tabsHint": "Tabs on the fore-edge of the notebook. Each list can sit behind one tab.",
+    "behindTabs": "Behind each tab",
+    "overdue": "Overdue"
+  },
+  "Pocket": {
+    "newList": "New list",
+    "close": "Close"
+  },
+  "Terminal": {
+    "done": "done",
+    "invites": "invites",
+    "paused": "paused",
+    "none": "none",
+    "listsHint": "j/k move · enter open · : command · ? help",
+    "newList": "new list",
+    "due": "due",
+    "owner": "owner",
+    "you": "you",
+    "other": "shared",
+    "with": "with",
+    "recurring": "recurring",
+    "meta": "meta",
+    "manage": "manage",
+    "commandLabel": "Command",
+    "commandPlaceholder": "type a command — help for the list",
+    "commandHint": "esc clears · : focuses",
+    "usage": "usage: {usage}",
+    "created": "created list “{title}”",
+    "added": "added task “{title}”",
+    "noListOpen": "open a list first",
+    "notFound": "nothing matches “{query}”",
+    "unknown": "unknown command: {command} (try help)",
+    "help": {
+      "new": "create a list",
+      "add": "add a task to the open list",
+      "open": "open the n-th list (or by title)",
+      "keys": "keys: j/k move · x done · e edit · d delete · J/K reorder · enter open"
+    }
+  },
+  "Ledger": {
+    "colList": "List",
+    "colCategory": "Category",
+    "colProgress": "Progress",
+    "colDue": "Due",
+    "colPeople": "People",
+    "colUpdated": "Updated",
+    "colTask": "Task",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "colName": "Name",
+    "colOpenTasks": "Open tasks",
+    "expand": "Expand row",
+    "collapse": "Collapse row",
+    "open": "Open list",
+    "openFull": "Open full page",
+    "filterAll": "All",
+    "quickFilters": "Quick filters",
+    "showing": "Showing {count} of {total}",
+    "footerHint": "Click a column to sort · expand a row to work on its tasks",
+    "invitesTitle": "Pending invites",
+    "fieldTitle": "Title",
+    "fieldMeta": "Category & sync"
   }
 }

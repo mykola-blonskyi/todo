@@ -3,13 +3,24 @@
     "appName": "todolist"
   },
   "Nav": {
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "primary": "Navegación principal",
+    "lists": "Listas",
+    "allLists": "Todas las listas",
+    "templates": "Recurrentes",
+    "categories": "Categorías",
+    "settings": "Ajustes",
+    "uncategorized": "Sin categoría",
+    "pendingInvites": "Invitaciones",
+    "selectList": "Elige una lista",
+    "selectListHint": "Elige una lista a la izquierda o crea una nueva para empezar.",
+    "back": "Atrás"
   },
   "ThemeSwitcher": {
-    "toggleTheme": "Cambiar tema",
+    "toggleTheme": "Modo",
     "light": "Claro",
     "dark": "Oscuro",
-    "rose": "Rosa"
+    "system": "Sistema"
   },
   "LocaleSwitcher": {
     "label": "Cambiar idioma",
@@ -24,7 +35,10 @@
     "connectButton": "Conectar Google Calendar",
     "connected": "Conectado",
     "connectSuccess": "Google Calendar conectado.",
-    "connectError": "No se pudo conectar Google Calendar. Inténtalo de nuevo."
+    "connectError": "No se pudo conectar Google Calendar. Inténtalo de nuevo.",
+    "appearanceTitle": "Apariencia",
+    "accountTitle": "Cuenta",
+    "signedInAs": "Sesión iniciada como {email}"
   },
   "Lists": {
     "title": "Tus listas",
@@ -38,7 +52,8 @@
     "deleteButton": "Eliminar",
     "deleteConfirm": "¿Eliminar esta lista? Esta acción no se puede deshacer.",
     "generatedFromTemplate": "Generada a partir de una plantilla recurrente",
-    "dueDateLabel": "Fecha límite"
+    "dueDateLabel": "Fecha límite",
+    "titleLabel": "Título de la lista"
   },
   "Tasks": {
     "title": "Tareas",
@@ -148,5 +163,145 @@
     "signInButton": "Continuar a login.blonskyi.dev",
     "signInError": "No se pudo preparar el formulario de inicio de sesión. Inténtalo de nuevo.",
     "retryButton": "Reintentar"
+  },
+  "PaletteSwitcher": {
+    "label": "Paleta",
+    "classic": "Clásica",
+    "rose": "Rosa",
+    "indigo": "Índigo",
+    "ocean": "Océano",
+    "forest": "Bosque",
+    "olive": "Oliva",
+    "honey": "Miel",
+    "clay": "Arcilla",
+    "coral": "Coral",
+    "violet": "Violeta",
+    "graphite": "Grafito",
+    "paper": "Papel"
+  },
+  "LayoutSwitcher": {
+    "label": "Diseño",
+    "workspace": "Workspace",
+    "board": "Board",
+    "notebook": "Notebook",
+    "pocket": "Pocket",
+    "terminal": "Terminal",
+    "ledger": "Ledger"
+  },
+  "Appearance": {
+    "layout": "Diseño",
+    "palette": "Paleta",
+    "mode": "Modo",
+    "language": "Idioma",
+    "layoutHint": {
+      "workspace": "Tres paneles: navegación, listas, detalle.",
+      "board": "Tablero kanban: las categorías son columnas.",
+      "notebook": "Un cuaderno de papel con índice y pestañas.",
+      "pocket": "Pensado para el móvil: barra de pestañas y controles grandes.",
+      "terminal": "Interfaz de texto manejada con el teclado.",
+      "ledger": "Tabla densa con filtros y filas desplegables."
+    }
+  },
+  "Overview": {
+    "overdue": "Vencida",
+    "dueToday": "Vence hoy",
+    "dueThisWeek": "Vence esta semana",
+    "openTasks": "Tareas abiertas",
+    "doneOf": "{done} de {total} hechas",
+    "progress": "Progreso",
+    "due": "Vence",
+    "people": "Personas",
+    "onlyYou": "Solo tú",
+    "noDueDate": "Sin fecha",
+    "recurring": "Recurrente",
+    "shared": "Compartida",
+    "owner": "Propietario",
+    "updated": "Actualizada",
+    "emptyCategory": "Aún no hay listas aquí.",
+    "emptyFiltered": "Ninguna lista coincide con este filtro.",
+    "moreTasks": "+{count} más",
+    "tasks": "Tareas",
+    "noTasks": "Aún no hay tareas",
+    "later": "Más adelante",
+    "today": "Hoy"
+  },
+  "Board": {
+    "invites": "Invitaciones",
+    "addList": "Añadir lista",
+    "dropHint": "Suelta para mover aquí",
+    "close": "Cerrar",
+    "cancel": "Cancelar"
+  },
+  "Notebook": {
+    "contents": "Índice",
+    "newPage": "empezar una página nueva…",
+    "thisWeek": "Esta semana",
+    "nothingDue": "Nada vence: una semana tranquila.",
+    "invitesSticky": "Te han invitado:",
+    "sharedWith": "compartida con {names}",
+    "recurringPages": "Páginas recurrentes",
+    "recurringHint": "Estas páginas se copian solas según el calendario que fijes.",
+    "tabsHint": "Pestañas en el canto del cuaderno. Cada lista puede ir detrás de una pestaña.",
+    "behindTabs": "Detrás de cada pestaña",
+    "overdue": "Vencida"
+  },
+  "Pocket": {
+    "newList": "Nueva lista",
+    "close": "Cerrar"
+  },
+  "Terminal": {
+    "done": "hechas",
+    "invites": "invitaciones",
+    "paused": "en pausa",
+    "none": "ninguna",
+    "listsHint": "j/k mover · enter abrir · : comando · ? ayuda",
+    "newList": "nueva lista",
+    "due": "vence",
+    "owner": "propietario",
+    "you": "tú",
+    "other": "compartida",
+    "with": "con",
+    "recurring": "recurrente",
+    "meta": "propiedades",
+    "manage": "gestionar",
+    "commandLabel": "Comando",
+    "commandPlaceholder": "escribe un comando — help muestra la lista",
+    "commandHint": "esc limpia · : enfoca",
+    "usage": "uso: {usage}",
+    "created": "lista «{title}» creada",
+    "added": "tarea «{title}» añadida",
+    "noListOpen": "abre una lista primero",
+    "notFound": "nada coincide con «{query}»",
+    "unknown": "comando desconocido: {command} (prueba help)",
+    "help": {
+      "new": "crear una lista",
+      "add": "añadir una tarea a la lista abierta",
+      "open": "abrir la lista n (o por título)",
+      "keys": "teclas: j/k mover · x hecha · e editar · d borrar · J/K reordenar · enter abrir"
+    }
+  },
+  "Ledger": {
+    "colList": "Lista",
+    "colCategory": "Categoría",
+    "colProgress": "Progreso",
+    "colDue": "Vence",
+    "colPeople": "Personas",
+    "colUpdated": "Actualizada",
+    "colTask": "Tarea",
+    "colStatus": "Estado",
+    "colActions": "Acciones",
+    "colName": "Nombre",
+    "colOpenTasks": "Tareas abiertas",
+    "expand": "Desplegar fila",
+    "collapse": "Plegar fila",
+    "open": "Abrir lista",
+    "openFull": "Abrir página completa",
+    "filterAll": "Todas",
+    "quickFilters": "Filtros rápidos",
+    "showing": "Mostrando {count} de {total}",
+    "footerHint": "Haz clic en una columna para ordenar · despliega una fila para trabajar en sus tareas",
+    "invitesTitle": "Invitaciones pendientes",
+    "fieldTitle": "Título",
+    "fieldMeta": "Categoría y sincronización"
   }
 }

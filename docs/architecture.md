@@ -18,7 +18,8 @@ app) — see [ADR-006](decisions.md) for why the two were merged from separately
 - Let a List owner share it with specific collaborators, who can mark tasks done and comment, but
   not edit the list's content
 - Optional, explicit, one-way sync of individual tasks to each user's own Google Calendar
-- Consistent look and feel with the hub: same shadcn theme set, same four locales
+- Same four locales as the hub; appearance is the user's own choice — six layouts × twelve
+  palettes × light/dark/system, see [ADR-017](decisions.md)
 - Fully self-hosted on the existing VPS via Coolify, alongside the hub and its shared Postgres
 
 ---
@@ -40,7 +41,9 @@ Responsibilities:
 
 Stack: Next.js 16, TypeScript, shadcn/ui, Tailwind CSS v3 (matched to the hub's version so shadcn
 components/theme tokens can be copied directly — see [ADR-007](decisions.md)), `next-themes`
-(light/dark/theme-rose, same as hub), `next-intl` (en/ru/uk/es, URL-based, same as hub)
+(light/dark/system), cookie-backed palette + layout preferences rendered server-side
+(`src/features/preferences`, `src/layouts/*` — [ADR-017](decisions.md)), `next-intl` (en/ru/uk/es,
+URL-based, same as hub)
 
 Dependencies: `login.blonskyi.dev`'s OIDC endpoints (discovery, `/authorize`, `/token`, JWKS), the
 hub's `/api/auth/project-members` endpoint (share-target search only — a deferred dependency, see

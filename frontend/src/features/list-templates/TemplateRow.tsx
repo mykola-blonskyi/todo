@@ -1,16 +1,10 @@
 'use client';
 
-import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
-import { Button } from '@ui/components/button';
 import { Badge } from '@ui/components/badge';
 import { Card, CardContent } from '@ui/components/card';
-import {
-  pauseListTemplateAction,
-  resumeListTemplateAction,
-  deleteListTemplateAction,
-} from './actions';
+import { TemplateActions } from './TemplateActions';
 import { recurrenceSummary } from './recurrence-summary';
 import type { ListTemplate } from './types';
 
@@ -21,7 +15,6 @@ interface TemplateRowProps {
 export function TemplateRow({ template }: TemplateRowProps) {
   const t = useTranslations('ListTemplates');
   const locale = useLocale();
-  const [isPending, startTransition] = useTransition();
 
   const isPaused = template.status === 'paused';
 
@@ -43,38 +36,7 @@ export function TemplateRow({ template }: TemplateRowProps) {
               {recurrenceSummary(template, locale, t)}
             </span>
           </Link>
-          <div className="flex shrink-0 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isPending}
-              onClick={() =>
-                startTransition(() => {
-                  void (isPaused
-                    ? resumeListTemplateAction(template.id)
-                    : pauseListTemplateAction(template.id));
-                })
-              }
-            >
-              {isPaused ? t('resumeButton') : t('pauseButton')}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={isPending}
-              onClick={() => {
-                if (window.confirm(t('deleteConfirm'))) {
-                  startTransition(() => {
-                    void deleteListTemplateAction(template.id);
-                  });
-                }
-              }}
-            >
-              {t('deleteButton')}
-            </Button>
-          </div>
+          <TemplateActions template={template} />
         </CardContent>
       </Card>
     </li>

@@ -1,14 +1,9 @@
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Link } from '@shared/lib/i18n/navigation';
 import { graphqlFetch, GraphQLRequestError } from '@shared/lib/graphql-client';
-import {
-  TemplateForm,
-  TemplateCollaboratorSearch,
-  TemplateCollaboratorsList,
-  type ListTemplate,
-} from '@features/list-templates';
-import { updateListTemplateAction } from '@features/list-templates/actions';
+import type { ListTemplate } from '@features/list-templates';
+import { getAppearance } from '@features/preferences/server';
+import { getLayoutViews } from '@/layouts/registry';
+import { fetchNavData, fetchTemplates, TEMPLATE_FIELDS } from '@/layouts/data';
 
 interface TemplateDetailPageProps {
   params: Promise<{ id: string }>;
@@ -18,26 +13,12 @@ export default async function TemplateDetailPage({
   params,
 }: TemplateDetailPageProps) {
   const { id } = await params;
-  const t = await getTranslations('ListTemplates');
 
   let template: ListTemplate;
   try {
     const data = await graphqlFetch<{ listTemplate: ListTemplate }>(
       `query TemplateDetail($id: ID!) {
-        listTemplate(id: $id) {
-          id
-          title
-          taskTitles
-          recurrenceType
-          weekDays
-          dayOfMonth
-          intervalDays
-          streakDays
-          streakStartDate
-          timezone
-          status
-          collaborators { id email name image }
-        }
+        listTemplate(id: $id) { ${TEMPLATE_FIELDS} }
       }`,
       { id },
     );
@@ -49,38 +30,12 @@ export default async function TemplateDetailPage({
     throw error;
   }
 
-  const updateWithId = updateListTemplateAction.bind(null, template.id);
+  const [templates, nav, appearance] = await Promise.all([
+    fetchTemplates(),
+    fetchNavData(),
+    getAppearance(),
+  ]);
+  const { TemplateFormPage: View } = getLayoutViews(appearance.layout);
 
-  return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-8">
-      <Link
-        href="/templates"
-        className="text-sm text-muted-foreground hover:text-foreground"
-      >
-        ← {t('backToTemplates')}
-      </Link>
-
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {t('editTemplateTitle')}
-      </h1>
-
-      <TemplateForm
-        initialValues={template}
-        onSubmit={updateWithId}
-        submitLabel={t('saveButton')}
-      />
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {t('collaboratorsTitle')}
-        </h2>
-        <TemplateCollaboratorSearch templateId={template.id} />
-      </section>
-
-      <TemplateCollaboratorsList
-        templateId={template.id}
-        collaborators={template.collaborators}
-      />
-    </div>
-  );
+  return <View nav={nav} template={template} templates={templates} />;
 }

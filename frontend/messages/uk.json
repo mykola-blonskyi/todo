@@ -3,13 +3,24 @@
     "appName": "todolist"
   },
   "Nav": {
-    "signOut": "Вийти"
+    "signOut": "Вийти",
+    "primary": "Основна навігація",
+    "lists": "Списки",
+    "allLists": "Усі списки",
+    "templates": "Повторювані",
+    "categories": "Категорії",
+    "settings": "Налаштування",
+    "uncategorized": "Без категорії",
+    "pendingInvites": "Запрошення",
+    "selectList": "Оберіть список",
+    "selectListHint": "Оберіть список ліворуч або створіть новий, щоб почати.",
+    "back": "Назад"
   },
   "ThemeSwitcher": {
-    "toggleTheme": "Змінити тему",
-    "light": "Світла",
-    "dark": "Темна",
-    "rose": "Рожева"
+    "toggleTheme": "Режим",
+    "light": "Світлий",
+    "dark": "Темний",
+    "system": "Системний"
   },
   "LocaleSwitcher": {
     "label": "Змінити мову",
@@ -24,7 +35,10 @@
     "connectButton": "Підключити Google Календар",
     "connected": "Підключено",
     "connectSuccess": "Google Календар підключено.",
-    "connectError": "Не вдалося підключити Google Календар. Спробуйте ще раз."
+    "connectError": "Не вдалося підключити Google Календар. Спробуйте ще раз.",
+    "appearanceTitle": "Оформлення",
+    "accountTitle": "Обліковий запис",
+    "signedInAs": "Ви увійшли як {email}"
   },
   "Lists": {
     "title": "Ваші списки",
@@ -38,7 +52,8 @@
     "deleteButton": "Видалити",
     "deleteConfirm": "Видалити цей список? Це неможливо скасувати.",
     "generatedFromTemplate": "Створено з повторюваного шаблону",
-    "dueDateLabel": "Термін виконання"
+    "dueDateLabel": "Термін виконання",
+    "titleLabel": "Назва списку"
   },
   "Tasks": {
     "title": "Завдання",
@@ -148,5 +163,145 @@
     "signInButton": "Продовжити через login.blonskyi.dev",
     "signInError": "Не вдалося підготувати форму входу. Будь ласка, спробуйте ще раз.",
     "retryButton": "Спробувати ще раз"
+  },
+  "PaletteSwitcher": {
+    "label": "Палітра",
+    "classic": "Класична",
+    "rose": "Троянда",
+    "indigo": "Індиго",
+    "ocean": "Океан",
+    "forest": "Ліс",
+    "olive": "Олива",
+    "honey": "Мед",
+    "clay": "Глина",
+    "coral": "Корал",
+    "violet": "Фіалка",
+    "graphite": "Графіт",
+    "paper": "Папір"
+  },
+  "LayoutSwitcher": {
+    "label": "Лейаут",
+    "workspace": "Workspace",
+    "board": "Board",
+    "notebook": "Notebook",
+    "pocket": "Pocket",
+    "terminal": "Terminal",
+    "ledger": "Ledger"
+  },
+  "Appearance": {
+    "layout": "Лейаут",
+    "palette": "Палітра",
+    "mode": "Режим",
+    "language": "Мова",
+    "layoutHint": {
+      "workspace": "Три панелі: навігація, списки, деталі.",
+      "board": "Канбан-дошка — категорії як колонки.",
+      "notebook": "Паперовий нотатник зі змістом і закладками.",
+      "pocket": "Як на телефоні: таб-бар і великі елементи.",
+      "terminal": "Текстовий інтерфейс, керування з клавіатури.",
+      "ledger": "Щільна таблиця з фільтрами та розгортанням рядків."
+    }
+  },
+  "Overview": {
+    "overdue": "Прострочено",
+    "dueToday": "Термін сьогодні",
+    "dueThisWeek": "Термін цього тижня",
+    "openTasks": "Відкритих задач",
+    "doneOf": "{done} з {total} виконано",
+    "progress": "Прогрес",
+    "due": "Термін",
+    "people": "Учасники",
+    "onlyYou": "Лише ви",
+    "noDueDate": "Без терміну",
+    "recurring": "Повторюваний",
+    "shared": "Спільний",
+    "owner": "Власник",
+    "updated": "Оновлено",
+    "emptyCategory": "Тут поки немає списків.",
+    "emptyFiltered": "Немає списків під цей фільтр.",
+    "moreTasks": "ще {count}",
+    "tasks": "Задачі",
+    "noTasks": "Задач поки немає",
+    "later": "Пізніше",
+    "today": "Сьогодні"
+  },
+  "Board": {
+    "invites": "Запрошення",
+    "addList": "Додати список",
+    "dropHint": "Відпустіть, щоб перемістити сюди",
+    "close": "Закрити",
+    "cancel": "Скасувати"
+  },
+  "Notebook": {
+    "contents": "Зміст",
+    "newPage": "почати нову сторінку…",
+    "thisWeek": "Цього тижня",
+    "nothingDue": "Термінів немає — спокійний тиждень.",
+    "invitesSticky": "Вас запросили:",
+    "sharedWith": "спільний з {names}",
+    "recurringPages": "Повторювані сторінки",
+    "recurringHint": "Ці сторінки копіюють себе за заданим розкладом.",
+    "tabsHint": "Закладки на обрізі нотатника. Кожен список може стояти за однією закладкою.",
+    "behindTabs": "За кожною закладкою",
+    "overdue": "Прострочено"
+  },
+  "Pocket": {
+    "newList": "Новий список",
+    "close": "Закрити"
+  },
+  "Terminal": {
+    "done": "готово",
+    "invites": "запрошень",
+    "paused": "пауза",
+    "none": "немає",
+    "listsHint": "j/k — переміщення · enter — відкрити · : — команда · ? — довідка",
+    "newList": "новий список",
+    "due": "термін",
+    "owner": "власник",
+    "you": "ви",
+    "other": "спільний",
+    "with": "з",
+    "recurring": "повторюваний",
+    "meta": "властивості",
+    "manage": "керування",
+    "commandLabel": "Команда",
+    "commandPlaceholder": "введіть команду — help покаже список",
+    "commandHint": "esc очищає · : фокус",
+    "usage": "використання: {usage}",
+    "created": "створено список «{title}»",
+    "added": "додано задачу «{title}»",
+    "noListOpen": "спочатку відкрийте список",
+    "notFound": "нічого не знайдено за «{query}»",
+    "unknown": "невідома команда: {command} (спробуйте help)",
+    "help": {
+      "new": "створити список",
+      "add": "додати задачу до відкритого списку",
+      "open": "відкрити n-й список (або за назвою)",
+      "keys": "клавіші: j/k — переміщення · x — готово · e — правка · d — видалити · J/K — порядок · enter — відкрити"
+    }
+  },
+  "Ledger": {
+    "colList": "Список",
+    "colCategory": "Категорія",
+    "colProgress": "Прогрес",
+    "colDue": "Термін",
+    "colPeople": "Учасники",
+    "colUpdated": "Оновлено",
+    "colTask": "Задача",
+    "colStatus": "Статус",
+    "colActions": "Дії",
+    "colName": "Назва",
+    "colOpenTasks": "Відкритих задач",
+    "expand": "Розгорнути рядок",
+    "collapse": "Згорнути рядок",
+    "open": "Відкрити список",
+    "openFull": "Відкрити сторінку",
+    "filterAll": "Усі",
+    "quickFilters": "Швидкі фільтри",
+    "showing": "Показано {count} з {total}",
+    "footerHint": "Натисніть на колонку для сортування · розгорніть рядок, щоб працювати із задачами",
+    "invitesTitle": "Очікувані запрошення",
+    "fieldTitle": "Назва",
+    "fieldMeta": "Категорія та синхронізація"
   }
 }

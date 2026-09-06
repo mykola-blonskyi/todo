@@ -1,14 +1,13 @@
-import { graphqlFetch } from '@shared/lib/graphql-client';
-import { CategoriesList, type Category } from '@features/categories';
+import { getAppearance } from '@features/preferences/server';
+import { getLayoutViews } from '@/layouts/registry';
+import { fetchNavData } from '@/layouts/data';
 
 export default async function CategoriesPage() {
-  const { myCategories: categories } = await graphqlFetch<{
-    myCategories: Category[];
-  }>(
-    `query CategoriesPage {
-      myCategories { id name createdAt }
-    }`,
-  );
+  const [nav, appearance] = await Promise.all([
+    fetchNavData(),
+    getAppearance(),
+  ]);
+  const { CategoriesPage: View } = getLayoutViews(appearance.layout);
 
-  return <CategoriesList categories={categories} />;
+  return <View nav={nav} categories={nav.categories} />;
 }

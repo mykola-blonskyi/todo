@@ -1,4 +1,4 @@
-export { CategoriesList } from './CategoriesList';
+export { CategoryRow } from './CategoryRow';
 export { CategoryFilter } from './CategoryFilter';
 export {
   createCategoryAction,
@@ -6,3 +6,4 @@ export {
   deleteCategoryAction,
 } from './actions';
 export type { Category } from './types';
+export { CategoryCreateForm } from './CategoryCreateForm';

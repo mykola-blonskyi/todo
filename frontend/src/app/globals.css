@@ -70,73 +70,730 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
+}
 
-  /* ============================================================
-   * Rose theme — soft pink/rose palette
-   * Applied via class="theme-rose" on <html>
-   * ============================================================ */
-  .theme-rose {
-    --background: 351 100% 97%; /* rose-50 */
-    --foreground: 336 69% 17%; /* rose-950 */
+/* Palettes live OUTSIDE @layer base on purpose: Tailwind v3 tree-shakes
+ * classes declared inside @layer that it can't find in the content files, and
+ * these class names are assembled at runtime (`theme-${palette}`). */
+/* ============================================================
+ * Rose theme — soft pink/rose palette
+ * Applied via class="theme-rose" on <html>
+ * ============================================================ */
+.theme-rose {
+  --background: 351 100% 97%; /* rose-50 */
+  --foreground: 336 69% 17%; /* rose-950 */
 
-    --card: 355 100% 96%; /* rose-50 slightly warm */
-    --card-foreground: 336 69% 17%;
+  --card: 355 100% 96%; /* rose-50 slightly warm */
+  --card-foreground: 336 69% 17%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 336 69% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 336 69% 17%;
 
-    --primary: 347 77% 50%; /* rose-500 */
-    --primary-foreground: 0 0% 100%;
+  --primary: 347 77% 50%; /* rose-500 */
+  --primary-foreground: 0 0% 100%;
 
-    --secondary: 351 78% 92%; /* rose-100 */
-    --secondary-foreground: 336 69% 17%;
+  --secondary: 351 78% 92%; /* rose-100 */
+  --secondary-foreground: 336 69% 17%;
 
-    --muted: 351 78% 92%;
-    --muted-foreground: 338 28% 50%; /* rose-500 desaturated */
+  --muted: 351 78% 92%;
+  --muted-foreground: 338 28% 50%; /* rose-500 desaturated */
 
-    --accent: 347 90% 88%; /* rose-200 */
-    --accent-foreground: 336 69% 17%;
+  --accent: 347 90% 88%; /* rose-200 */
+  --accent-foreground: 336 69% 17%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
 
-    --border: 347 77% 85%; /* rose-200 */
-    --input: 347 77% 85%;
-    --ring: 347 77% 50%;
+  --border: 347 77% 85%; /* rose-200 */
+  --input: 347 77% 85%;
+  --ring: 347 77% 50%;
+}
 
-    --radius: 0.5rem;
-  }
+/* Dark rose variant */
+.dark.theme-rose {
+  --background: 336 69% 8%;
+  --foreground: 351 100% 95%;
 
-  /* Dark rose variant */
-  .dark.theme-rose {
-    --background: 336 69% 8%;
-    --foreground: 351 100% 95%;
+  --card: 336 69% 10%;
+  --card-foreground: 351 100% 95%;
 
-    --card: 336 69% 10%;
-    --card-foreground: 351 100% 95%;
+  --popover: 336 69% 8%;
+  --popover-foreground: 351 100% 95%;
 
-    --popover: 336 69% 8%;
-    --popover-foreground: 351 100% 95%;
+  --primary: 347 77% 60%;
+  --primary-foreground: 0 0% 100%;
 
-    --primary: 347 77% 60%;
-    --primary-foreground: 0 0% 100%;
+  --secondary: 336 30% 18%;
+  --secondary-foreground: 351 100% 95%;
 
-    --secondary: 336 30% 18%;
-    --secondary-foreground: 351 100% 95%;
+  --muted: 336 30% 18%;
+  --muted-foreground: 347 40% 65%;
 
-    --muted: 336 30% 18%;
-    --muted-foreground: 347 40% 65%;
+  --accent: 336 30% 18%;
+  --accent-foreground: 351 100% 95%;
 
-    --accent: 336 30% 18%;
-    --accent-foreground: 351 100% 95%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+  --border: 336 30% 20%;
+  --input: 336 30% 20%;
+  --ring: 347 77% 60%;
+}
 
-    --border: 336 30% 20%;
-    --input: 336 30% 20%;
-    --ring: 347 77% 60%;
-  }
+/* ============================================================
+ * Palettes (docs/decisions.md ADR-017) — one `.theme-<id>` light block and one
+ * `.dark.theme-<id>` dark block per palette, same token contract as the
+ * blocks above. Colour only: --radius belongs to the layout, below.
+ * Ids match backend UserPalette / features/preferences/types.ts.
+ * ============================================================ */
+/* ============================================================
+ * Indigo theme — cool blue-grey neutrals with an indigo accent
+ * Applied via class="theme-indigo" on <html>
+ * ============================================================ */
+.theme-indigo {
+  --background: 220 20% 98%;
+  --foreground: 222 30% 12%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 30% 12%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 30% 12%;
+
+  --primary: 234 60% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 18% 93%;
+  --secondary-foreground: 222 30% 12%;
+
+  --muted: 220 18% 93%;
+  --muted-foreground: 220 12% 45%;
+
+  --accent: 230 40% 92%;
+  --accent-foreground: 222 30% 12%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 220 16% 88%;
+  --input: 220 16% 88%;
+  --ring: 234 60% 50%;
+}
+
+/* Dark Indigo variant */
+.dark.theme-indigo {
+  --background: 224 24% 8%;
+  --foreground: 220 20% 94%;
+
+  --card: 224 22% 11%;
+  --card-foreground: 220 20% 94%;
+
+  --popover: 224 22% 11%;
+  --popover-foreground: 220 20% 94%;
+
+  --primary: 234 70% 68%;
+  --primary-foreground: 226 40% 10%;
+
+  --secondary: 224 18% 17%;
+  --secondary-foreground: 220 20% 94%;
+
+  --muted: 224 18% 17%;
+  --muted-foreground: 220 12% 62%;
+
+  --accent: 228 24% 20%;
+  --accent-foreground: 220 20% 94%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 224 16% 20%;
+  --input: 224 16% 20%;
+  --ring: 234 70% 68%;
+}
+
+/* ============================================================
+ * Ocean theme — teal primary on airy aqua neutrals
+ * Applied via class="theme-ocean" on <html>
+ * ============================================================ */
+.theme-ocean {
+  --background: 190 40% 97%;
+  --foreground: 200 50% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 200 50% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 50% 10%;
+
+  --primary: 186 72% 32%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 190 35% 92%;
+  --secondary-foreground: 200 50% 10%;
+
+  --muted: 190 35% 92%;
+  --muted-foreground: 196 20% 42%;
+
+  --accent: 184 50% 88%;
+  --accent-foreground: 200 50% 10%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 190 28% 86%;
+  --input: 190 28% 86%;
+  --ring: 186 72% 36%;
+}
+
+/* Dark Ocean variant */
+.dark.theme-ocean {
+  --background: 200 45% 7%;
+  --foreground: 190 30% 93%;
+
+  --card: 200 40% 10%;
+  --card-foreground: 190 30% 93%;
+
+  --popover: 200 40% 10%;
+  --popover-foreground: 190 30% 93%;
+
+  --primary: 182 65% 55%;
+  --primary-foreground: 200 50% 8%;
+
+  --secondary: 198 30% 16%;
+  --secondary-foreground: 190 30% 93%;
+
+  --muted: 198 30% 16%;
+  --muted-foreground: 192 18% 62%;
+
+  --accent: 196 32% 19%;
+  --accent-foreground: 190 30% 93%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 198 28% 19%;
+  --input: 198 28% 19%;
+  --ring: 182 65% 55%;
+}
+
+/* ============================================================
+ * Forest theme — deep green on pale moss
+ * Applied via class="theme-forest" on <html>
+ * ============================================================ */
+.theme-forest {
+  --background: 100 20% 97%;
+  --foreground: 140 30% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 140 30% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 140 30% 10%;
+
+  --primary: 150 45% 28%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 110 18% 92%;
+  --secondary-foreground: 140 30% 10%;
+
+  --muted: 110 18% 92%;
+  --muted-foreground: 130 12% 42%;
+
+  --accent: 140 30% 88%;
+  --accent-foreground: 140 30% 10%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 110 14% 86%;
+  --input: 110 14% 86%;
+  --ring: 150 45% 32%;
+}
+
+/* Dark Forest variant */
+.dark.theme-forest {
+  --background: 150 25% 7%;
+  --foreground: 100 20% 93%;
+
+  --card: 150 22% 10%;
+  --card-foreground: 100 20% 93%;
+
+  --popover: 150 22% 10%;
+  --popover-foreground: 100 20% 93%;
+
+  --primary: 145 50% 58%;
+  --primary-foreground: 150 40% 8%;
+
+  --secondary: 148 18% 16%;
+  --secondary-foreground: 100 20% 93%;
+
+  --muted: 148 18% 16%;
+  --muted-foreground: 120 10% 62%;
+
+  --accent: 148 20% 19%;
+  --accent-foreground: 100 20% 93%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 148 16% 19%;
+  --input: 148 16% 19%;
+  --ring: 145 50% 58%;
+}
+
+/* ============================================================
+ * Olive theme — khaki primary on warm sand neutrals
+ * Applied via class="theme-olive" on <html>
+ * ============================================================ */
+.theme-olive {
+  --background: 60 25% 96%;
+  --foreground: 70 20% 12%;
+
+  --card: 60 30% 99%;
+  --card-foreground: 70 20% 12%;
+
+  --popover: 60 30% 99%;
+  --popover-foreground: 70 20% 12%;
+
+  --primary: 75 40% 32%;
+  --primary-foreground: 60 30% 97%;
+
+  --secondary: 60 20% 90%;
+  --secondary-foreground: 70 20% 12%;
+
+  --muted: 60 20% 90%;
+  --muted-foreground: 70 10% 42%;
+
+  --accent: 72 30% 85%;
+  --accent-foreground: 70 20% 12%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 60 15% 84%;
+  --input: 60 15% 84%;
+  --ring: 75 40% 36%;
+}
+
+/* Dark Olive variant */
+.dark.theme-olive {
+  --background: 70 15% 8%;
+  --foreground: 60 20% 92%;
+
+  --card: 70 14% 11%;
+  --card-foreground: 60 20% 92%;
+
+  --popover: 70 14% 11%;
+  --popover-foreground: 60 20% 92%;
+
+  --primary: 78 45% 60%;
+  --primary-foreground: 75 30% 8%;
+
+  --secondary: 70 10% 17%;
+  --secondary-foreground: 60 20% 92%;
+
+  --muted: 70 10% 17%;
+  --muted-foreground: 65 8% 62%;
+
+  --accent: 72 14% 20%;
+  --accent-foreground: 60 20% 92%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 70 10% 20%;
+  --input: 70 10% 20%;
+  --ring: 78 45% 60%;
+}
+
+/* ============================================================
+ * Honey theme — amber primary on cream
+ * Applied via class="theme-honey" on <html>
+ * ============================================================ */
+.theme-honey {
+  --background: 42 60% 97%;
+  --foreground: 30 40% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 30 40% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 30 40% 10%;
+
+  --primary: 36 90% 45%;
+  --primary-foreground: 30 50% 8%;
+
+  --secondary: 42 50% 91%;
+  --secondary-foreground: 30 40% 10%;
+
+  --muted: 42 50% 91%;
+  --muted-foreground: 34 20% 42%;
+
+  --accent: 40 80% 86%;
+  --accent-foreground: 30 40% 10%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 40 40% 85%;
+  --input: 40 40% 85%;
+  --ring: 36 90% 45%;
+}
+
+/* Dark Honey variant */
+.dark.theme-honey {
+  --background: 30 30% 7%;
+  --foreground: 42 40% 93%;
+
+  --card: 30 26% 10%;
+  --card-foreground: 42 40% 93%;
+
+  --popover: 30 26% 10%;
+  --popover-foreground: 42 40% 93%;
+
+  --primary: 40 95% 60%;
+  --primary-foreground: 30 50% 8%;
+
+  --secondary: 32 20% 16%;
+  --secondary-foreground: 42 40% 93%;
+
+  --muted: 32 20% 16%;
+  --muted-foreground: 38 18% 62%;
+
+  --accent: 34 26% 19%;
+  --accent-foreground: 42 40% 93%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 32 20% 19%;
+  --input: 32 20% 19%;
+  --ring: 40 95% 60%;
+}
+
+/* ============================================================
+ * Clay theme — terracotta primary on warm earth neutrals
+ * Applied via class="theme-clay" on <html>
+ * ============================================================ */
+.theme-clay {
+  --background: 28 40% 95%;
+  --foreground: 20 30% 12%;
+
+  --card: 30 45% 98%;
+  --card-foreground: 20 30% 12%;
+
+  --popover: 30 45% 98%;
+  --popover-foreground: 20 30% 12%;
+
+  --primary: 16 65% 45%;
+  --primary-foreground: 30 40% 97%;
+
+  --secondary: 28 30% 89%;
+  --secondary-foreground: 20 30% 12%;
+
+  --muted: 28 30% 89%;
+  --muted-foreground: 22 15% 42%;
+
+  --accent: 20 50% 86%;
+  --accent-foreground: 20 30% 12%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 26 25% 83%;
+  --input: 26 25% 83%;
+  --ring: 16 65% 45%;
+}
+
+/* Dark Clay variant */
+.dark.theme-clay {
+  --background: 20 22% 8%;
+  --foreground: 28 30% 92%;
+
+  --card: 20 20% 11%;
+  --card-foreground: 28 30% 92%;
+
+  --popover: 20 20% 11%;
+  --popover-foreground: 28 30% 92%;
+
+  --primary: 18 75% 62%;
+  --primary-foreground: 20 40% 8%;
+
+  --secondary: 22 16% 17%;
+  --secondary-foreground: 28 30% 92%;
+
+  --muted: 22 16% 17%;
+  --muted-foreground: 26 12% 62%;
+
+  --accent: 20 20% 20%;
+  --accent-foreground: 28 30% 92%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 22 16% 20%;
+  --input: 22 16% 20%;
+  --ring: 18 75% 62%;
+}
+
+/* ============================================================
+ * Coral theme — vivid coral on near-white
+ * Applied via class="theme-coral" on <html>
+ * ============================================================ */
+.theme-coral {
+  --background: 10 60% 98%;
+  --foreground: 350 30% 12%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 350 30% 12%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 350 30% 12%;
+
+  --primary: 6 85% 58%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 10 50% 93%;
+  --secondary-foreground: 350 30% 12%;
+
+  --muted: 10 50% 93%;
+  --muted-foreground: 5 18% 46%;
+
+  --accent: 8 80% 90%;
+  --accent-foreground: 350 30% 12%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 8 40% 88%;
+  --input: 8 40% 88%;
+  --ring: 6 85% 58%;
+}
+
+/* Dark Coral variant */
+.dark.theme-coral {
+  --background: 350 25% 7%;
+  --foreground: 10 40% 94%;
+
+  --card: 350 22% 10%;
+  --card-foreground: 10 40% 94%;
+
+  --popover: 350 22% 10%;
+  --popover-foreground: 10 40% 94%;
+
+  --primary: 8 90% 66%;
+  --primary-foreground: 350 40% 8%;
+
+  --secondary: 352 18% 17%;
+  --secondary-foreground: 10 40% 94%;
+
+  --muted: 352 18% 17%;
+  --muted-foreground: 5 14% 64%;
+
+  --accent: 355 22% 20%;
+  --accent-foreground: 10 40% 94%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 352 18% 20%;
+  --input: 352 18% 20%;
+  --ring: 8 90% 66%;
+}
+
+/* ============================================================
+ * Violet theme — saturated violet, product-tool feel
+ * Applied via class="theme-violet" on <html>
+ * ============================================================ */
+.theme-violet {
+  --background: 260 40% 98%;
+  --foreground: 262 40% 12%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 262 40% 12%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 262 40% 12%;
+
+  --primary: 265 70% 52%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 260 30% 93%;
+  --secondary-foreground: 262 40% 12%;
+
+  --muted: 260 30% 93%;
+  --muted-foreground: 262 14% 46%;
+
+  --accent: 262 60% 91%;
+  --accent-foreground: 262 40% 12%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 260 24% 88%;
+  --input: 260 24% 88%;
+  --ring: 265 70% 52%;
+}
+
+/* Dark Violet variant */
+.dark.theme-violet {
+  --background: 262 30% 7%;
+  --foreground: 260 30% 94%;
+
+  --card: 262 26% 10%;
+  --card-foreground: 260 30% 94%;
+
+  --popover: 262 26% 10%;
+  --popover-foreground: 260 30% 94%;
+
+  --primary: 268 80% 72%;
+  --primary-foreground: 262 40% 8%;
+
+  --secondary: 262 20% 17%;
+  --secondary-foreground: 260 30% 94%;
+
+  --muted: 262 20% 17%;
+  --muted-foreground: 260 14% 64%;
+
+  --accent: 264 24% 20%;
+  --accent-foreground: 260 30% 94%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 262 20% 20%;
+  --input: 262 20% 20%;
+  --ring: 268 80% 72%;
+}
+
+/* ============================================================
+ * Graphite theme — pure achromatic black & white, max contrast
+ * Applied via class="theme-graphite" on <html>
+ * ============================================================ */
+.theme-graphite {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7%;
+
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 98%;
+
+  --secondary: 0 0% 94%;
+  --secondary-foreground: 0 0% 7%;
+
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 42%;
+
+  --accent: 0 0% 90%;
+  --accent-foreground: 0 0% 7%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 0 0% 85%;
+  --input: 0 0% 85%;
+  --ring: 0 0% 9%;
+}
+
+/* Dark Graphite variant */
+.dark.theme-graphite {
+  --background: 0 0% 5%;
+  --foreground: 0 0% 95%;
+
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 95%;
+
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 95%;
+
+  --primary: 0 0% 95%;
+  --primary-foreground: 0 0% 8%;
+
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 0 0% 95%;
+
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 62%;
+
+  --accent: 0 0% 18%;
+  --accent-foreground: 0 0% 95%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+  --ring: 0 0% 80%;
+}
+
+/* ============================================================
+ * Paper theme — parchment ground with ink-brown primary
+ * Applied via class="theme-paper" on <html>
+ * ============================================================ */
+.theme-paper {
+  --background: 40 35% 93%;
+  --foreground: 30 30% 15%;
+
+  --card: 42 45% 97%;
+  --card-foreground: 30 30% 15%;
+
+  --popover: 42 45% 97%;
+  --popover-foreground: 30 30% 15%;
+
+  --primary: 24 40% 28%;
+  --primary-foreground: 42 40% 96%;
+
+  --secondary: 40 28% 87%;
+  --secondary-foreground: 30 30% 15%;
+
+  --muted: 40 28% 87%;
+  --muted-foreground: 32 14% 42%;
+
+  --accent: 38 35% 82%;
+  --accent-foreground: 30 30% 15%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 36 22% 80%;
+  --input: 36 22% 80%;
+  --ring: 24 40% 28%;
+}
+
+/* Dark Paper variant */
+.dark.theme-paper {
+  --background: 30 15% 9%;
+  --foreground: 40 25% 88%;
+
+  --card: 30 14% 12%;
+  --card-foreground: 40 25% 88%;
+
+  --popover: 30 14% 12%;
+  --popover-foreground: 40 25% 88%;
+
+  --primary: 38 45% 72%;
+  --primary-foreground: 30 20% 8%;
+
+  --secondary: 30 10% 18%;
+  --secondary-foreground: 40 25% 88%;
+
+  --muted: 30 10% 18%;
+  --muted-foreground: 36 10% 60%;
+
+  --accent: 32 12% 22%;
+  --accent-foreground: 40 25% 88%;
+
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 30 10% 21%;
+  --input: 30 10% 21%;
+  --ring: 38 45% 72%;
 }
 
 @layer base {
@@ -145,5 +802,216 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ==============================================================
+ * Layouts — `data-layout` on <html> (see src/layouts/*). Each layout owns
+ * typography, radius and the feel of the shadcn primitives (hooked via the
+ * `ui-*` classes in shared/ui/components); colours always come from the
+ * palette tokens above so any palette works with any layout.
+ * ============================================================== */
+@layer base {
+  :root {
+    --font-ui: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-display: var(--font-ui);
+    --font-code:
+      var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  body {
+    font-family: var(--font-ui);
+  }
+
+  /* Workspace — compact three-pane tool. IBM Plex Sans, tight radius. */
+  [data-layout='workspace'] {
+    --font-ui: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+    --radius: 0.375rem;
+  }
+
+  /* Board — card kanban. Manrope, rounder, heavier weights. */
+  [data-layout='board'] {
+    --font-ui: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+    --radius: 0.75rem;
+  }
+
+  /* Notebook — paper spread. Lora for text, Caveat for handwritten accents. */
+  [data-layout='notebook'] {
+    --font-ui: var(--font-lora), Georgia, 'Times New Roman', serif;
+    --font-display: var(--font-caveat), 'Segoe Print', 'Bradley Hand', cursive;
+    --radius: 0.25rem;
+  }
+
+  /* Pocket — phone-first app. Nunito, big radius, big targets. */
+  [data-layout='pocket'] {
+    --font-ui: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+    --radius: 1rem;
+  }
+
+  /* Terminal — monospace TUI. No radius, 1px rules, mono everywhere. */
+  [data-layout='terminal'] {
+    --font-ui:
+      var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-code: var(--font-ui);
+    --radius: 0;
+  }
+
+  /* Ledger — dense data table. Atkinson Hyperlegible, small radius. */
+  [data-layout='ledger'] {
+    --font-ui: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+    --radius: 0.25rem;
+  }
+}
+
+@layer components {
+  /* Notebook: handwritten headings + ruled paper */
+  [data-layout='notebook'] .nb-hand {
+    font-family: var(--font-display);
+  }
+  [data-layout='notebook'] .nb-paper {
+    background-color: hsl(var(--card));
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(2rem - 1px),
+      hsl(var(--border)) calc(2rem - 1px) 2rem
+    );
+    background-origin: content-box;
+    line-height: 2rem;
+  }
+  [data-layout='notebook'] .nb-margin {
+    box-shadow: inset 2.5rem 0 0 -2.4375rem hsl(var(--destructive) / 0.45);
+  }
+
+  /* Terminal: square, mono, outlined controls; no shadows anywhere */
+  [data-layout='terminal'] .ui-button {
+    border-radius: 0;
+    font-family: var(--font-ui);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  [data-layout='terminal'] .ui-button::before {
+    content: '[ ';
+    opacity: 0.6;
+  }
+  [data-layout='terminal'] .ui-button::after {
+    content: ' ]';
+    opacity: 0.6;
+  }
+  [data-layout='terminal'] .ui-input,
+  [data-layout='terminal'] .ui-select,
+  [data-layout='terminal'] .ui-card,
+  [data-layout='terminal'] .ui-badge,
+  [data-layout='terminal'] .ui-checkbox {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  [data-layout='terminal'] .ui-badge {
+    text-transform: lowercase;
+  }
+
+  /* Pocket: touch-sized controls */
+  [data-layout='pocket'] .ui-button {
+    min-height: 2.75rem;
+    font-weight: 700;
+    border-radius: 0.875rem;
+  }
+  [data-layout='pocket'] .ui-input,
+  [data-layout='pocket'] .ui-select {
+    min-height: 2.75rem;
+    border-radius: 0.875rem;
+  }
+  [data-layout='pocket'] .ui-card {
+    border-radius: 1.25rem;
+    border-color: transparent;
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.06);
+  }
+  [data-layout='pocket'] .ui-checkbox {
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: 999px;
+    border-width: 2px;
+  }
+
+  /* Ledger: dense */
+  [data-layout='ledger'] .ui-button {
+    height: 2rem;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+    font-size: 0.8125rem;
+  }
+  [data-layout='ledger'] .ui-input,
+  [data-layout='ledger'] .ui-select {
+    height: 2rem;
+    font-size: 0.8125rem;
+  }
+  [data-layout='ledger'] .ui-card {
+    box-shadow: none;
+  }
+
+  /* Board: chunky, friendly */
+  [data-layout='board'] .ui-button {
+    font-weight: 700;
+    border-radius: 999px;
+  }
+  [data-layout='board'] .ui-badge {
+    font-weight: 700;
+  }
+  [data-layout='board'] .ui-checkbox {
+    border-radius: 999px;
+  }
+
+  /* Workspace: quiet, compact */
+  [data-layout='workspace'] .ui-button {
+    height: 2.125rem;
+    font-size: 0.8125rem;
+  }
+  [data-layout='workspace'] .ui-input,
+  [data-layout='workspace'] .ui-select {
+    height: 2.125rem;
+    font-size: 0.8125rem;
+  }
+  [data-layout='workspace'] .ui-card {
+    box-shadow: none;
+  }
+}
+
+@layer components {
+  /* Pocket: task rows as cards (TaskSection's listClassName="task-cards") */
+  [data-layout='pocket'] .task-cards > li {
+    border-radius: 0.875rem;
+    background: hsl(var(--background));
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@layer components {
+  /* Terminal: numbered task rows */
+  [data-layout='terminal'] .tui-tasks {
+    counter-reset: tui-task;
+  }
+  [data-layout='terminal'] .tui-tasks > li {
+    counter-increment: tui-task;
+    border-radius: 0;
+    padding-left: 3ch;
+    position: relative;
+  }
+  [data-layout='terminal'] .tui-tasks > li::before {
+    content: counter(tui-task);
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    width: 2ch;
+    text-align: right;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    line-height: 1.5rem;
+  }
+}
+
+@layer components {
+  /* Ledger: task rows as table-ish lines */
+  [data-layout='ledger'] .ledger-tasks > li {
+    border-radius: 0;
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
   }
 }

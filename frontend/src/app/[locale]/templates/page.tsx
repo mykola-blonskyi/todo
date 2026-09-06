@@ -1,27 +1,14 @@
-import { graphqlFetch } from '@shared/lib/graphql-client';
-import { TemplatesList, type ListTemplate } from '@features/list-templates';
+import { getAppearance } from '@features/preferences/server';
+import { getLayoutViews } from '@/layouts/registry';
+import { fetchNavData, fetchTemplates } from '@/layouts/data';
 
 export default async function TemplatesPage() {
-  const { myListTemplates: templates } = await graphqlFetch<{
-    myListTemplates: ListTemplate[];
-  }>(
-    `query TemplatesPage {
-      myListTemplates {
-        id
-        title
-        taskTitles
-        recurrenceType
-        weekDays
-        dayOfMonth
-        intervalDays
-        streakDays
-        streakStartDate
-        timezone
-        status
-        collaborators { id email name image }
-      }
-    }`,
-  );
+  const [templates, nav, appearance] = await Promise.all([
+    fetchTemplates(),
+    fetchNavData(),
+    getAppearance(),
+  ]);
+  const { TemplatesPage: View } = getLayoutViews(appearance.layout);
 
-  return <TemplatesList templates={templates} />;
+  return <View nav={nav} templates={templates} />;
 }

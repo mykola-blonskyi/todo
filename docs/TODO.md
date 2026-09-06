@@ -51,6 +51,10 @@ tickets.
 
 ## Done
 
+- [x] Six user-switchable layouts (Workspace, Board, Notebook, Pocket, Terminal, Ledger) covering
+      every screen, twelve colour palettes, light/dark/system mode — three independent preferences
+      (cookie + `User` row), see ADR-017; `docs/design/` holds the mockup gallery and palette CSS
+
 - [x] Design/requirements grilling session — see docs/decisions.md ADR-001 through ADR-010
 - [x] Flattened nested backend/frontend git repos into single monorepo (ADR-006)
 - [x] Root pnpm workspace (single lockfile); frontend prettier + Vitest/RTL wired in (ADR-008)
