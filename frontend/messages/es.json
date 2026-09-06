@@ -38,7 +38,30 @@
     "connectError": "No se pudo conectar Google Calendar. Inténtalo de nuevo.",
     "appearanceTitle": "Apariencia",
     "accountTitle": "Cuenta",
-    "signedInAs": "Sesión iniciada como {email}"
+    "signedInAs": "Sesión iniciada como {email}",
+    "privacyPolicyLink": "Política de privacidad"
+  },
+  "Privacy": {
+    "title": "Política de privacidad",
+    "lastUpdated": "Última actualización: 6 de septiembre de 2026",
+    "intro": "todolist (todo.blonskyi.dev) es una aplicación personal de listas de tareas. Esta página explica, en concreto, qué ocurre con tus datos al conectar tu Google Calendar.",
+    "accessTitle": "Qué datos usamos",
+    "accessBody": "Al conectar Google Calendar, todolist solicita permiso únicamente para crear, actualizar y eliminar los eventos de calendario concretos que crea en tu nombre (el permiso \"calendar.events\"). Nunca lee ni utiliza ningún otro evento ya existente en tu calendario, y nunca accede a ningún otro dato de Google: ni la configuración del calendario, ni otros calendarios, ni tu disponibilidad, ni tu correo, ni tus archivos.",
+    "purposeTitle": "Para qué lo usamos",
+    "purposeBody": "Conectar Google Calendar te permite enviar una copia de una lista de tareas —su título y una lista de verificación de sus tareas— a tu Google Calendar principal como un único evento de todo el día, para que su fecha límite aparezca junto a tus demás eventos. La sincronización solo ocurre cuando pulsas «Sincronizar con Google Calendar» para una lista concreta. todolist nunca lee datos de vuelta desde Google Calendar, ni sincroniza nada automáticamente.",
+    "storageTitle": "Cómo lo almacenamos",
+    "storageBody": "Tus tokens de acceso y de actualización de Google se cifran (AES-256-GCM) antes de guardarse en la propia base de datos de todolist. Nunca se transmiten ni se comparten con terceros, y nunca se usan con fines publicitarios ni de perfilado.",
+    "retentionTitle": "Cuánto tiempo lo conservamos",
+    "retentionBody": "Los tokens se conservan hasta que desconectas Google Calendar en Ajustes o eliminas tu cuenta de todolist. Un evento creado por una sincronización permanece en tu Google Calendar hasta que lo eliminas tú mismo, o hasta que la lista correspondiente se completa o se elimina en todolist, lo que elimina automáticamente el evento correspondiente.",
+    "revokeTitle": "Cómo desconectar",
+    "revokeBody": "Puedes desconectar Google Calendar en cualquier momento desde Ajustes en todolist. También puedes revocar el acceso directamente desde tu cuenta de Google, en:",
+    "sharingTitle": "Compartir con terceros",
+    "sharingBody": "todolist no vende, alquila ni comparte tus datos de usuario de Google con terceros. Se usan únicamente para ofrecer la función de sincronización con el calendario descrita arriba.",
+    "changesTitle": "Cambios en esta política",
+    "changesBody": "Esta política puede actualizarse a medida que cambie la aplicación. Cualquier cambio que afecte al tratamiento de tus datos de usuario de Google se reflejará aquí, actualizando la fecha indicada arriba.",
+    "contactTitle": "Contacto",
+    "contactBody": "Las preguntas sobre esta política, o sobre tus datos, pueden enviarse a:",
+    "backToSettings": "Volver a Ajustes"
   },
   "Lists": {
     "title": "Tus listas",

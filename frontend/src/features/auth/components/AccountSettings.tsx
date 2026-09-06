@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { cn } from '@shared/lib/utils';
+import { Link } from '@shared/lib/i18n/navigation';
 import { LoginSignOutButton } from './LoginSignOutButton';
 
 interface AccountSettingsProps {
@@ -28,6 +29,12 @@ export function AccountSettings({
         <div className="truncate text-muted-foreground">
           {t('signedInAs', { email })}
         </div>
+        <Link
+          href="/privacy"
+          className="text-xs text-muted-foreground underline underline-offset-4"
+        >
+          {t('privacyPolicyLink')}
+        </Link>
       </div>
       <LoginSignOutButton locale={locale} />
     </div>

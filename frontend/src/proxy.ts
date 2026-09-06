@@ -10,10 +10,16 @@ const APP_URL = process.env.APP_URL!;
 
 // Built from the same locale list next-intl's routing config uses, so a
 // future locale addition can't silently fall out of sync with this pattern.
-// next-intl's localePrefix is 'always', so the sign-in page is always
-// /<locale>/login.
-const LOGIN_PATH_PATTERN = new RegExp(
-  `^/(?:${locales.join('|')})/login(?:/|$)`,
+// next-intl's localePrefix is 'always', so these pages are always at
+// /<locale>/login and /<locale>/privacy.
+//
+// /privacy is public for the same reason /login is: Google's OAuth consent
+// screen links to it as the app's Privacy Policy for the calendar.events
+// scope (see docs/decisions.md ADR-004), and Google's review - like any
+// visitor reading it before signing in - has to be able to load it logged
+// out.
+const PUBLIC_PATH_PATTERN = new RegExp(
+  `^/(?:${locales.join('|')})/(?:login|privacy)(?:/|$)`,
 );
 
 // The path's own locale prefix comes first: on a first-ever visit there is no
@@ -41,8 +47,8 @@ export default async function proxy(request: NextRequest) {
 
   // The sign-in page itself must never be gated - otherwise an
   // unauthenticated visit redirects to /login, which redirects to /login,
-  // forever.
-  if (LOGIN_PATH_PATTERN.test(pathname)) {
+  // forever. /privacy rides along for the reason above.
+  if (PUBLIC_PATH_PATTERN.test(pathname)) {
     return intlMiddleware(request);
   }
 
