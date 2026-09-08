@@ -1,8 +1,5 @@
 import { headers } from 'next/headers';
-import {
-  AUTHJS_COOKIE_PREFIX,
-  stripCookiesWithPrefix,
-} from '@features/auth/lib/session-cookie';
+import { hubSessionCookie } from '@features/auth/lib/session-cookie';
 import type { Identity } from './identity';
 
 interface GraphQLErrorPayload {
@@ -36,14 +33,11 @@ export async function graphqlFetch<T>(
     userId = headerList.get('x-user-id');
     email = headerList.get('x-user-email');
     // Forwarded on to the hub by searchShareCandidates, which needs the
-    // caller's own .blonskyi.dev session (TODO-54). Every todolist-owned
-    // Auth.js cookie is stripped first: the hub can't validate any of them
-    // (different secret) and has no business receiving this app's own
-    // session state, chunked or not.
+    // caller's own .blonskyi.dev session (TODO-54). Only that cookie is
+    // passed through: nothing else here is the hub's to receive, least of
+    // all this app's own session state.
     const incomingCookie = headerList.get('cookie');
-    cookie = incomingCookie
-      ? stripCookiesWithPrefix(incomingCookie, AUTHJS_COOKIE_PREFIX)
-      : null;
+    cookie = incomingCookie ? hubSessionCookie(incomingCookie) : null;
   }
 
   const res = await fetch(process.env.BACKEND_URL!, {

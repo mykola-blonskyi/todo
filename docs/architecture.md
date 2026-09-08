@@ -99,8 +99,8 @@ External systems:
 ### Login / access flow
 ```
 User → todo.blonskyi.dev → frontend middleware (proxy.ts)
-→ decode todolist's own Auth.js session JWT via getToken() (host-only cookie, no cookie
-  ever shared with the hub or login)
+→ decode todolist's own Auth.js session JWT via getToken() (host-only `todolist.session-token`,
+  no cookie ever shared with the hub or login)
 → absent → redirect to todolist's own sign-in page, callbackUrl = the exact deep-link path
 → sign-in page form POSTs to /api/auth/signin/login → Auth.js redirects to login's /authorize
   (PKCE + state) → login/Google → login redirects back to /api/auth/callback/login → Auth.js

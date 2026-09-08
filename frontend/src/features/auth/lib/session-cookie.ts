@@ -1,29 +1,31 @@
 // One definition of todolist's own session cookie, shared by the write side
-// (auth.ts's cookies.sessionToken), the read side (identity.ts's getToken) and
-// graphql-client.ts's outbound filter - all three must agree exactly.
-export const SESSION_COOKIE_NAME = 'authjs.session-token';
+// (auth.ts's cookies.sessionToken) and the read side (identity.ts's getToken)
+// - both must agree exactly.
+//
+// Deliberately not Auth.js's default `authjs.session-token`: that is the name
+// the hub sets for `.blonskyi.dev`, so the browser sends it here too. A Cookie
+// header carries no `Domain`, and the parser keeps the first of two identical
+// names, so a same-named cookie would silently shadow this app's.
+export const SESSION_COOKIE_NAME = 'todolist.session-token';
 export const SESSION_COOKIE_SECURE = process.env.NODE_ENV === 'production';
 
-// Auth.js's own cookie namespace on this app - session token (chunked into
-// .0/.1/... past ~4096 bytes), callback-url, csrf-token, pkce/state. None of
-// these are the hub's to receive; a prefix match is what actually catches
-// the chunked session-token variants too, not just the unchunked name.
-export const AUTHJS_COOKIE_PREFIX = 'authjs.';
+// The hub's own session cookie, still Auth.js's default name on its side.
+export const HUB_SESSION_COOKIE_NAME = 'authjs.session-token';
 
-// Drops every pair whose name starts with prefix from a raw `cookie`
-// header, returning null when nothing is left worth forwarding.
-export function stripCookiesWithPrefix(
-  cookieHeader: string,
-  prefix: string,
-): string | null {
+// Picks the hub's session cookie out of a raw `cookie` header, dropping
+// everything else, and returns null when it isn't there. Auth.js chunks a
+// token past ~4096 bytes into `.0`/`.1`/..., so those count too.
+export function hubSessionCookie(cookieHeader: string): string | null {
   const kept = cookieHeader
     .split(';')
     .map((pair) => pair.trim())
     .filter((pair) => {
-      if (pair === '') return false;
       const separator = pair.indexOf('=');
       const name = separator === -1 ? pair : pair.slice(0, separator);
-      return !name.startsWith(prefix);
+      return (
+        name === HUB_SESSION_COOKIE_NAME ||
+        name.startsWith(`${HUB_SESSION_COOKIE_NAME}.`)
+      );
     });
 
   return kept.length > 0 ? kept.join('; ') : null;

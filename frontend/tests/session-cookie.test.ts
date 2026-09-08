@@ -1,64 +1,43 @@
 import { describe, expect, it } from 'vitest';
-import {
-  AUTHJS_COOKIE_PREFIX,
-  stripCookiesWithPrefix,
-} from '@features/auth/lib/session-cookie';
+import { hubSessionCookie } from '@features/auth/lib/session-cookie';
 
 // graphqlFetch forwards the incoming cookie header to the backend, which
-// passes it to the hub's project-members search (TODO-54). None of
-// todolist's own Auth.js-owned cookies must ride along: the hub can't
-// validate them and has no business holding this app's live session state.
-describe('stripCookiesWithPrefix', () => {
-  it('forwards nothing when an authjs cookie is the only one present', () => {
-    expect(
-      stripCookiesWithPrefix(
-        'authjs.session-token=abc123',
-        AUTHJS_COOKIE_PREFIX,
-      ),
-    ).toBeNull();
+// passes it to the hub's project-members search (TODO-54). Only the hub's own
+// session cookie may ride along: it is the one thing the hub can validate, and
+// this app's cookies are none of its business.
+describe('hubSessionCookie', () => {
+  it("forwards the hub's session cookie", () => {
+    expect(hubSessionCookie('authjs.session-token=abc123')).toBe(
+      'authjs.session-token=abc123',
+    );
   });
 
-  it('forwards only the other cookie when both are present', () => {
+  it("drops todolist's own session cookie, which the hub can't validate", () => {
     expect(
-      stripCookiesWithPrefix(
-        'authjs.session-token=abc123; hub-session=xyz789',
-        AUTHJS_COOKIE_PREFIX,
+      hubSessionCookie(
+        'todolist.session-token=xyz789; authjs.session-token=abc123',
       ),
-    ).toBe('hub-session=xyz789');
-
-    expect(
-      stripCookiesWithPrefix(
-        'hub-session=xyz789; authjs.session-token=abc123; NEXT_LOCALE=uk',
-        AUTHJS_COOKIE_PREFIX,
-      ),
-    ).toBe('hub-session=xyz789; NEXT_LOCALE=uk');
+    ).toBe('authjs.session-token=abc123');
   });
 
-  it('strips every authjs-prefixed cookie, not just the session token', () => {
+  it("drops todolist's other Auth.js cookies and unrelated ones", () => {
     expect(
-      stripCookiesWithPrefix(
-        'authjs.callback-url=%2Flists; authjs.csrf-token=deadbeef%7Chash; hub-session=xyz789',
-        AUTHJS_COOKIE_PREFIX,
+      hubSessionCookie(
+        'authjs.callback-url=%2Flists; authjs.csrf-token=deadbeef%7Chash; authjs.session-token=abc123; NEXT_LOCALE=uk',
       ),
-    ).toBe('hub-session=xyz789');
+    ).toBe('authjs.session-token=abc123');
   });
 
-  it('strips chunked session-token cookies (large JWTs split past ~4096 bytes)', () => {
+  it('keeps chunked session-token cookies (large JWTs split past ~4096 bytes)', () => {
     expect(
-      stripCookiesWithPrefix(
-        'authjs.session-token.0=chunk1; hub-session=xyz789; authjs.session-token.1=chunk2',
-        AUTHJS_COOKIE_PREFIX,
+      hubSessionCookie(
+        'authjs.session-token.0=chunk1; NEXT_LOCALE=uk; authjs.session-token.1=chunk2',
       ),
-    ).toBe('hub-session=xyz789');
+    ).toBe('authjs.session-token.0=chunk1; authjs.session-token.1=chunk2');
   });
 
-  it('leaves an unrelated cookie header unchanged', () => {
-    expect(
-      stripCookiesWithPrefix('hub-session=xyz789', AUTHJS_COOKIE_PREFIX),
-    ).toBe('hub-session=xyz789');
-  });
-
-  it('returns null for an empty header', () => {
-    expect(stripCookiesWithPrefix('', AUTHJS_COOKIE_PREFIX)).toBeNull();
+  it('returns null when the hub cookie is absent', () => {
+    expect(hubSessionCookie('todolist.session-token=xyz789')).toBeNull();
+    expect(hubSessionCookie('')).toBeNull();
   });
 });

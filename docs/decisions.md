@@ -677,9 +677,12 @@ is presented — and every existing association (Lists, ListShares, ...) keeps p
   service could leak or misuse.
 - Backend (`internal-only`, ADR-003) is unaffected in principle — still never verifies a JWT
   itself, only the *source* of the forwarded headers changed.
-- Todolist's session cookie is host-only *and* never forwarded outward: `graphqlFetch` strips it
-  from the `cookie` header it passes through to the backend (and thence to the hub's
-  project-members search), so the one remaining hub call can't receive this app's live credential.
+- Todolist's session cookie is host-only *and* never forwarded outward: `graphqlFetch` passes on
+  only the hub's own `authjs.session-token` from the incoming `cookie` header (to the backend, and
+  thence to the hub's project-members search), so the one remaining hub call can't receive this
+  app's live credential. It is named `todolist.session-token` rather than Auth.js's default for the
+  same reason the pass-through can be an allowlist at all: the hub sets the default name for
+  `.blonskyi.dev`, and two same-named cookies can't be told apart in a `Cookie` header.
 - Verified locally end-to-end against a real `login serve` instance (throwaway Postgres, `todolist`
   registered via `register-client`, IdP session seeded directly per login's own "Testing without
   Google" technique — no real Google consent screen, same sandbox limitation login's own
