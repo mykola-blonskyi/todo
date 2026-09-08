@@ -13,8 +13,8 @@ tickets.
       `login` IdP), since login has no directory/search endpoint yet. This now depends on the user
       separately holding a live hub session (`.blonskyi.dev` cookie) from having visited the hub
       directly — no longer guaranteed just by using todolist, since todolist's own session no longer
-      comes from the hub. (Todolist's own session cookie is stripped from that passthrough in
-      `graphqlFetch` — the hub can't validate it and has no need for it.) Needs a login-side
+      comes from the hub. (Only the hub's own cookie is passed through in `graphqlFetch`;
+      todolist's is not the hub's to receive and it couldn't validate it anyway.) Needs a login-side
       equivalent of the hub's ADR-009 endpoint (or the `client_members` table exposed some other
       way) before this dependency can be fully removed.
 - [ ] Real-time updates (WebSocket subscriptions) instead of refresh-to-see-changes
