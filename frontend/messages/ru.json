@@ -97,8 +97,8 @@
     "searchLabel": "Найти человека, чтобы пригласить",
     "searchPlaceholder": "Поиск по имени или email",
     "noResults": "Совпадений для «{query}» не найдено",
-    "searchError": "Не удалось выполнить поиск. Попробуйте ещё раз через момент.",
-    "invited": "Приглашён",
+    "searchError": "Не удалось выполнить поиск. Попробуйте ещё раз через мгновение.",
+    "invited": "Приглашение отправлено",
     "pendingInvitesTitle": "Ожидающие приглашения",
     "acceptButton": "Принять",
     "declineButton": "Отклонить",
@@ -157,9 +157,9 @@
     "collaboratorsTitle": "Участники по умолчанию",
     "collaboratorSearchLabel": "Найти человека, чтобы добавить",
     "collaboratorSearchPlaceholder": "Поиск по имени или email",
-    "collaboratorSearchError": "Не удалось выполнить поиск. Попробуйте ещё раз через момент.",
+    "collaboratorSearchError": "Не удалось выполнить поиск. Попробуйте ещё раз через мгновение.",
     "noResults": "Совпадений для «{query}» не найдено",
-    "added": "Добавлен",
+    "added": "Добавлено",
     "removeCollaboratorButton": "Удалить"
   },
   "Categories": {
@@ -203,7 +203,7 @@
     "paper": "Бумага"
   },
   "LayoutSwitcher": {
-    "label": "Лейаут",
+    "label": "Макет",
     "workspace": "Workspace",
     "board": "Board",
     "notebook": "Notebook",
@@ -212,7 +212,7 @@
     "ledger": "Ledger"
   },
   "Appearance": {
-    "layout": "Лейаут",
+    "layout": "Макет",
     "palette": "Палитра",
     "mode": "Режим",
     "language": "Язык",
