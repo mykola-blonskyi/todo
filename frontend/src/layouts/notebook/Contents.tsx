@@ -3,7 +3,12 @@ import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
-import { createListAction } from '@features/todos-list';
+import {
+  createListAction,
+  ListSelectionBar,
+  ListSelectionCheckbox,
+  ListSelectionToggle,
+} from '@features/todos-list';
 import { RestoreListButton } from '@features/todo-list';
 import type { ListOverview } from '../types';
 import {
@@ -36,9 +41,13 @@ export function Contents({
 
   return (
     <>
-      <h2 className="nb-hand text-4xl font-semibold leading-8">
-        {heading ?? t('contents')}
-      </h2>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="nb-hand text-4xl font-semibold leading-8">
+          {heading ?? t('contents')}
+        </h2>
+        <ListSelectionToggle className="nb-hand h-7 text-lg" />
+      </div>
+      <ListSelectionBar className="mt-3" />
       <ul className="mt-8">
         {lists.length === 0 ? (
           <li className="italic text-muted-foreground">{emptyText}</li>
@@ -49,6 +58,10 @@ export function Contents({
           const active = list.id === activeListId;
           return (
             <li key={list.id} className="flex items-baseline gap-2 leading-8">
+              <ListSelectionCheckbox
+                list={list}
+                className="shrink-0 self-center"
+              />
               <Link
                 href={`/lists/${list.id}`}
                 aria-current={active ? 'page' : undefined}

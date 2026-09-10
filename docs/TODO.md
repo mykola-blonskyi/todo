@@ -98,3 +98,10 @@ tickets.
       Google, tokens deleted regardless), Settings disconnect button, Rule 27 — synced events and
       `CalendarSync` rows survive a disconnect (TODO-55). Also corrected the Privacy Policy's
       retired "list completed removes the event" claim (ADR-015) in all four locales
+- [x] Bulk select + delete on the Lists overview: `deleteLists(ids)` mutation returning
+      `{ deletedIds, failedIds }` — sequential, per-item ownership check, deliberately not one
+      transaction (each delete runs Rule 10's best-effort Calendar cleanup, so N external HTTP
+      calls would sit inside it). Shared headless `useSelection` hook + `SelectionActionBar`
+      (reusable for Categories), a "Select" toggle per layout's header, checkboxes on owned Lists
+      only (a collaborator can only *leave*, Rule 2), "Select all" scoped to the active category
+      filter, and the catalogue's first ICU plurals in all four locales (TODO-59)

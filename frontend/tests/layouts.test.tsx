@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from './setup/render';
 import {
   archivedList,
@@ -8,6 +9,7 @@ import {
   listDetail,
   template,
 } from './setup/fixtures';
+import { ListSelectionProvider } from '@/features/todos-list/ListSelection';
 import { layouts } from '@/features/preferences/types';
 import { getLayoutViews } from '@/layouts/registry';
 import { applyCategoryFilter } from '@/layouts/shared/category-filter';
@@ -21,6 +23,7 @@ vi.mock('next-themes', () => ({
 vi.mock('@/features/todos-list/actions', () => ({
   createListAction: vi.fn(),
   createListInCategoryAction: vi.fn(),
+  deleteListsAction: vi.fn(),
 }));
 vi.mock('@/features/todo-list/actions', () => ({
   renameListAction: vi.fn(),
@@ -220,6 +223,40 @@ describe.each(layouts)('layout: %s', (layout) => {
       screen.getAllByRole('button', { name: 'Restore' }).length,
       `${layout}: restore control`,
     ).toBeGreaterThan(0);
+  });
+
+  it('lists page offers bulk selection for owned lists only', async () => {
+    const user = userEvent.setup();
+    const { ListsPage } = views;
+    renderWithProviders(
+      <ListSelectionProvider lists={nav.lists}>
+        <ListsPage nav={nav} lists={nav.lists} filter={unfiltered} />
+      </ListSelectionProvider>,
+    );
+
+    expect(
+      screen.queryAllByRole('checkbox'),
+      `${layout}: no checkboxes before selection mode`,
+    ).toHaveLength(0);
+
+    await user.click(screen.getByRole('button', { name: 'Select' }));
+
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Launch todo v2' }),
+      `${layout}: checkbox on an owned list`,
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: 'Select Garage cleanup' }),
+      `${layout}: no checkbox on a list the user doesn't own`,
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Select all 2' }),
+      `${layout}: select-all counts only the owned lists`,
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Delete' }),
+      `${layout}: bulk delete in the action bar`,
+    ).toBeInTheDocument();
   });
 
   it('list detail page dates a spawned list beside the template badge', () => {

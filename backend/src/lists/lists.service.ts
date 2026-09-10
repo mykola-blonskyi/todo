@@ -1,18 +1,22 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { CalendarSyncService } from '../google-calendar/calendar-sync.service';
 import { ListShareStatus } from '@prisma/client';
+import { DeleteListsResult } from './delete-lists-result.model';
 
 const STALE_AFTER_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class ListsService {
+  private readonly logger = new Logger(ListsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
@@ -151,6 +155,31 @@ export class ListsService {
       data: { archivedAt: now },
     });
     return ids;
+  }
+
+  async deleteLists(
+    ownerId: string,
+    ids: string[],
+  ): Promise<DeleteListsResult> {
+    const deletedIds: string[] = [];
+    const failedIds: string[] = [];
+
+    for (const id of new Set(ids)) {
+      try {
+        await this.deleteList(ownerId, id);
+        deletedIds.push(id);
+      } catch (error) {
+        if (!(error instanceof NotFoundException)) {
+          this.logger.error(
+            `Bulk delete failed for List ${id}`,
+            error instanceof Error ? error.stack : undefined,
+          );
+        }
+        failedIds.push(id);
+      }
+    }
+
+    return { deletedIds, failedIds };
   }
 
   // For the listById DataLoader (src/graphql/loaders.ts), used by

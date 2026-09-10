@@ -13,6 +13,7 @@ import {
   createTaskAction,
 } from '@features/todo-list/actions';
 import { RestoreListButton } from '@features/todo-list';
+import { ListSelectionCheckbox } from '@features/todos-list';
 import type { ListOverview } from '../types';
 import { ProgressBar } from '../shared/ProgressBar';
 import { AvatarStack } from '../shared/Avatar';
@@ -329,22 +330,25 @@ function LedgerRow({
           open && 'bg-accent/60',
         )}
       >
-        <td className="px-2 py-2 text-center">
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={open}
-            aria-label={open ? t('collapse') : t('expand')}
-            className="rounded-sm p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ChevronRight
-              className={cn(
-                'h-4 w-4 transition-transform',
-                open && 'rotate-90',
-              )}
-              aria-hidden="true"
-            />
-          </button>
+        <td className="px-2 py-2">
+          <span className="flex items-center justify-center gap-1.5">
+            <ListSelectionCheckbox list={list} className="shrink-0" />
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-expanded={open}
+              aria-label={open ? t('collapse') : t('expand')}
+              className="rounded-sm p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ChevronRight
+                className={cn(
+                  'h-4 w-4 transition-transform',
+                  open && 'rotate-90',
+                )}
+                aria-hidden="true"
+              />
+            </button>
+          </span>
         </td>
         {cells}
         <td className="px-2 py-2 text-center">

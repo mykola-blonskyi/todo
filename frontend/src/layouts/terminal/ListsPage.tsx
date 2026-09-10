@@ -1,7 +1,12 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
-import { CreateListForm } from '@features/todos-list';
+import {
+  CreateListForm,
+  ListSelectionBar,
+  ListSelectionCheckbox,
+  ListSelectionToggle,
+} from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
 import { RestoreListButton } from '@features/todo-list';
 import type { ListsPageProps } from '../types';
@@ -39,12 +44,16 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-bold">
-          <span className="text-muted-foreground"># </span>
-          {scope.toLowerCase()}{' '}
-          <span className="text-muted-foreground">({ordered.length})</span>
-        </h1>
+        <div className="flex flex-wrap items-baseline gap-3">
+          <h1 className="font-bold">
+            <span className="text-muted-foreground"># </span>
+            {scope.toLowerCase()}{' '}
+            <span className="text-muted-foreground">({ordered.length})</span>
+          </h1>
+          <ListSelectionToggle className="h-6 px-2" />
+        </div>
         <p className="text-muted-foreground">{t('listsHint')}</p>
+        <ListSelectionBar className="mt-2" />
       </div>
 
       {nav.pendingInvites.length > 0 ? (
@@ -70,11 +79,12 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
           const progress = listProgress(list);
           const status = dueStatus(list.dueDate);
           return (
-            <li key={list.id}>
+            <li key={list.id} className="flex items-center gap-2">
+              <ListSelectionCheckbox list={list} className="shrink-0" />
               <Link
                 href={`/lists/${list.id}`}
                 data-tui-row=""
-                className="grid grid-cols-[2ch_1fr_auto] gap-x-3 px-1 hover:bg-accent focus:bg-accent focus:outline-none sm:grid-cols-[2ch_minmax(0,1fr)_10ch_12ch_12ch]"
+                className="grid min-w-0 flex-1 grid-cols-[2ch_1fr_auto] gap-x-3 px-1 hover:bg-accent focus:bg-accent focus:outline-none sm:grid-cols-[2ch_minmax(0,1fr)_10ch_12ch_12ch]"
               >
                 <span className="text-right text-muted-foreground">
                   {index + 1}

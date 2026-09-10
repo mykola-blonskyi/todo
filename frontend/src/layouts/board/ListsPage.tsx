@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
+import { ListSelectionBar, ListSelectionToggle } from '@features/todos-list';
 import type { ListsPageProps } from '../types';
 import { BoardColumns } from './BoardColumns';
 import { ArchiveFilterLink } from '../shared/ArchiveFilterLink';
@@ -13,7 +14,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
 
   return (
     <div className="flex min-w-0 flex-1 flex-col">
-      <div className="flex items-center px-4 pt-4 md:px-6">
+      <div className="flex flex-wrap items-center gap-2 px-4 pt-4 md:px-6">
         <ArchiveFilterLink
           filter={filter}
           count={archivedLists(nav.lists).length}
@@ -21,6 +22,8 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
           activeClassName="border-primary bg-primary text-primary-foreground hover:text-primary-foreground"
           countClassName="tabular-nums opacity-70"
         />
+        <ListSelectionToggle />
+        <ListSelectionBar />
       </div>
       <BoardColumns
         categories={nav.categories}

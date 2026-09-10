@@ -425,6 +425,94 @@ describe('Calendar sync (GraphQL)', () => {
       expect(body.data?.deleteList).toBe(true);
       expect(deleteEvent).not.toHaveBeenCalled();
     });
+
+    it('runs the cleanup once per List in a bulk delete, skipping the ones that fail', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const other = asUser('other-1', 'other@example.com');
+      await connectGoogleCalendar(owner);
+      await connectGoogleCalendar(other);
+
+      const first = await createList(owner, 'Groceries');
+      const second = await createList(owner, 'Chores');
+      const theirs = await createList(other, 'Not yours');
+      for (const [listId, headers, eventId] of [
+        [first, owner, 'first-event'],
+        [second, owner, 'second-event'],
+        [theirs, other, 'their-event'],
+      ] as const) {
+        await setDueDate(headers, listId, '2026-09-01');
+        upsertEvent.mockResolvedValueOnce({
+          eventId,
+          calendarId: 'primary',
+        });
+        await graphql(
+          `mutation { syncListToCalendar(listId: "${listId}") }`,
+          headers,
+        );
+      }
+
+      const body = await graphql<{
+        deleteLists: { deletedIds: string[]; failedIds: string[] };
+      }>(
+        `mutation { deleteLists(ids: ["${first}", "${theirs}", "${second}"]) { deletedIds failedIds } }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteLists.deletedIds.sort()).toEqual(
+        [first, second].sort(),
+      );
+      expect(body.data?.deleteLists.failedIds).toEqual([theirs]);
+
+      expect(deleteEvent).toHaveBeenCalledTimes(2);
+      expect(deleteEvent).toHaveBeenCalledWith(
+        'plain-access-token',
+        'first-event',
+      );
+      expect(deleteEvent).toHaveBeenCalledWith(
+        'plain-access-token',
+        'second-event',
+      );
+      expect(deleteEvent).not.toHaveBeenCalledWith(
+        'plain-access-token',
+        'their-event',
+      );
+    });
+
+    it('a failed Calendar call on one List does not stop the rest of a bulk delete', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      await connectGoogleCalendar(owner);
+      const first = await createList(owner, 'Groceries');
+      const second = await createList(owner, 'Chores');
+      for (const [listId, eventId] of [
+        [first, 'first-event'],
+        [second, 'second-event'],
+      ] as const) {
+        await setDueDate(owner, listId, '2026-09-01');
+        upsertEvent.mockResolvedValueOnce({ eventId, calendarId: 'primary' });
+        await graphql(
+          `mutation { syncListToCalendar(listId: "${listId}") }`,
+          owner,
+        );
+      }
+
+      deleteEvent.mockRejectedValueOnce(new Error('Google API down'));
+
+      const body = await graphql<{
+        deleteLists: { deletedIds: string[]; failedIds: string[] };
+      }>(
+        `mutation { deleteLists(ids: ["${first}", "${second}"]) { deletedIds failedIds } }`,
+        owner,
+      );
+
+      expect(body.data?.deleteLists.deletedIds.sort()).toEqual(
+        [first, second].sort(),
+      );
+      expect(body.data?.deleteLists.failedIds).toEqual([]);
+      expect(
+        await testDb.list.findMany({ where: { id: { in: [first, second] } } }),
+      ).toHaveLength(0);
+    });
   });
 
   describe('cascade cleanup on collaborator removal/leaving', () => {

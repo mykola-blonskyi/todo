@@ -81,7 +81,16 @@
     "restoreButton": "Restore",
     "generatedFromTemplate": "Generated from a recurring template",
     "dueDateLabel": "Due date",
-    "titleLabel": "List title"
+    "titleLabel": "List title",
+    "selectButton": "Select",
+    "selectCancelButton": "Cancel",
+    "selectItemLabel": "Select {title}",
+    "selectedCount": "{count, plural, =0 {No lists selected} one {# list selected} other {# lists selected}}",
+    "selectAllVisible": "Select all {count}",
+    "clearSelection": "Clear",
+    "deleteSelectedConfirm": "{count, plural, one {Delete # list? This can't be undone.} other {Delete # lists? This can't be undone.}}",
+    "deleteSelectedPartial": "{deleted, plural, =0 {No lists deleted} one {# list deleted} other {# lists deleted}}; {failed, plural, one {# list couldn't be deleted} other {# lists couldn't be deleted}}",
+    "deleteSelectedFailed": "Couldn't delete the selected lists. Please try again."
   },
   "Tasks": {
     "title": "Tasks",

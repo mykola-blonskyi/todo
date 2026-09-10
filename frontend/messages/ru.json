@@ -81,7 +81,16 @@
     "restoreButton": "Восстановить",
     "generatedFromTemplate": "Создано из повторяющегося шаблона",
     "dueDateLabel": "Срок выполнения",
-    "titleLabel": "Название списка"
+    "titleLabel": "Название списка",
+    "selectButton": "Выбрать",
+    "selectCancelButton": "Отмена",
+    "selectItemLabel": "Выбрать «{title}»",
+    "selectedCount": "{count, plural, =0 {Ничего не выбрано} one {Выбран # список} few {Выбрано # списка} many {Выбрано # списков} other {Выбрано # списка}}",
+    "selectAllVisible": "Выбрать все ({count})",
+    "clearSelection": "Снять выделение",
+    "deleteSelectedConfirm": "{count, plural, one {Удалить # список? Это действие нельзя отменить.} few {Удалить # списка? Это действие нельзя отменить.} many {Удалить # списков? Это действие нельзя отменить.} other {Удалить # списка? Это действие нельзя отменить.}}",
+    "deleteSelectedPartial": "{deleted, plural, =0 {Ни один список не удалён} one {Удалён # список} few {Удалено # списка} many {Удалено # списков} other {Удалено # списка}}; {failed, plural, one {# список не удалось удалить} few {# списка не удалось удалить} many {# списков не удалось удалить} other {# списка не удалось удалить}}",
+    "deleteSelectedFailed": "Не удалось удалить выбранные списки. Попробуйте снова."
   },
   "Tasks": {
     "title": "Задачи",
