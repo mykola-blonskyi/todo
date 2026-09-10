@@ -8,6 +8,7 @@ export {
   DeleteListControl,
 } from './ListDetailBlocks';
 export { TaskRow } from './TaskRow';
+export { RestoreListButton } from './RestoreListButton';
 export { CategoryAssign } from './CategoryAssign';
 export { buildBackLinkHref } from './back-link';
 export type { ListDetailData, Task } from './types';

@@ -11,6 +11,7 @@
     "categories": "Categorías",
     "settings": "Ajustes",
     "uncategorized": "Sin categoría",
+    "archive": "Archivo",
     "pendingInvites": "Invitaciones",
     "selectList": "Elige una lista",
     "selectListHint": "Elige una lista a la izquierda o crea una nueva para empezar.",
@@ -77,6 +78,7 @@
     "saveButton": "Guardar",
     "deleteButton": "Eliminar",
     "deleteConfirm": "¿Eliminar esta lista? Esta acción no se puede deshacer.",
+    "restoreButton": "Restaurar",
     "generatedFromTemplate": "Generada a partir de una plantilla recurrente",
     "dueDateLabel": "Fecha límite",
     "titleLabel": "Título de la lista"

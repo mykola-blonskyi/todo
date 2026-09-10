@@ -12,6 +12,7 @@ import {
   unassignCategoryAction,
 } from '@features/todo-list/actions';
 import { createListInCategoryAction } from '@features/todos-list';
+import { RestoreListButton } from '@features/todo-list';
 import type { ListOverview } from '../types';
 import { ProgressBar } from '../shared/ProgressBar';
 import { AvatarStack } from '../shared/Avatar';
@@ -235,6 +236,7 @@ function ListCard({
         </span>
         <AvatarStack people={list.collaborators} max={2} />
       </footer>
+      <RestoreListButton list={list} className="self-start" />
     </article>
   );
 }

@@ -27,6 +27,7 @@ export interface ListOverview {
   // is its Occurrence date - what the overview renders to tell sibling
   // Occurrences apart.
   createdAt: string;
+  archivedAt: string | null;
   isOwner: boolean;
   myCategory: { id: string; name: string } | null;
   tasks: TaskOverview[];
@@ -57,10 +58,12 @@ export interface NavData {
 }
 
 // URL-driven category filter on the overview (same query params the
-// pre-layouts CategoryFilter used: ?categoryId=… / ?uncategorized=true).
+// pre-layouts CategoryFilter used: ?categoryId=… / ?uncategorized=true), plus
+// ?archived=true - the one view that shows archived Lists (Rule 28).
 export interface CategoryFilterState {
   categoryId: string | null;
   uncategorizedOnly: boolean;
+  archivedOnly: boolean;
 }
 
 // ─── Per-page props ─────────────────────────────────────────────────────────

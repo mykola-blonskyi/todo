@@ -47,5 +47,11 @@ export class List {
   @Field(() => ID, { nullable: true })
   templateId: string | null;
 
+  @Field(() => Date, { nullable: true })
+  archivedAt: Date | null;
+
+  @Field(() => Date, { nullable: true })
+  unarchivedAt: Date | null;
+
   ownerId: string;
 }

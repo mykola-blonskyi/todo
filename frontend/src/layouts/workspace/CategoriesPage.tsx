@@ -3,6 +3,7 @@ import { Link } from '@shared/lib/i18n/navigation';
 import { CategoryCreateForm, CategoryRow } from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { categoryColor } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 // Left: the editable category list. Right: what each category holds, so
 // renaming/deleting happens with the consequences in view.
@@ -11,9 +12,11 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
   const tNav = useTranslations('Nav');
   const tOverview = useTranslations('Overview');
 
+  const live = activeLists(nav.lists);
+
   const listsByCategory = new Map<string, typeof nav.lists>();
-  const uncategorized = nav.lists.filter((list) => !list.myCategory);
-  for (const list of nav.lists) {
+  const uncategorized = live.filter((list) => !list.myCategory);
+  for (const list of live) {
     if (list.myCategory) {
       const bucket = listsByCategory.get(list.myCategory.id) ?? [];
       bucket.push(list);

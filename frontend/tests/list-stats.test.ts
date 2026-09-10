@@ -23,6 +23,7 @@ function list(overrides: Partial<ListOverview>): ListOverview {
     updatedAt: '2026-09-01T00:00:00.000Z',
     createdAt: '2026-09-01T00:00:00.000Z',
     templateId: null,
+    archivedAt: null,
     isOwner: true,
     myCategory: null,
     tasks: [],
@@ -78,42 +79,78 @@ describe('category filter', () => {
     list({ id: 'work', myCategory: { id: 'c1', name: 'Work' } }),
     list({ id: 'home', myCategory: { id: 'c2', name: 'Home' } }),
     list({ id: 'none' }),
+    list({
+      id: 'old',
+      myCategory: { id: 'c1', name: 'Work' },
+      archivedAt: '2026-08-01T00:00:00.000Z',
+    }),
   ];
 
   it('parses the same URL params the pre-layouts CategoryFilter used', () => {
     expect(parseCategoryFilter({})).toEqual({
       categoryId: null,
       uncategorizedOnly: false,
+      archivedOnly: false,
     });
     expect(parseCategoryFilter({ categoryId: 'c1' })).toEqual({
       categoryId: 'c1',
       uncategorizedOnly: false,
+      archivedOnly: false,
     });
     expect(parseCategoryFilter({ uncategorized: 'true' })).toEqual({
       categoryId: null,
       uncategorizedOnly: true,
+      archivedOnly: false,
+    });
+    expect(parseCategoryFilter({ archived: 'true' })).toEqual({
+      categoryId: null,
+      uncategorizedOnly: false,
+      archivedOnly: true,
     });
   });
 
-  it('filters like the backend myLists arguments', () => {
+  it('filters like the backend myLists arguments, minus the archive', () => {
     expect(
       applyCategoryFilter(lists, {
         categoryId: null,
         uncategorizedOnly: false,
-      }),
-    ).toHaveLength(3);
+        archivedOnly: false,
+      }).map((l) => l.id),
+    ).toEqual(['work', 'home', 'none']);
     expect(
       applyCategoryFilter(lists, {
         categoryId: 'c1',
         uncategorizedOnly: false,
+        archivedOnly: false,
       }).map((l) => l.id),
     ).toEqual(['work']);
     expect(
       applyCategoryFilter(lists, {
         categoryId: null,
         uncategorizedOnly: true,
+        archivedOnly: false,
       }).map((l) => l.id),
     ).toEqual(['none']);
+  });
+
+  it('shows only archived lists under the archive filter (Rule 28)', () => {
+    expect(
+      applyCategoryFilter(lists, {
+        categoryId: null,
+        uncategorizedOnly: false,
+        archivedOnly: true,
+      }).map((l) => l.id),
+    ).toEqual(['old']);
+  });
+
+  it('ignores the category when the archive is asked for', () => {
+    expect(
+      applyCategoryFilter(lists, {
+        categoryId: 'c2',
+        uncategorizedOnly: false,
+        archivedOnly: true,
+      }).map((l) => l.id),
+    ).toEqual(['old']);
   });
 });
 

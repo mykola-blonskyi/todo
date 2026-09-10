@@ -2,6 +2,7 @@ import { useTranslations } from 'next-intl';
 import { PendingInvites } from '@features/list-sharing';
 import type { ListsPageProps } from '../types';
 import { ListsColumn } from './ListsColumn';
+import { activeLists } from '../shared/category-filter';
 import { dueStatus, listProgress, todayIso } from '../shared/list-stats';
 
 export function ListsPage({ nav, lists, filter }: ListsPageProps) {
@@ -12,7 +13,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
   let overdue = 0;
   let dueSoon = 0;
   let open = 0;
-  for (const list of nav.lists) {
+  for (const list of activeLists(nav.lists)) {
     const status = dueStatus(list.dueDate, today);
     if (status === 'overdue') overdue += 1;
     if (status === 'today' || status === 'soon') dueSoon += 1;

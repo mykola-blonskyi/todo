@@ -441,6 +441,10 @@ Lists. See `knowledge/domain-model.md` (`ListTemplate`, `TemplateCollaborator`) 
   — this is new schema surface scoped only to templates, not the User entity
 - A background scheduler (checking due Occurrences and spawning Lists) is required — not yet
   designed; this ADR covers the data model and cascade semantics, not the job-running mechanism
+- Keeping every Occurrence as history means the overview grows by one card per firing forever; that
+  accumulation is now bounded by `knowledge/business-rules.md` Rule 28, which archives stale
+  Occurrences from the view (reversibly, never deleting them — the history this ADR exists to
+  preserve stays intact)
 
 ---
 

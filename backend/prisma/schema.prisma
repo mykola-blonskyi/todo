@@ -108,6 +108,12 @@ model List {
   templateId String?
   template   ListTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
 
+  // View-level only (business-rules.md Rule 28) - nothing cascades, and no
+  // CalendarSync row or Google Calendar event is touched.
+  archivedAt DateTime?
+  // Never cleared once set: that is what makes a restore permanent.
+  unarchivedAt DateTime?
+
   tasks               Task[]
   shares              ListShare[]
   comments            Comment[]                @relation("ListComments")

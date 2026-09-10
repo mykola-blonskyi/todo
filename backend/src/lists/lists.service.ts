@@ -8,6 +8,9 @@ import { UsersService } from '../users/users.service';
 import { CalendarSyncService } from '../google-calendar/calendar-sync.service';
 import { ListShareStatus } from '@prisma/client';
 
+const STALE_AFTER_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 @Injectable()
 export class ListsService {
   constructor(
@@ -85,6 +88,69 @@ export class ListsService {
     await this.calendarSyncService.deleteCalendarEventsForList(id);
     await this.prisma.list.delete({ where: { id } });
     return true;
+  }
+
+  // `unarchivedAt` is what makes a restore permanent, so a List that isn't
+  // archived is left alone rather than silently pinned out of the job's reach.
+  async unarchiveList(ownerId: string, id: string) {
+    const list = await this.requireOwned(ownerId, id);
+    if (!list.archivedAt) {
+      return list;
+    }
+    return this.prisma.list.update({
+      where: { id },
+      data: { archivedAt: null, unarchivedAt: new Date() },
+    });
+  }
+
+  // business-rules.md Rule 28. Archiving rather than deleting because a
+  // delete would trigger Rule 10 and silently remove events from every synced
+  // User's own calendar. `now` is a parameter so tests can drive it.
+  async archiveStaleTemplateLists(now: Date): Promise<string[]> {
+    const candidates = await this.prisma.list.findMany({
+      where: {
+        templateId: { not: null },
+        createdAt: { lte: new Date(now.getTime() - STALE_AFTER_DAYS * DAY_MS) },
+        archivedAt: null,
+        unarchivedAt: null,
+        tasks: { none: { done: false } },
+      },
+      select: { id: true, templateId: true },
+    });
+    if (candidates.length === 0) {
+      return [];
+    }
+
+    // The newest Occurrence stays live, compared against every List of the
+    // template regardless of archive state: comparing only against live ones
+    // would archive the then-newest on each run until the template had none.
+    const templateIds = [
+      ...new Set(candidates.map((list) => list.templateId!)),
+    ];
+    const siblings = await this.prisma.list.findMany({
+      where: { templateId: { in: templateIds } },
+      select: { id: true, templateId: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    });
+    const newestByTemplate = new Map<string, string>();
+    for (const sibling of siblings) {
+      if (!newestByTemplate.has(sibling.templateId!)) {
+        newestByTemplate.set(sibling.templateId!, sibling.id);
+      }
+    }
+
+    const ids = candidates
+      .filter((list) => newestByTemplate.get(list.templateId!) !== list.id)
+      .map((list) => list.id);
+    if (ids.length === 0) {
+      return [];
+    }
+
+    await this.prisma.list.updateMany({
+      where: { id: { in: ids } },
+      data: { archivedAt: now },
+    });
+    return ids;
   }
 
   // For the listById DataLoader (src/graphql/loaders.ts), used by

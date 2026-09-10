@@ -11,6 +11,7 @@
     "categories": "Categories",
     "settings": "Settings",
     "uncategorized": "Uncategorized",
+    "archive": "Archive",
     "pendingInvites": "Invites",
     "selectList": "Select a list",
     "selectListHint": "Pick a list on the left, or create a new one to get started.",
@@ -77,6 +78,7 @@
     "saveButton": "Save",
     "deleteButton": "Delete",
     "deleteConfirm": "Delete this list? This can't be undone.",
+    "restoreButton": "Restore",
     "generatedFromTemplate": "Generated from a recurring template",
     "dueDateLabel": "Due date",
     "titleLabel": "List title"

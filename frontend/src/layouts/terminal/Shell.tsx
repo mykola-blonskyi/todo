@@ -5,6 +5,8 @@ import { LoginSignOutButton } from '@features/auth/components/LoginSignOutButton
 import type { ShellProps } from '../types';
 import { NavLink } from '../shared/NavLink';
 import { navItems } from '../shared/nav';
+import { ArchiveFilterLink } from '../shared/ArchiveFilterLink';
+import { activeLists, archivedLists } from '../shared/category-filter';
 import { listProgress } from '../shared/list-stats';
 import { CommandLine } from './CommandLine';
 import { TuiKeys } from './TuiKeys';
@@ -22,26 +24,24 @@ export function Shell({ locale, nav, children }: ShellProps) {
     );
   }
 
+  const live = activeLists(nav.lists);
   const groups = [
     ...nav.categories.map((category) => ({
       key: category.id,
       name: category.name.toLowerCase(),
       href: `/?categoryId=${category.id}` as const,
-      lists: nav.lists.filter((list) => list.myCategory?.id === category.id),
+      lists: live.filter((list) => list.myCategory?.id === category.id),
     })),
     {
       key: 'uncategorized',
       name: tNav('uncategorized').toLowerCase(),
       href: '/?uncategorized=true' as const,
-      lists: nav.lists.filter((list) => !list.myCategory),
+      lists: live.filter((list) => !list.myCategory),
     },
   ].filter((group) => group.lists.length > 0 || group.key !== 'uncategorized');
 
-  const done = nav.lists.reduce(
-    (sum, list) => sum + listProgress(list).done,
-    0,
-  );
-  const total = nav.lists.reduce((sum, list) => sum + list.tasks.length, 0);
+  const done = live.reduce((sum, list) => sum + listProgress(list).done, 0);
+  const total = live.reduce((sum, list) => sum + list.tasks.length, 0);
 
   return (
     <div className="flex min-h-full flex-1 flex-col text-[13px] leading-6">
@@ -126,6 +126,12 @@ export function Shell({ locale, nav, children }: ShellProps) {
                 </ul>
               </li>
             ))}
+            <li>
+              <ArchiveFilterLink
+                count={archivedLists(nav.lists).length}
+                className="lowercase text-muted-foreground hover:underline"
+              />
+            </li>
           </ul>
           <TuiHeading className="mt-4">
             {tNav('templates').toLowerCase()}
@@ -153,7 +159,7 @@ export function Shell({ locale, nav, children }: ShellProps) {
       </div>
 
       <CommandLine
-        lists={nav.lists.map((list) => ({ id: list.id, title: list.title }))}
+        lists={live.map((list) => ({ id: list.id, title: list.title }))}
         templates={nav.templates.map((template) => ({
           id: template.id,
           title: template.title,

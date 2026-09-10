@@ -20,6 +20,7 @@ import {
   formatDueDate,
   taskProgress,
 } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 export function ListDetailPage({ nav, list }: ListDetailPageProps) {
   const t = useTranslations('Board');
@@ -33,7 +34,7 @@ export function ListDetailPage({ nav, list }: ListDetailPageProps) {
     <>
       <BoardColumns
         categories={nav.categories}
-        lists={nav.lists}
+        lists={activeLists(nav.lists, list.id)}
         activeListId={list.id}
       />
       <Drawer

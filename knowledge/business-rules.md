@@ -281,3 +281,35 @@ anyway, and the mutation still reports success — once the row is gone todolist
 access either way, and the User's remaining recourse (revoking directly in their Google Account) is
 already documented in the Privacy Policy. Disconnecting when nothing is connected is a no-op, not
 an error.
+
+---
+
+## Rule 28 — Stale template-spawned Lists are auto-archived, reversibly and without touching Calendar
+
+Because every Occurrence is its own independent List that is kept as history (ADR-013), an active
+ListTemplate would otherwise add one card to the overview forever. A daily job archives the ones
+that have clearly served their purpose. A List is eligible only when **all** of these hold:
+
+- `templateId` is set — a manually-created List is never auto-archived, however old or finished
+- `createdAt` is at least 30 days before now
+- it has no undone Tasks (a List with no Tasks at all counts as having none undone)
+- it is **not** the newest Occurrence of its template, compared against every List of that template
+  whatever its archive state — so an active template always keeps exactly one live card, and a
+  template nobody uses any more doesn't quietly vanish from the overview entirely
+- `archivedAt` is null (nothing to do) and `unarchivedAt` is null (see below)
+
+Archiving is **view-level only**: it sets `List.archivedAt` and nothing else. Tasks, ListShares,
+Comments, `CalendarSync` rows and the User's real Google Calendar events are all untouched, and
+nothing cascades. This is the whole reason the job archives rather than deletes: a cron that
+hard-deleted Lists would trip Rule 10's cleanup and silently remove events from the calendars of
+every User who had synced them — a background job is not an intent to do that.
+
+`myLists` keeps returning archived Lists; hiding them is the client's job. The overview shows them
+under its own Archive filter only, and leaves them out of the shell's counts.
+
+**A restore is permanent.** Restoring (owner-only, like every other List lifecycle action — Rule 2)
+clears `archivedAt` and sets `unarchivedAt`, which is never cleared again; the job skips any List
+that has it, forever, even if that List still satisfies every condition above. A job that overrules
+a User's explicit decision on the next timer is the behaviour that makes people stop trusting
+automation. There is deliberately no manual archive action to pair with it — archiving is the job's
+business, restoring is the User's.

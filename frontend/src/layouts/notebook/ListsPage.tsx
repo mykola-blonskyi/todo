@@ -5,6 +5,8 @@ import type { ListsPageProps } from '../types';
 import { Spread } from './Spread';
 import { Contents } from './Contents';
 import { Sticky } from './Sticky';
+import { ArchiveFilterLink } from '../shared/ArchiveFilterLink';
+import { activeLists, archivedLists } from '../shared/category-filter';
 import { dueStatus, formatDueDate, sortByDue } from '../shared/list-stats';
 
 export function ListsPage({ nav, lists, filter }: ListsPageProps) {
@@ -14,13 +16,15 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
   const tTemplates = useTranslations('ListTemplates');
   const locale = useLocale();
 
-  const heading = filter.uncategorizedOnly
-    ? tNav('uncategorized')
-    : filter.categoryId
-      ? nav.categories.find((c) => c.id === filter.categoryId)?.name
-      : undefined;
+  const heading = filter.archivedOnly
+    ? tNav('archive')
+    : filter.uncategorizedOnly
+      ? tNav('uncategorized')
+      : filter.categoryId
+        ? nav.categories.find((c) => c.id === filter.categoryId)?.name
+        : undefined;
 
-  const upcoming = sortByDue(nav.lists).filter((list) => {
+  const upcoming = sortByDue(activeLists(nav.lists)).filter((list) => {
     const status = dueStatus(list.dueDate);
     return status === 'overdue' || status === 'today' || status === 'soon';
   });
@@ -31,11 +35,19 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
       activeTabId={filter.categoryId}
       tabsLabel={tNav('categories')}
       left={
-        <Contents
-          lists={lists}
-          heading={heading}
-          emptyText={tOverview('emptyFiltered')}
-        />
+        <>
+          <Contents
+            lists={lists}
+            heading={heading}
+            emptyText={tOverview('emptyFiltered')}
+          />
+          <ArchiveFilterLink
+            filter={filter}
+            count={archivedLists(nav.lists).length}
+            className="nb-hand mt-6 inline-block text-lg text-muted-foreground hover:underline"
+            activeClassName="text-primary"
+          />
+        </>
       }
       right={
         <>

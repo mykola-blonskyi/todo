@@ -3,6 +3,7 @@ import { Link } from '@shared/lib/i18n/navigation';
 import { CategoryCreateForm, CategoryRow } from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { categoryColor, listProgress } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 // The board's columns, editable: each category is a column headed by its
 // rename/delete row, with the lists filed under it as read-only cards.
@@ -11,14 +12,16 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
   const tNav = useTranslations('Nav');
   const tOverview = useTranslations('Overview');
 
+  const live = activeLists(nav.lists);
+
   const columns = [
     ...categories.map((category) => ({
       key: category.id,
       category,
-      lists: nav.lists.filter((list) => list.myCategory?.id === category.id),
+      lists: live.filter((list) => list.myCategory?.id === category.id),
     })),
   ];
-  const uncategorized = nav.lists.filter((list) => !list.myCategory);
+  const uncategorized = live.filter((list) => !list.myCategory);
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">

@@ -1,6 +1,6 @@
 import type { ListDetailData } from '@/features/todo-list';
 import type { ListTemplate } from '@/features/list-templates';
-import type { NavData } from '@/layouts/types';
+import type { ListOverview, NavData } from '@/layouts/types';
 
 // One consistent dataset for the per-layout smoke tests.
 export const anna = {
@@ -37,6 +37,7 @@ export const nav: NavData = {
       updatedAt: '2026-09-06T10:00:00.000Z',
       createdAt: '2026-09-01T10:00:00.000Z',
       templateId: null,
+      archivedAt: null,
       isOwner: true,
       myCategory: { id: 'c-work', name: 'Work' },
       tasks: [
@@ -57,6 +58,7 @@ export const nav: NavData = {
       updatedAt: '2026-09-06T09:00:00.000Z',
       createdAt: '2026-09-04T09:00:00.000Z',
       templateId: 't-weekly',
+      archivedAt: null,
       isOwner: true,
       myCategory: { id: 'c-home', name: 'Home' },
       tasks: [{ id: 'tk-3', title: 'Oat milk', done: false, dueDate: null }],
@@ -69,12 +71,34 @@ export const nav: NavData = {
       updatedAt: '2026-09-01T09:00:00.000Z',
       createdAt: '2026-08-20T09:00:00.000Z',
       templateId: null,
+      archivedAt: null,
       isOwner: false,
       myCategory: null,
       tasks: [],
       collaborators: [],
     },
   ],
+};
+
+// Kept out of the shared `nav` so every other layout test keeps describing an
+// archive-free overview.
+export const archivedList: ListOverview = {
+  id: 'l-groceries-old',
+  title: 'Groceries (August)',
+  dueDate: null,
+  updatedAt: '2026-08-04T09:00:00.000Z',
+  createdAt: '2026-08-04T09:00:00.000Z',
+  templateId: 't-weekly',
+  archivedAt: '2026-09-05T03:00:00.000Z',
+  isOwner: true,
+  myCategory: { id: 'c-home', name: 'Home' },
+  tasks: [{ id: 'tk-4', title: 'Oat milk', done: true, dueDate: null }],
+  collaborators: [],
+};
+
+export const navWithArchived: NavData = {
+  ...nav,
+  lists: [...nav.lists, archivedList],
 };
 
 export const listDetail: ListDetailData = {

@@ -11,6 +11,7 @@
     "categories": "Категории",
     "settings": "Настройки",
     "uncategorized": "Без категории",
+    "archive": "Архив",
     "pendingInvites": "Приглашения",
     "selectList": "Выберите список",
     "selectListHint": "Выберите список слева или создайте новый, чтобы начать.",
@@ -77,6 +78,7 @@
     "saveButton": "Сохранить",
     "deleteButton": "Удалить",
     "deleteConfirm": "Удалить этот список? Это действие нельзя отменить.",
+    "restoreButton": "Восстановить",
     "generatedFromTemplate": "Создано из повторяющегося шаблона",
     "dueDateLabel": "Срок выполнения",
     "titleLabel": "Название списка"

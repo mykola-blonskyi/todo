@@ -60,6 +60,11 @@ Fields:
   ordinary List in every other respect (same Task/ListShare/Comment/CalendarSync rules apply). If
   the ListTemplate is later deleted, this is cleared (`SetNull`), not cascaded — see
   [business-rules.md](business-rules.md) Rule 17.
+- `archivedAt` (nullable) — set by the auto-archive job when this List is a stale Occurrence
+  ([business-rules.md](business-rules.md) Rule 28). A view flag only: nothing cascades, and no
+  Task/ListShare/CalendarSync row or Google Calendar event is affected.
+- `unarchivedAt` (nullable) — set when the owner restores an archived List, and never cleared again.
+  Its only job is to make that restore permanent: the archive job skips any List that has it.
 
 Relationships:
 - N:1 with **User** (owner)
