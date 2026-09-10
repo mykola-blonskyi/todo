@@ -1,3 +1,7 @@
 export { SyncToCalendarButton } from './SyncToCalendarButton';
-export { syncListToCalendarAction } from './actions';
+export {
+  syncListToCalendarAction,
+  disconnectGoogleCalendarAction,
+} from './actions';
 export { GoogleCalendarSettings } from './GoogleCalendarSettings';
+export { DisconnectGoogleCalendarButton } from './DisconnectGoogleCalendarButton';

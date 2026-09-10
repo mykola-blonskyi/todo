@@ -89,3 +89,7 @@ tickets.
 - [x] Registered `todo` in Coolify (Docker Compose resource, env vars, "Connect to Predefined
       Network", `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets) — `todo.blonskyi.dev` is
       live, gated deploy confirmed working end to end (issue #55)
+- [x] Google Calendar disconnect: `disconnectGoogleCalendar` mutation (best-effort revoke at
+      Google, tokens deleted regardless), Settings disconnect button, Rule 27 — synced events and
+      `CalendarSync` rows survive a disconnect (TODO-55). Also corrected the Privacy Policy's
+      retired "list completed removes the event" claim (ADR-015) in all four locales

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { decryptToken, encryptToken } from './token-encryption';
 import z from 'zod';
@@ -17,6 +17,8 @@ const EXPIRY_SKEW_MS = 60_000;
 
 @Injectable()
 export class GoogleCalendarService {
+  private readonly logger = new Logger(GoogleCalendarService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async connect(userId: string, code: string, redirectUri: string) {
@@ -52,6 +54,28 @@ export class GoogleCalendarService {
       update: data,
       create: { userId, ...data },
     });
+  }
+
+  // Deliberately leaves CalendarSync rows and synced events alone (Rule 27).
+  async disconnect(userId: string): Promise<boolean> {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId },
+    });
+    if (!connection) {
+      return true;
+    }
+
+    try {
+      await this.revokeRefreshToken(decryptToken(connection.refreshToken));
+    } catch (error) {
+      this.logger.error(
+        `Failed to revoke the Google Calendar grant for user ${userId} - deleting the local tokens anyway`,
+        error instanceof Error ? error.stack : error,
+      );
+    }
+
+    await this.prisma.googleCalendarConnection.delete({ where: { userId } });
+    return true;
   }
 
   async isConnected(userId: string): Promise<boolean> {
@@ -104,6 +128,21 @@ export class GoogleCalendarService {
       refresh_token: refreshToken,
       grant_type: 'refresh_token',
     });
+  }
+
+  // Revoking the refresh token kills the whole grant, access tokens included.
+  private async revokeRefreshToken(refreshToken: string) {
+    const res = await fetch('https://oauth2.googleapis.com/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ token: refreshToken }),
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Google rejected the Calendar token revocation: ${res.status}`,
+      );
+    }
   }
 
   private async postToTokenEndpoint(params: Record<string, string>) {

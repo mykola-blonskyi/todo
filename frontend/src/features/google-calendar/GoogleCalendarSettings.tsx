@@ -2,6 +2,7 @@ import { useTranslations } from 'next-intl';
 import { Badge } from '@ui/components/badge';
 import { buttonVariants } from '@ui/components/button';
 import { cn } from '@shared/lib/utils';
+import { DisconnectGoogleCalendarButton } from './DisconnectGoogleCalendarButton';
 
 interface GoogleCalendarSettingsProps {
   connected: boolean;
@@ -9,8 +10,8 @@ interface GoogleCalendarSettingsProps {
   className?: string;
 }
 
-// Connection status + connect button + the post-OAuth-redirect banner. The
-// section heading is left to the layout so it can match its own idiom.
+// Connection status + connect/disconnect + the post-OAuth-redirect banner.
+// The section heading is left to the layout so it can match its own idiom.
 export function GoogleCalendarSettings({
   connected,
   banner,
@@ -26,9 +27,12 @@ export function GoogleCalendarSettings({
         <p className="text-sm text-destructive">{t('connectError')}</p>
       ) : null}
       {connected ? (
-        <Badge variant="secondary" className="self-start">
-          {t('connected')}
-        </Badge>
+        <>
+          <Badge variant="secondary" className="self-start">
+            {t('connected')}
+          </Badge>
+          <DisconnectGoogleCalendarButton />
+        </>
       ) : (
         // A plain route, not a page - must trigger a real navigation into
         // the OAuth redirect chain, not next/link's client-side transition.
