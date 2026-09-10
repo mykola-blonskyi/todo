@@ -81,7 +81,16 @@
     "restoreButton": "Відновити",
     "generatedFromTemplate": "Створено з повторюваного шаблону",
     "dueDateLabel": "Термін виконання",
-    "titleLabel": "Назва списку"
+    "titleLabel": "Назва списку",
+    "selectButton": "Вибрати",
+    "selectCancelButton": "Скасувати",
+    "selectItemLabel": "Вибрати «{title}»",
+    "selectedCount": "{count, plural, =0 {Нічого не вибрано} one {Вибрано # список} few {Вибрано # списки} many {Вибрано # списків} other {Вибрано # списку}}",
+    "selectAllVisible": "Вибрати всі ({count})",
+    "clearSelection": "Зняти вибір",
+    "deleteSelectedConfirm": "{count, plural, one {Видалити # список? Це неможливо скасувати.} few {Видалити # списки? Це неможливо скасувати.} many {Видалити # списків? Це неможливо скасувати.} other {Видалити # списку? Це неможливо скасувати.}}",
+    "deleteSelectedPartial": "{deleted, plural, =0 {Жодного списку не видалено} one {Видалено # список} few {Видалено # списки} many {Видалено # списків} other {Видалено # списку}}; {failed, plural, one {# список не вдалося видалити} few {# списки не вдалося видалити} many {# списків не вдалося видалити} other {# списку не вдалося видалити}}",
+    "deleteSelectedFailed": "Не вдалося видалити вибрані списки. Спробуйте ще раз."
   },
   "Tasks": {
     "title": "Завдання",

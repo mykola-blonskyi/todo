@@ -92,6 +92,11 @@ done/not-done state) or gets removed via Rule 10's List-deletion/collaborator-re
   Users' synced events are untouched.
 - Both are best-effort: a failed Google API call is logged, not treated as a failure of the
   deletion/removal itself.
+- Deleting several Lists at once applies this rule once per List, sequentially and outside any
+  transaction — each delete runs its own Calendar cleanup, so a batch is never held open across a
+  string of external API calls. Partial success is the contract: a List the caller doesn't own (or
+  that is already gone) fails on its own and is reported back as such, without aborting the rest of
+  the batch. There is no cap on how many Lists one batch may carry.
 
 ---
 

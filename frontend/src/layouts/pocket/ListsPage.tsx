@@ -1,7 +1,12 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
-import { CreateListForm } from '@features/todos-list';
+import {
+  CreateListForm,
+  ListSelectionBar,
+  ListSelectionCheckbox,
+  ListSelectionToggle,
+} from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
 import type { ListsPageProps } from '../types';
 import { RestoreListButton } from '@features/todo-list';
@@ -53,12 +58,16 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
 
   return (
     <>
-      <h1 className="text-3xl font-extrabold leading-tight tracking-tight">
-        <span className="block text-xs font-bold text-muted-foreground">
-          {today}
-        </span>
-        {tNav('lists')}
-      </h1>
+      <div className="flex items-end justify-between gap-2">
+        <h1 className="text-3xl font-extrabold leading-tight tracking-tight">
+          <span className="block text-xs font-bold text-muted-foreground">
+            {today}
+          </span>
+          {tNav('lists')}
+        </h1>
+        <ListSelectionToggle />
+      </div>
+      <ListSelectionBar className="mt-3" />
       <nav
         aria-label={tNav('categories')}
         className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1"
@@ -104,10 +113,11 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
           const progress = listProgress(list);
           const status = dueStatus(list.dueDate);
           return (
-            <li key={list.id}>
+            <li key={list.id} className="flex items-center gap-2">
+              <ListSelectionCheckbox list={list} className="shrink-0" />
               <Link
                 href={`/lists/${list.id}`}
-                className="flex items-center gap-3 rounded-2xl bg-card p-3.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.06)] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.99]"
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl bg-card p-3.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.06)] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.99]"
               >
                 <span
                   aria-hidden="true"

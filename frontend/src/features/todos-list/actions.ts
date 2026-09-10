@@ -19,6 +19,25 @@ export async function createListAction(formData: FormData) {
   revalidatePath('/[locale]', 'page');
 }
 
+export async function deleteListsAction(
+  ids: string[],
+): Promise<{ succeededIds: string[]; failedIds: string[] }> {
+  const { deleteLists } = await graphqlFetch<{
+    deleteLists: { deletedIds: string[]; failedIds: string[] };
+  }>(
+    `mutation DeleteLists($ids: [ID!]!) {
+      deleteLists(ids: $ids) { deletedIds failedIds }
+    }`,
+    { ids },
+  );
+
+  revalidatePath('/[locale]', 'page');
+  return {
+    succeededIds: deleteLists.deletedIds,
+    failedIds: deleteLists.failedIds,
+  };
+}
+
 // Board layout: a list created inside a category column starts out filed
 // there. Two mutations, not one - the backend keeps createList and category
 // assignment separate (Rule 22: assignment is per-user), and a failed

@@ -1,7 +1,11 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
-import { CreateListForm } from '@features/todos-list';
+import {
+  CreateListForm,
+  ListSelectionBar,
+  ListSelectionToggle,
+} from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
 import type { ListsPageProps } from '../types';
 import { LedgerTable } from './LedgerTable';
@@ -38,6 +42,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
     <>
       <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2">
         <h1 className="mr-2 font-semibold">{tNav('lists')}</h1>
+        <ListSelectionToggle />
         <nav aria-label={tNav('categories')} className="flex flex-wrap gap-1">
           {chips.map((chip) => (
             <Link
@@ -79,6 +84,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
         </section>
       ) : null}
 
+      <ListSelectionBar className="border-b px-4 py-2" />
       <LedgerTable lists={lists} />
       <p className="sr-only">{tLists('createPlaceholder')}</p>
     </>

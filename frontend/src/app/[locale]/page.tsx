@@ -1,4 +1,5 @@
 import { getAppearance } from '@features/preferences/server';
+import { ListSelectionProvider } from '@features/todos-list';
 import { getLayoutViews } from '@/layouts/registry';
 import {
   applyCategoryFilter,
@@ -25,12 +26,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   ]);
   const filter = parseCategoryFilter(params);
   const { ListsPage } = getLayoutViews(appearance.layout);
+  const visible = applyCategoryFilter(nav.lists, filter);
 
   return (
-    <ListsPage
-      nav={nav}
-      lists={applyCategoryFilter(nav.lists, filter)}
-      filter={filter}
-    />
+    <ListSelectionProvider lists={visible}>
+      <ListsPage nav={nav} lists={visible} filter={filter} />
+    </ListSelectionProvider>
   );
 }

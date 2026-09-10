@@ -81,7 +81,16 @@
     "restoreButton": "Restaurar",
     "generatedFromTemplate": "Generada a partir de una plantilla recurrente",
     "dueDateLabel": "Fecha límite",
-    "titleLabel": "Título de la lista"
+    "titleLabel": "Título de la lista",
+    "selectButton": "Seleccionar",
+    "selectCancelButton": "Cancelar",
+    "selectItemLabel": "Seleccionar {title}",
+    "selectedCount": "{count, plural, =0 {Ninguna lista seleccionada} one {# lista seleccionada} other {# listas seleccionadas}}",
+    "selectAllVisible": "Seleccionar las {count}",
+    "clearSelection": "Quitar selección",
+    "deleteSelectedConfirm": "{count, plural, one {¿Eliminar # lista? Esta acción no se puede deshacer.} other {¿Eliminar # listas? Esta acción no se puede deshacer.}}",
+    "deleteSelectedPartial": "{deleted, plural, =0 {No se eliminó ninguna lista} one {# lista eliminada} other {# listas eliminadas}}; {failed, plural, one {no se pudo eliminar # lista} other {no se pudieron eliminar # listas}}",
+    "deleteSelectedFailed": "No se pudieron eliminar las listas seleccionadas. Inténtalo de nuevo."
   },
   "Tasks": {
     "title": "Tareas",

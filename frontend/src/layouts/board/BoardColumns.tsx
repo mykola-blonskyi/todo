@@ -11,7 +11,10 @@ import {
   assignCategoryAction,
   unassignCategoryAction,
 } from '@features/todo-list/actions';
-import { createListInCategoryAction } from '@features/todos-list';
+import {
+  createListInCategoryAction,
+  ListSelectionCheckbox,
+} from '@features/todos-list';
 import { RestoreListButton } from '@features/todo-list';
 import type { ListOverview } from '../types';
 import { ProgressBar } from '../shared/ProgressBar';
@@ -189,20 +192,23 @@ function ListCard({
         disabled && 'opacity-60',
       )}
     >
-      <Link
-        href={`/lists/${list.id}`}
-        className="text-sm font-bold leading-tight tracking-tight hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        {list.title}
-        {list.templateId ? (
-          <span
-            className="ml-1.5 text-xs font-semibold text-muted-foreground"
-            title={t('recurring')}
-          >
-            ↻ {formatOccurrenceDate(list.createdAt, locale)}
-          </span>
-        ) : null}
-      </Link>
+      <div className="flex items-start gap-2">
+        <ListSelectionCheckbox list={list} className="mt-0.5 shrink-0" />
+        <Link
+          href={`/lists/${list.id}`}
+          className="text-sm font-bold leading-tight tracking-tight hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {list.title}
+          {list.templateId ? (
+            <span
+              className="ml-1.5 text-xs font-semibold text-muted-foreground"
+              title={t('recurring')}
+            >
+              ↻ {formatOccurrenceDate(list.createdAt, locale)}
+            </span>
+          ) : null}
+        </Link>
+      </div>
       {preview.length > 0 ? (
         <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
           {preview.map((task) => (

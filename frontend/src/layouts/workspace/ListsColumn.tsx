@@ -1,7 +1,12 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
-import { CreateListForm } from '@features/todos-list';
+import {
+  CreateListForm,
+  ListSelectionBar,
+  ListSelectionCheckbox,
+  ListSelectionToggle,
+} from '@features/todos-list';
 import { RestoreListButton } from '@features/todo-list';
 import type { CategoryFilterState, ListOverview, NavData } from '../types';
 import { ProgressBar } from '../shared/ProgressBar';
@@ -49,12 +54,14 @@ export function ListsColumn({
       aria-label={heading}
       className="flex w-full shrink-0 flex-col border-b md:w-80 md:border-b-0 md:border-r"
     >
-      <div className="flex items-center justify-between px-4 pb-2 pt-4">
+      <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-4">
         <h2 className="text-sm font-semibold">{heading}</h2>
         <span className="text-xs tabular-nums text-muted-foreground">
           {lists.length}
         </span>
+        <ListSelectionToggle className="-mr-2 ml-auto" />
       </div>
+      <ListSelectionBar className="px-4 pb-2" />
       <div className="px-3 pb-2">
         <CreateListForm />
       </div>
@@ -69,12 +76,13 @@ export function ListsColumn({
             const status = dueStatus(list.dueDate);
             const active = list.id === activeListId;
             return (
-              <li key={list.id}>
+              <li key={list.id} className="flex items-center border-b">
+                <ListSelectionCheckbox list={list} className="ml-4 shrink-0" />
                 <Link
                   href={`/lists/${list.id}`}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'block border-b px-4 py-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                    'block min-w-0 flex-1 px-4 py-2.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                     active &&
                       'bg-accent shadow-[inset_3px_0_0_hsl(var(--primary))]',
                   )}

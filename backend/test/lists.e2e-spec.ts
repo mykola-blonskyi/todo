@@ -290,4 +290,131 @@ describe('List (GraphQL)', () => {
     expect(body.data).toBeNull();
     expect(body.errors?.[0]).toBeDefined();
   });
+
+  describe('deleteLists (bulk)', () => {
+    async function deleteLists(headers: Record<string, string>, ids: string[]) {
+      const idList = ids.map((id) => `"${id}"`).join(', ');
+      return graphql<{
+        deleteLists: { deletedIds: string[]; failedIds: string[] };
+      }>(
+        `mutation { deleteLists(ids: [${idList}]) { deletedIds failedIds } }`,
+        headers,
+      );
+    }
+
+    it("deletes every one of the caller's own Lists", async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const first = await createList(owner, 'Groceries');
+      const second = await createList(owner, 'Chores');
+      const keep = await createList(owner, 'Keep me');
+
+      const body = await deleteLists(owner, [first, second]);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteLists.deletedIds.sort()).toEqual(
+        [first, second].sort(),
+      );
+      expect(body.data?.deleteLists.failedIds).toEqual([]);
+
+      const remaining = await graphql<{ myLists: { id: string }[] }>(
+        `
+          query {
+            myLists {
+              id
+            }
+          }
+        `,
+        owner,
+      );
+      expect(remaining.data?.myLists).toEqual([{ id: keep }]);
+    });
+
+    it("fails per item for someone else's List, without aborting the batch", async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const other = asUser('hub-2', 'other@example.com');
+      const mine = await createList(owner, 'Groceries');
+      const theirs = await createList(other, 'Not yours');
+
+      const body = await deleteLists(owner, [theirs, mine]);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteLists.deletedIds).toEqual([mine]);
+      expect(body.data?.deleteLists.failedIds).toEqual([theirs]);
+
+      const theirLists = await graphql<{ myLists: { id: string }[] }>(
+        `
+          query {
+            myLists {
+              id
+            }
+          }
+        `,
+        other,
+      );
+      expect(theirLists.data?.myLists).toEqual([{ id: theirs }]);
+    });
+
+    it('fails per item for an unknown id', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const mine = await createList(owner, 'Groceries');
+
+      const body = await deleteLists(owner, [
+        'ffffffff-ffff-4fff-8fff-ffffffffffff',
+        mine,
+      ]);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteLists.deletedIds).toEqual([mine]);
+      expect(body.data?.deleteLists.failedIds).toEqual([
+        'ffffffff-ffff-4fff-8fff-ffffffffffff',
+      ]);
+    });
+
+    it('denies deletion of a List the caller only collaborates on', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const collaborator = asUser('hub-2', 'collab@example.com');
+      const listId = await createList(owner, 'Shared list');
+
+      const invite = await graphql<{ inviteToList: { id: string } }>(
+        `mutation { inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "${collaborator['x-user-id']}",
+          email: "${collaborator['x-user-email']}",
+          name: "Collaborator",
+          image: null
+        }) { id } }`,
+        owner,
+      );
+      await graphql(
+        `mutation { acceptInvite(shareId: "${invite.data!.inviteToList.id}") { id } }`,
+        collaborator,
+      );
+
+      const body = await deleteLists(collaborator, [listId]);
+
+      expect(body.data?.deleteLists.deletedIds).toEqual([]);
+      expect(body.data?.deleteLists.failedIds).toEqual([listId]);
+    });
+
+    it('reports a repeated id once, as deleted', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createList(owner, 'Groceries');
+
+      const body = await deleteLists(owner, [id, id]);
+
+      expect(body.data?.deleteLists.deletedIds).toEqual([id]);
+      expect(body.data?.deleteLists.failedIds).toEqual([]);
+    });
+
+    it('accepts an empty batch', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+
+      const body = await deleteLists(owner, []);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteLists).toEqual({
+        deletedIds: [],
+        failedIds: [],
+      });
+    });
+  });
 });

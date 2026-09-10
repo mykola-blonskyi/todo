@@ -1,2 +1,12 @@
 export { CreateListForm } from './CreateListForm';
-export { createListAction, createListInCategoryAction } from './actions';
+export {
+  ListSelectionProvider,
+  ListSelectionToggle,
+  ListSelectionCheckbox,
+  ListSelectionBar,
+} from './ListSelection';
+export {
+  createListAction,
+  createListInCategoryAction,
+  deleteListsAction,
+} from './actions';
