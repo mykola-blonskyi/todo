@@ -19,6 +19,7 @@ import {
   categoryColor,
   dueStatus,
   formatDueDate,
+  formatOccurrenceDate,
   formatRelativeDay,
   listProgress,
 } from '../shared/list-stats';
@@ -225,7 +226,9 @@ export function LedgerTable({ lists }: LedgerTableProps) {
                         {list.templateId || list.collaborators.length > 0 ? (
                           <span className="block text-xs text-muted-foreground">
                             {[
-                              list.templateId ? tOverview('recurring') : null,
+                              list.templateId
+                                ? `${tOverview('recurring')} · ${formatOccurrenceDate(list.createdAt, locale)}`
+                                : null,
                               list.collaborators.length > 0
                                 ? tOverview('shared')
                                 : null,

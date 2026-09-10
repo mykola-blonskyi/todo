@@ -117,6 +117,42 @@ describe.each(layouts)('layout: %s', (layout) => {
     ).toBeGreaterThan(0);
   });
 
+  it('lists page dates template-spawned lists, and only those', () => {
+    const { ListsPage } = views;
+    renderWithProviders(
+      <ListsPage
+        nav={nav}
+        lists={nav.lists}
+        filter={{ categoryId: null, uncategorizedOnly: false }}
+      />,
+    );
+
+    // Groceries is spawned (createdAt 2026-09-04); Garage cleanup is a manual
+    // List created 2026-08-20 and must carry no occurrence date.
+    expect(
+      screen.getAllByText(/Sep 4/).length,
+      `${layout}: occurrence date on the spawned list`,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryAllByText(/Aug 20/),
+      `${layout}: no date on a manually-created list`,
+    ).toHaveLength(0);
+  });
+
+  it('list detail page dates a spawned list beside the template badge', () => {
+    const { ListDetailPage } = views;
+    renderWithProviders(
+      <ListDetailPage
+        nav={nav}
+        list={{ ...listDetail, templateId: 't-weekly' }}
+      />,
+    );
+
+    const badges = screen.getAllByText(/Generated from a recurring template/);
+    expect(badges.length, `${layout}: template badge`).toBeGreaterThan(0);
+    expect(badges[0].textContent).toMatch(/Sep 1\b/);
+  });
+
   it('list detail page shows the tasks, the comment and the sharing controls', () => {
     const { ListDetailPage } = views;
     renderWithProviders(<ListDetailPage nav={nav} list={listDetail} />);

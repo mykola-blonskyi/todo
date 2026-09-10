@@ -9,6 +9,7 @@ import {
   categoryColor,
   dueStatus,
   formatDueDate,
+  formatOccurrenceDate,
   listProgress,
   sortByDue,
 } from '../shared/list-stats';
@@ -107,7 +108,9 @@ export function ListsColumn({
                       {progress.done}/{progress.total}
                     </span>
                     {list.templateId ? (
-                      <span title={tOverview('recurring')}>↻</span>
+                      <span title={tOverview('recurring')}>
+                        ↻ {formatOccurrenceDate(list.createdAt, locale)}
+                      </span>
                     ) : null}
                     <ProgressBar progress={progress} className="w-14" />
                     <AvatarStack

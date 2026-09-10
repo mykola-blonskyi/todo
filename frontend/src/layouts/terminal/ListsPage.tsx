@@ -5,7 +5,12 @@ import { CreateListForm } from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
 import type { ListsPageProps } from '../types';
 import { TuiHeading } from './Shell';
-import { dueStatus, listProgress, sortByDue } from '../shared/list-stats';
+import {
+  dueStatus,
+  formatOccurrenceDate,
+  listProgress,
+  sortByDue,
+} from '../shared/list-stats';
 
 // ASCII progress: 10 cells, █ for done, ░ for open - reads at a glance and
 // stays monospace-aligned.
@@ -79,7 +84,9 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
                     {(
                       list.myCategory?.name ?? tNav('uncategorized')
                     ).toLowerCase()}
-                    {list.templateId ? ' ↻' : ''}
+                    {list.templateId
+                      ? ` ↻${formatOccurrenceDate(list.createdAt, locale)}`
+                      : ''}
                     {list.collaborators.length > 0
                       ? ` +${list.collaborators.length}`
                       : ''}

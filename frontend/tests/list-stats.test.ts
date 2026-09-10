@@ -4,6 +4,7 @@ import {
   daysBetween,
   dueStatus,
   formatDueDate,
+  formatOccurrenceDate,
   initials,
   sortByDue,
   taskProgress,
@@ -20,6 +21,7 @@ function list(overrides: Partial<ListOverview>): ListOverview {
     title: 'L',
     dueDate: null,
     updatedAt: '2026-09-01T00:00:00.000Z',
+    createdAt: '2026-09-01T00:00:00.000Z',
     templateId: null,
     isOwner: true,
     myCategory: null,
@@ -112,5 +114,33 @@ describe('category filter', () => {
         uncategorizedOnly: true,
       }).map((l) => l.id),
     ).toEqual(['none']);
+  });
+});
+
+describe('formatOccurrenceDate', () => {
+  it('omits the year for an occurrence in the current year', () => {
+    expect(
+      formatOccurrenceDate('2026-09-10T12:00:00.000Z', 'en', '2026-09-10'),
+    ).toBe('Sep 10');
+  });
+
+  it('includes the year for an occurrence from another year', () => {
+    expect(
+      formatOccurrenceDate('2025-12-31T12:00:00.000Z', 'en', '2026-01-02'),
+    ).toBe('Dec 31, 2025');
+  });
+
+  it('renders the stored UTC day regardless of the local timezone', () => {
+    // 23:30 UTC is already the next day in Kyiv - the card must still show
+    // the day the Occurrence is recorded under, not the viewer's.
+    expect(
+      formatOccurrenceDate('2026-09-10T23:30:00.000Z', 'en', '2026-09-11'),
+    ).toBe('Sep 10');
+  });
+
+  it('formats in the requested locale', () => {
+    expect(
+      formatOccurrenceDate('2026-09-10T12:00:00.000Z', 'uk', '2026-09-10'),
+    ).toContain('10');
   });
 });

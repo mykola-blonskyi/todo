@@ -8,6 +8,7 @@ import type { ListOverview } from '../types';
 import {
   dueStatus,
   formatDueDate,
+  formatOccurrenceDate,
   listProgress,
   sortByDue,
 } from '../shared/list-stats';
@@ -62,7 +63,9 @@ export function Contents({
                   {list.dueDate
                     ? ` · ${formatDueDate(list.dueDate, locale)}`
                     : ''}
-                  {list.templateId ? ' · ↻' : ''}
+                  {list.templateId
+                    ? ` · ↻ ${formatOccurrenceDate(list.createdAt, locale)}`
+                    : ''}
                 </span>
               </Link>
               <span

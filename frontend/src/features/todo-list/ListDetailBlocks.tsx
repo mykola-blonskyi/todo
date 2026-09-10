@@ -1,9 +1,10 @@
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
 import { Label } from '@ui/components/label';
 import { Badge } from '@ui/components/badge';
 import { cn } from '@shared/lib/utils';
+import { formatOccurrenceDate } from '@shared/lib/dates';
 import { ShareSearch, CollaboratorsList } from '@features/list-sharing';
 import {
   CommentThread,
@@ -97,6 +98,7 @@ export function ListMetaControls({
   className,
 }: ListMetaProps) {
   const t = useTranslations('Lists');
+  const locale = useLocale();
   return (
     <div className={cn('flex flex-wrap items-center gap-3', className)}>
       <CategoryAssign
@@ -108,7 +110,10 @@ export function ListMetaControls({
         <SyncToCalendarButton listId={list.id} />
       ) : null}
       {list.templateId ? (
-        <Badge variant="secondary">{t('generatedFromTemplate')}</Badge>
+        <Badge variant="secondary">
+          {t('generatedFromTemplate')} ·{' '}
+          {formatOccurrenceDate(list.createdAt, locale)}
+        </Badge>
       ) : null}
     </div>
   );

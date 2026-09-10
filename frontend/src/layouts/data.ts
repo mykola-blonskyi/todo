@@ -30,6 +30,7 @@ export const fetchNavData = cache(async (): Promise<NavData> => {
         title
         dueDate
         updatedAt
+        createdAt
         templateId
         isOwner
         myCategory { id name }
