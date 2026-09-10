@@ -1,5 +1,6 @@
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Category } from './category.model';
+import { BulkDeleteResult } from '../graphql/bulk-delete-result.model';
 import { CategoriesService } from './categories.service';
 import { UsersService } from '../users/users.service';
 import { CurrentUser } from '../identity/current-user.decorator';
@@ -44,5 +45,14 @@ export class CategoriesResolver {
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
     return this.categoriesService.deleteCategory(user.id, id);
+  }
+
+  @Mutation(() => BulkDeleteResult)
+  async deleteCategories(
+    @CurrentUser() identity: Identity,
+    @Args('ids', { type: () => [ID] }) ids: string[],
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.categoriesService.deleteCategories(user.id, ids);
   }
 }

@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { testDb } from './setup/db';
 
 interface GraphQLResponse<T> {
   data: T | null;
@@ -218,6 +219,170 @@ describe('Category CRUD (GraphQL)', () => {
 
       expect(body.data).toBeNull();
       expect(body.errors?.[0]).toBeDefined();
+    });
+  });
+
+  describe('deleteCategories (bulk)', () => {
+    async function createList(headers: Record<string, string>, title: string) {
+      const body = await graphql<{ createList: { id: string } }>(
+        `mutation { createList(title: "${title}") { id } }`,
+        headers,
+      );
+      return body.data!.createList.id;
+    }
+
+    async function assignListCategory(
+      headers: Record<string, string>,
+      listId: string,
+      categoryId: string,
+    ) {
+      return graphql<{ assignListCategory: boolean }>(
+        `mutation { assignListCategory(listId: "${listId}", categoryId: "${categoryId}") }`,
+        headers,
+      );
+    }
+
+    async function deleteCategories(
+      headers: Record<string, string>,
+      ids: string[],
+    ) {
+      const idList = ids.map((id) => `"${id}"`).join(', ');
+      return graphql<{
+        deleteCategories: { deletedIds: string[]; failedIds: string[] };
+      }>(
+        `mutation { deleteCategories(ids: [${idList}]) { deletedIds failedIds } }`,
+        headers,
+      );
+    }
+
+    it("deletes every one of the caller's own Categories", async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const work = await createCategory(owner, 'Work');
+      const home = await createCategory(owner, 'Home');
+      const keep = await createCategory(owner, 'Keep me');
+
+      const body = await deleteCategories(owner, [work, home]);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteCategories.deletedIds.sort()).toEqual(
+        [work, home].sort(),
+      );
+      expect(body.data?.deleteCategories.failedIds).toEqual([]);
+
+      const remaining = await graphql<{ myCategories: { id: string }[] }>(
+        `
+          query {
+            myCategories {
+              id
+            }
+          }
+        `,
+        owner,
+      );
+      expect(remaining.data?.myCategories).toEqual([{ id: keep }]);
+    });
+
+    it("fails per item for someone else's Category, without aborting the batch", async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const other = asUser('owner-2', 'other@example.com');
+      const mine = await createCategory(owner, 'Work');
+      const theirs = await createCategory(other, 'Not yours');
+
+      const body = await deleteCategories(owner, [theirs, mine]);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteCategories.deletedIds).toEqual([mine]);
+      expect(body.data?.deleteCategories.failedIds).toEqual([theirs]);
+
+      const theirCategories = await graphql<{ myCategories: { id: string }[] }>(
+        `
+          query {
+            myCategories {
+              id
+            }
+          }
+        `,
+        other,
+      );
+      expect(theirCategories.data?.myCategories).toEqual([{ id: theirs }]);
+    });
+
+    it('fails per item for an unknown id', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const mine = await createCategory(owner, 'Work');
+
+      const body = await deleteCategories(owner, [
+        'ffffffff-ffff-4fff-8fff-ffffffffffff',
+        mine,
+      ]);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteCategories.deletedIds).toEqual([mine]);
+      expect(body.data?.deleteCategories.failedIds).toEqual([
+        'ffffffff-ffff-4fff-8fff-ffffffffffff',
+      ]);
+    });
+
+    it('reports a repeated id once, as deleted', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const id = await createCategory(owner, 'Work');
+
+      const body = await deleteCategories(owner, [id, id]);
+
+      expect(body.data?.deleteCategories.deletedIds).toEqual([id]);
+      expect(body.data?.deleteCategories.failedIds).toEqual([]);
+    });
+
+    it('accepts an empty batch', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+
+      const body = await deleteCategories(owner, []);
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.deleteCategories).toEqual({
+        deletedIds: [],
+        failedIds: [],
+      });
+    });
+
+    it('leaves the assigned Lists in place, merely uncategorized', async () => {
+      const owner = asUser('owner-1', 'owner@example.com');
+      const work = await createCategory(owner, 'Work');
+      const home = await createCategory(owner, 'Home');
+      const workList = await createList(owner, 'Launch plan');
+      const homeList = await createList(owner, 'Groceries');
+      await assignListCategory(owner, workList, work);
+      await assignListCategory(owner, homeList, home);
+
+      const body = await deleteCategories(owner, [work, home]);
+      expect(body.data?.deleteCategories.failedIds).toEqual([]);
+
+      const remaining = await graphql<{
+        myLists: { id: string; myCategory: { id: string } | null }[];
+      }>(
+        `
+          query {
+            myLists {
+              id
+              myCategory {
+                id
+              }
+            }
+          }
+        `,
+        owner,
+      );
+      expect(remaining.data?.myLists.map((list) => list.id).sort()).toEqual(
+        [workList, homeList].sort(),
+      );
+      expect(
+        remaining.data?.myLists.every((list) => list.myCategory === null),
+      ).toBe(true);
+
+      const assignments = await testDb.listCategoryAssignment.findMany({
+        where: { listId: { in: [workList, homeList] } },
+      });
+      expect(assignments).toHaveLength(0);
     });
   });
 

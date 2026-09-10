@@ -1,5 +1,10 @@
 import { useTranslations } from 'next-intl';
-import { CategoryCreateForm, CategoryRow } from '@features/categories';
+import {
+  CategoryCreateForm,
+  CategoryRow,
+  CategorySelectionBar,
+  CategorySelectionToggle,
+} from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { TuiHeading } from './Shell';
 import { activeLists } from '../shared/category-filter';
@@ -12,11 +17,15 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
 
   return (
     <div className="flex max-w-3xl flex-col gap-5">
-      <h1 className="font-bold">
-        <span className="text-muted-foreground"># </span>
-        {t('title').toLowerCase()}{' '}
-        <span className="text-muted-foreground">({categories.length})</span>
-      </h1>
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="font-bold">
+          <span className="text-muted-foreground"># </span>
+          {t('title').toLowerCase()}{' '}
+          <span className="text-muted-foreground">({categories.length})</span>
+        </h1>
+        <CategorySelectionToggle />
+      </div>
+      <CategorySelectionBar />
       <div className="max-w-md">
         <CategoryCreateForm />
       </div>

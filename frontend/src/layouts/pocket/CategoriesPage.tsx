@@ -1,5 +1,10 @@
 import { useTranslations } from 'next-intl';
-import { CategoryCreateForm, CategoryRow } from '@features/categories';
+import {
+  CategoryCreateForm,
+  CategoryRow,
+  CategorySelectionBar,
+  CategorySelectionToggle,
+} from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { Group } from './BackLink';
 import { categoryColor } from '../shared/list-stats';
@@ -12,7 +17,11 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-3xl font-extrabold tracking-tight">{t('title')}</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-3xl font-extrabold tracking-tight">{t('title')}</h1>
+        <CategorySelectionToggle />
+      </div>
+      <CategorySelectionBar />
       <Group>
         <CategoryCreateForm />
       </Group>

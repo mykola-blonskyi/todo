@@ -8,7 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { CalendarSyncService } from '../google-calendar/calendar-sync.service';
 import { ListShareStatus } from '@prisma/client';
-import { DeleteListsResult } from './delete-lists-result.model';
+import { BulkDeleteResult } from '../graphql/bulk-delete-result.model';
+import { bulkDelete } from '../graphql/bulk-delete';
 
 const STALE_AFTER_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -157,29 +158,11 @@ export class ListsService {
     return ids;
   }
 
-  async deleteLists(
-    ownerId: string,
-    ids: string[],
-  ): Promise<DeleteListsResult> {
-    const deletedIds: string[] = [];
-    const failedIds: string[] = [];
-
-    for (const id of new Set(ids)) {
-      try {
-        await this.deleteList(ownerId, id);
-        deletedIds.push(id);
-      } catch (error) {
-        if (!(error instanceof NotFoundException)) {
-          this.logger.error(
-            `Bulk delete failed for List ${id}`,
-            error instanceof Error ? error.stack : undefined,
-          );
-        }
-        failedIds.push(id);
-      }
-    }
-
-    return { deletedIds, failedIds };
+  async deleteLists(ownerId: string, ids: string[]): Promise<BulkDeleteResult> {
+    return bulkDelete(ids, (id) => this.deleteList(ownerId, id), {
+      logger: this.logger,
+      entity: 'List',
+    });
   }
 
   // For the listById DataLoader (src/graphql/loaders.ts), used by

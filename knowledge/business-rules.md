@@ -96,7 +96,8 @@ done/not-done state) or gets removed via Rule 10's List-deletion/collaborator-re
   transaction — each delete runs its own Calendar cleanup, so a batch is never held open across a
   string of external API calls. Partial success is the contract: a List the caller doesn't own (or
   that is already gone) fails on its own and is reported back as such, without aborting the rest of
-  the batch. There is no cap on how many Lists one batch may carry.
+  the batch. There is no cap on how many Lists one batch may carry. This is the bulk-deletion
+  contract for every entity that offers one — Rule 23 applies it to Categories.
 
 ---
 
@@ -210,6 +211,12 @@ Deleting a Category cascades to delete its ListCategoryAssignment rows only. The
 assigned to it are completely untouched — they simply become uncategorized for that User. Distinct
 from Rule 10 (deleting a List cascades to *its own* children); here, deleting the *grouping*
 leaves the grouped things alone.
+
+Deleting several Categories at once follows the same bulk contract Rule 10 states for Lists —
+sequential, outside any transaction, partial success reported per item, no cap — applying this rule
+once per Category, so every List filed under any of them survives as an uncategorized List. Because
+the count makes a bulk delete read as if it removed the Lists too, the confirmation shown for one
+must say that they survive.
 
 ---
 

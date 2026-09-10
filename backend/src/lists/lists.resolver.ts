@@ -8,7 +8,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { List } from './list.model';
-import { DeleteListsResult } from './delete-lists-result.model';
+import { BulkDeleteResult } from '../graphql/bulk-delete-result.model';
 import { ListsService } from './lists.service';
 import { UsersService } from '../users/users.service';
 import { Category } from '../categories/category.model';
@@ -124,7 +124,7 @@ export class ListsResolver {
     return this.listsService.deleteList(user.id, id);
   }
 
-  @Mutation(() => DeleteListsResult)
+  @Mutation(() => BulkDeleteResult)
   async deleteLists(
     @CurrentUser() identity: Identity,
     @Args('ids', { type: () => [ID] }) ids: string[],

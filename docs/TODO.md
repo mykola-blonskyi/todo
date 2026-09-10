@@ -105,3 +105,10 @@ tickets.
       (reusable for Categories), a "Select" toggle per layout's header, checkboxes on owned Lists
       only (a collaborator can only *leave*, Rule 2), "Select all" scoped to the active category
       filter, and the catalogue's first ICU plurals in all four locales (TODO-59)
+- [x] Bulk select + delete on the Categories page: `deleteCategories(ids)`, same sequential,
+      per-item, non-transactional shape as `deleteLists` — both now return one shared
+      `BulkDeleteResult` type instead of a near-duplicate per mutation. Reuses the TODO-59 selection
+      kit as it was built to be, so the checkbox lands in the shared `CategoryRow` alone rather than
+      in each of the six layouts. The counted confirm copy spells out that the Lists filed under a
+      Category survive and merely become uncategorized (Rule 23) — a plain "delete 3 categories?"
+      reads like deleting their Lists (TODO-60)

@@ -1,6 +1,11 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
-import { CategoryCreateForm, CategoryRow } from '@features/categories';
+import {
+  CategoryCreateForm,
+  CategoryRow,
+  CategorySelectionBar,
+  CategorySelectionToggle,
+} from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { Spread } from './Spread';
 import { categoryColor } from '../shared/list-stats';
@@ -22,13 +27,17 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
       tabsLabel={tNav('categories')}
       left={
         <>
-          <h2 className="nb-hand text-4xl font-semibold leading-8">
-            {t('title')}
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="nb-hand text-4xl font-semibold leading-8">
+              {t('title')}
+            </h2>
+            <CategorySelectionToggle />
+          </div>
           <p className="mt-2 text-sm leading-8 text-muted-foreground">
             {tNotebook('tabsHint')}
           </p>
           <div className="mt-6 text-sm">
+            <CategorySelectionBar className="mb-4" />
             <CategoryCreateForm className="mb-4" />
             {categories.length === 0 ? (
               <p className="italic text-muted-foreground">{t('emptyState')}</p>

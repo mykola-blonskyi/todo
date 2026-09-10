@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
+import { CategorySelectionCheckbox } from './CategorySelection';
 import { renameCategoryAction, deleteCategoryAction } from './actions';
 import type { Category } from './types';
 
@@ -18,9 +19,10 @@ export function CategoryRow({ category }: CategoryRowProps) {
 
   if (isEditing) {
     return (
-      <li>
+      <li className="flex items-center gap-3">
+        <CategorySelectionCheckbox category={category} className="shrink-0" />
         <form
-          className="flex items-center gap-2"
+          className="flex flex-1 items-center gap-2"
           action={(formData: FormData) => {
             startTransition(async () => {
               await renameCategoryAction(category.id, formData);
@@ -48,7 +50,8 @@ export function CategoryRow({ category }: CategoryRowProps) {
 
   return (
     <li className="flex items-center justify-between gap-3">
-      <span className="truncate">{category.name}</span>
+      <CategorySelectionCheckbox category={category} className="shrink-0" />
+      <span className="mr-auto truncate">{category.name}</span>
       <div className="flex shrink-0 gap-2">
         <Button
           type="button"

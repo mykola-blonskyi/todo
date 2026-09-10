@@ -44,3 +44,23 @@ export async function deleteCategoryAction(id: string) {
   revalidatePath('/[locale]/categories', 'page');
   revalidatePath('/[locale]', 'page');
 }
+
+export async function deleteCategoriesAction(
+  ids: string[],
+): Promise<{ succeededIds: string[]; failedIds: string[] }> {
+  const { deleteCategories } = await graphqlFetch<{
+    deleteCategories: { deletedIds: string[]; failedIds: string[] };
+  }>(
+    `mutation DeleteCategories($ids: [ID!]!) {
+      deleteCategories(ids: $ids) { deletedIds failedIds }
+    }`,
+    { ids },
+  );
+
+  revalidatePath('/[locale]/categories', 'page');
+  revalidatePath('/[locale]', 'page');
+  return {
+    succeededIds: deleteCategories.deletedIds,
+    failedIds: deleteCategories.failedIds,
+  };
+}
