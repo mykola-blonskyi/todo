@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { renderWithProviders } from './setup/render';
-import { nav, listDetail, template } from './setup/fixtures';
+import {
+  archivedList,
+  nav,
+  navWithArchived,
+  listDetail,
+  template,
+} from './setup/fixtures';
 import { layouts } from '@/features/preferences/types';
 import { getLayoutViews } from '@/layouts/registry';
+import { applyCategoryFilter } from '@/layouts/shared/category-filter';
 
 // Server Actions are `'use server'` modules that reach for next/headers -
 // stand them all in so the pages (sync Server Components, renderable under
@@ -19,6 +26,7 @@ vi.mock('@/features/todo-list/actions', () => ({
   renameListAction: vi.fn(),
   updateListDueDateAction: vi.fn(),
   deleteListAction: vi.fn(),
+  unarchiveListAction: vi.fn(),
   createTaskAction: vi.fn(),
   toggleTaskDoneAction: vi.fn(),
   updateTaskAction: vi.fn(),
@@ -75,6 +83,13 @@ vi.mock('@/features/preferences/actions', () => ({
 
 const appearance = { palette: 'classic', layout: 'workspace' } as const;
 
+const unfiltered = {
+  categoryId: null,
+  uncategorizedOnly: false,
+  archivedOnly: false,
+};
+const archiveOnly = { ...unfiltered, archivedOnly: true };
+
 describe.each(layouts)('layout: %s', (layout) => {
   const views = getLayoutViews(layout);
 
@@ -96,11 +111,7 @@ describe.each(layouts)('layout: %s', (layout) => {
   it('lists page links to every list and surfaces the pending invite', () => {
     const { ListsPage } = views;
     renderWithProviders(
-      <ListsPage
-        nav={nav}
-        lists={nav.lists}
-        filter={{ categoryId: null, uncategorizedOnly: false }}
-      />,
+      <ListsPage nav={nav} lists={nav.lists} filter={unfiltered} />,
     );
 
     for (const list of nav.lists) {
@@ -120,11 +131,7 @@ describe.each(layouts)('layout: %s', (layout) => {
   it('lists page dates template-spawned lists, and only those', () => {
     const { ListsPage } = views;
     renderWithProviders(
-      <ListsPage
-        nav={nav}
-        lists={nav.lists}
-        filter={{ categoryId: null, uncategorizedOnly: false }}
-      />,
+      <ListsPage nav={nav} lists={nav.lists} filter={unfiltered} />,
     );
 
     // Groceries is spawned (createdAt 2026-09-04); Garage cleanup is a manual
@@ -137,6 +144,82 @@ describe.each(layouts)('layout: %s', (layout) => {
       screen.queryAllByText(/Aug 20/),
       `${layout}: no date on a manually-created list`,
     ).toHaveLength(0);
+  });
+
+  // Rule 28. Shell and page are rendered together because each layout hosts
+  // the archive filter in its own surface - a chip row for some, the shell's
+  // category nav for others.
+  it('hides archived lists from the overview and offers the archive filter', () => {
+    const { Shell, ListsPage } = views;
+    renderWithProviders(
+      <Shell locale="en" appearance={appearance} nav={navWithArchived}>
+        <ListsPage
+          nav={navWithArchived}
+          lists={applyCategoryFilter(navWithArchived.lists, unfiltered)}
+          filter={unfiltered}
+        />
+      </Shell>,
+    );
+
+    expect(
+      screen
+        .getAllByRole('link')
+        .filter((a) => a.getAttribute('href') === `/lists/${archivedList.id}`),
+      `${layout}: archived list hidden by default`,
+    ).toHaveLength(0);
+    expect(
+      screen
+        .getAllByRole('link')
+        .filter((a) => a.getAttribute('href') === '/?archived=true'),
+      `${layout}: archive filter link`,
+    ).not.toHaveLength(0);
+    expect(
+      screen.queryAllByRole('button', { name: 'Restore' }),
+      `${layout}: no restore control outside the archive`,
+    ).toHaveLength(0);
+  });
+
+  it('keeps archived lists out of the detail page rail', () => {
+    // The rails reuse the overview's list components, so an unfiltered
+    // nav.lists puts every archived Occurrence beside whatever list you open.
+    const { ListDetailPage } = views;
+    renderWithProviders(
+      <ListDetailPage nav={navWithArchived} list={listDetail} />,
+    );
+
+    expect(
+      screen
+        .queryAllByRole('link')
+        .filter((a) => a.getAttribute('href') === `/lists/${archivedList.id}`),
+      `${layout}: archived list in the rail`,
+    ).toHaveLength(0);
+    expect(
+      screen.queryAllByRole('button', { name: 'Restore' }),
+      `${layout}: restore control in the rail`,
+    ).toHaveLength(0);
+  });
+
+  it('lists the archived list under the archive filter, with a restore control', () => {
+    const { ListsPage } = views;
+    renderWithProviders(
+      <ListsPage
+        nav={navWithArchived}
+        lists={applyCategoryFilter(navWithArchived.lists, archiveOnly)}
+        filter={archiveOnly}
+      />,
+    );
+
+    expect(
+      screen
+        .getAllByRole('link')
+        .filter((a) => a.getAttribute('href') === `/lists/${archivedList.id}`)
+        .length,
+      `${layout}: link to the archived list`,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole('button', { name: 'Restore' }).length,
+      `${layout}: restore control`,
+    ).toBeGreaterThan(0);
   });
 
   it('list detail page dates a spawned list beside the template badge', () => {

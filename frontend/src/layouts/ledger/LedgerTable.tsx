@@ -12,6 +12,7 @@ import {
   toggleTaskDoneAction,
   createTaskAction,
 } from '@features/todo-list/actions';
+import { RestoreListButton } from '@features/todo-list';
 import type { ListOverview } from '../types';
 import { ProgressBar } from '../shared/ProgressBar';
 import { AvatarStack } from '../shared/Avatar';
@@ -237,6 +238,7 @@ export function LedgerTable({ lists }: LedgerTableProps) {
                               .join(' · ')}
                           </span>
                         ) : null}
+                        <RestoreListButton list={list} className="mt-1" />
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         <span className="inline-flex items-center gap-1.5">

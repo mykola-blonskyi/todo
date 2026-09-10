@@ -7,12 +7,16 @@ import {
 } from '@/layouts/data';
 
 interface HomePageProps {
-  searchParams: Promise<{ categoryId?: string; uncategorized?: string }>;
+  searchParams: Promise<{
+    categoryId?: string;
+    uncategorized?: string;
+    archived?: string;
+  }>;
 }
 
 // Lists overview. Data is the per-request cached nav fetch (shared with the
-// shell); the URL-driven category filter is applied here so the shell keeps
-// seeing every list for its counts.
+// shell); the URL-driven category/archive filter is applied here so the shell
+// keeps seeing every list, archived ones included, for its counts.
 export default async function HomePage({ searchParams }: HomePageProps) {
   const [params, nav, appearance] = await Promise.all([
     searchParams,

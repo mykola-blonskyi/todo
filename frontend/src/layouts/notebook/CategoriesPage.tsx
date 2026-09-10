@@ -4,6 +4,7 @@ import { CategoryCreateForm, CategoryRow } from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { Spread } from './Spread';
 import { categoryColor } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 // Left page: the tabs themselves (rename / delete / add). Right page: which
 // lists sit behind each tab.
@@ -12,6 +13,8 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
   const tNav = useTranslations('Nav');
   const tNotebook = useTranslations('Notebook');
   const tOverview = useTranslations('Overview');
+
+  const live = activeLists(nav.lists);
 
   return (
     <Spread
@@ -61,14 +64,14 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
               ...categories.map((category) => ({
                 key: category.id,
                 name: category.name,
-                lists: nav.lists.filter(
+                lists: live.filter(
                   (list) => list.myCategory?.id === category.id,
                 ),
               })),
               {
                 key: 'uncategorized',
                 name: tNav('uncategorized'),
-                lists: nav.lists.filter((list) => !list.myCategory),
+                lists: live.filter((list) => !list.myCategory),
               },
             ].map((group) => (
               <div key={group.key} className="mb-4">

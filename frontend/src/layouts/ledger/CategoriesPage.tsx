@@ -2,20 +2,23 @@ import { useTranslations } from 'next-intl';
 import { CategoryCreateForm, CategoryRow } from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { categoryColor, listProgress } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
   const t = useTranslations('Categories');
   const tLedger = useTranslations('Ledger');
   const tNav = useTranslations('Nav');
 
+  const live = activeLists(nav.lists);
+
   const rows = [
     ...categories.map((category) => ({
       key: category.id,
       category,
-      lists: nav.lists.filter((list) => list.myCategory?.id === category.id),
+      lists: live.filter((list) => list.myCategory?.id === category.id),
     })),
   ];
-  const uncategorized = nav.lists.filter((list) => !list.myCategory);
+  const uncategorized = live.filter((list) => !list.myCategory);
 
   return (
     <div className="flex flex-col">

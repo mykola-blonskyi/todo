@@ -5,6 +5,8 @@ import { CreateListForm } from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
 import type { ListsPageProps } from '../types';
 import { LedgerTable } from './LedgerTable';
+import { ArchiveFilterLink } from '../shared/ArchiveFilterLink';
+import { archivedLists, isAllLists } from '../shared/category-filter';
 
 export function ListsPage({ nav, lists, filter }: ListsPageProps) {
   const t = useTranslations('Ledger');
@@ -16,7 +18,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
       key: 'all',
       href: '/' as const,
       label: tNav('allLists'),
-      active: !filter.categoryId && !filter.uncategorizedOnly,
+      active: isAllLists(filter),
     },
     ...nav.categories.map((category) => ({
       key: category.id,
@@ -51,6 +53,13 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
               {chip.label}
             </Link>
           ))}
+          <ArchiveFilterLink
+            filter={filter}
+            count={archivedLists(nav.lists).length}
+            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            activeClassName="border-primary bg-primary/10 text-primary"
+            countClassName="tabular-nums"
+          />
         </nav>
         <div className="ml-auto w-full max-w-sm sm:w-auto">
           <CreateListForm />

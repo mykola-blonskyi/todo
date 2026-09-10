@@ -4,6 +4,7 @@ import { cn } from '@shared/lib/utils';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
 import { createListAction } from '@features/todos-list';
+import { RestoreListButton } from '@features/todo-list';
 import type { ListOverview } from '../types';
 import {
   dueStatus,
@@ -83,6 +84,7 @@ export function Contents({
                   </span>
                 ) : null}
               </span>
+              <RestoreListButton list={list} />
             </li>
           );
         })}

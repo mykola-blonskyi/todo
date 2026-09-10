@@ -103,6 +103,17 @@ export class ListsResolver {
     return this.listsService.updateListDueDate(user.id, id, dueDate ?? null);
   }
 
+  // No manual archive mutation to pair with this one: archiving is the job's
+  // business, restoring is the User's (business-rules.md Rule 28).
+  @Mutation(() => List)
+  async unarchiveList(
+    @CurrentUser() identity: Identity,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.listsService.unarchiveList(user.id, id);
+  }
+
   @Mutation(() => Boolean)
   async deleteList(
     @CurrentUser() identity: Identity,

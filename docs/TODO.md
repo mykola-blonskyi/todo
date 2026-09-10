@@ -51,6 +51,11 @@ tickets.
 
 ## Done
 
+- [x] Auto-archive of stale template-spawned Lists: `List.archivedAt`/`unarchivedAt`, a daily
+      `ListArchiveCron`, an Archive filter + owner-only restore in all six layouts, Rule 28
+      (TODO-58) — bounds ADR-013's unbounded Occurrence history in the view without ever deleting a
+      List, so Rule 10 never fires and no Google Calendar event is touched
+
 - [x] Six user-switchable layouts (Workspace, Board, Notebook, Pocket, Terminal, Ledger) covering
       every screen, twelve colour palettes, light/dark/system mode — three independent preferences
       (cookie + `User` row), see ADR-017; `docs/design/` holds the mockup gallery and palette CSS

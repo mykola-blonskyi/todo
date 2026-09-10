@@ -175,3 +175,25 @@ Calendar event and **CalendarSync** row survives untouched (business-rules.md Ru
 from two neighbouring things it is easily confused with: revoking access from the User's own Google
 Account (same effect on the grant, but todolist keeps a dead row until it next tries to sync), and
 signing out of todolist via **login** (which touches no Calendar state at all).
+
+---
+
+### Archived (adjective, of a List)
+
+A **List** the auto-archive job has retired from the overview because it is a finished, 30-day-old,
+non-newest **Occurrence** of a **ListTemplate** (business-rules.md Rule 28). Purely a view state —
+`List.archivedAt` is set and nothing else changes: the Tasks, ListShares, Comments, **CalendarSync**
+rows and the real Google Calendar events all survive, and `myLists` still returns the List. The
+owner can restore it, permanently (`unarchivedAt`).
+
+Distinct from two things it is easily confused with:
+
+- **Deleted** — a delete removes the List and everything hanging off it, and cleans up every synced
+  Calendar event (Rule 10). Archiving deliberately does none of that; it is reversible, a delete is
+  not.
+- **A paused ListTemplate** — pausing stops a template producing *new* Occurrences (Rule 18) and
+  says nothing about the Lists it already spawned. Archiving hides *one already-spawned List* and
+  says nothing about whether the template keeps firing. An active template can have archived
+  Occurrences; a paused one can have none.
+
+_Avoid_: "archived template" (a **ListTemplate** is `active` or `paused` — it is never archived)

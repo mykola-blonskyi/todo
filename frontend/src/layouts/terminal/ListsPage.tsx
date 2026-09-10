@@ -3,6 +3,7 @@ import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
 import { CreateListForm } from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
+import { RestoreListButton } from '@features/todo-list';
 import type { ListsPageProps } from '../types';
 import { TuiHeading } from './Shell';
 import {
@@ -25,11 +26,13 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
   const tOverview = useTranslations('Overview');
   const locale = useLocale();
 
-  const scope = filter.uncategorizedOnly
-    ? tNav('uncategorized')
-    : filter.categoryId
-      ? (nav.categories.find((c) => c.id === filter.categoryId)?.name ?? '')
-      : tNav('allLists');
+  const scope = filter.archivedOnly
+    ? tNav('archive')
+    : filter.uncategorizedOnly
+      ? tNav('uncategorized')
+      : filter.categoryId
+        ? (nav.categories.find((c) => c.id === filter.categoryId)?.name ?? '')
+        : tNav('allLists');
 
   const ordered = sortByDue(lists);
 
@@ -119,6 +122,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
                     : '—'}
                 </span>
               </Link>
+              <RestoreListButton list={list} className="ml-6" />
             </li>
           );
         })}

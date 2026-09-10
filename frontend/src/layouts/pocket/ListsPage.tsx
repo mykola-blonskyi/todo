@@ -4,8 +4,11 @@ import { cn } from '@shared/lib/utils';
 import { CreateListForm } from '@features/todos-list';
 import { PendingInviteRow } from '@features/list-sharing/PendingInviteRow';
 import type { ListsPageProps } from '../types';
+import { RestoreListButton } from '@features/todo-list';
 import { Sheet } from './Sheet';
 import { ProgressRing } from '../shared/ProgressBar';
+import { ArchiveFilterLink } from '../shared/ArchiveFilterLink';
+import { archivedLists, isAllLists } from '../shared/category-filter';
 import {
   categoryColor,
   dueStatus,
@@ -32,7 +35,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
       key: 'all',
       href: '/' as const,
       label: tNav('allLists'),
-      active: !filter.categoryId && !filter.uncategorizedOnly,
+      active: isAllLists(filter),
     },
     ...nav.categories.map((category) => ({
       key: category.id,
@@ -74,6 +77,13 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
             {chip.label}
           </Link>
         ))}
+        <ArchiveFilterLink
+          filter={filter}
+          count={archivedLists(nav.lists).length}
+          className="whitespace-nowrap rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground"
+          activeClassName="border-primary bg-primary text-primary-foreground"
+          countClassName="tabular-nums opacity-70"
+        />
       </nav>
 
       {nav.pendingInvites.length > 0 ? (
@@ -136,6 +146,7 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
                 </span>
                 <ProgressRing progress={progress} size={38} />
               </Link>
+              <RestoreListButton list={list} className="mt-1.5" />
             </li>
           );
         })}

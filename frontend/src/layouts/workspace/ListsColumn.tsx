@@ -2,9 +2,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
 import { CreateListForm } from '@features/todos-list';
+import { RestoreListButton } from '@features/todo-list';
 import type { CategoryFilterState, ListOverview, NavData } from '../types';
 import { ProgressBar } from '../shared/ProgressBar';
 import { AvatarStack } from '../shared/Avatar';
+import { isArchived } from '../shared/category-filter';
 import {
   categoryColor,
   dueStatus,
@@ -33,12 +35,14 @@ export function ListsColumn({
   const tOverview = useTranslations('Overview');
   const locale = useLocale();
 
-  const heading = filter?.uncategorizedOnly
-    ? t('uncategorized')
-    : filter?.categoryId
-      ? (nav.categories.find((c) => c.id === filter.categoryId)?.name ??
-        t('allLists'))
-      : t('allLists');
+  const heading = filter?.archivedOnly
+    ? t('archive')
+    : filter?.uncategorizedOnly
+      ? t('uncategorized')
+      : filter?.categoryId
+        ? (nav.categories.find((c) => c.id === filter.categoryId)?.name ??
+          t('allLists'))
+        : t('allLists');
 
   return (
     <section
@@ -120,6 +124,11 @@ export function ListsColumn({
                     />
                   </div>
                 </Link>
+                {isArchived(list) && list.isOwner ? (
+                  <div className="border-b px-4 pb-2">
+                    <RestoreListButton list={list} />
+                  </div>
+                ) : null}
               </li>
             );
           })}

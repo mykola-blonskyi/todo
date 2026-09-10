@@ -14,6 +14,7 @@ import { ListsColumn } from './ListsColumn';
 import { ProgressBar } from '../shared/ProgressBar';
 import { AvatarStack } from '../shared/Avatar';
 import { taskProgress } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 export function ListDetailPage({ nav, list }: ListDetailPageProps) {
   const t = useTranslations('Nav');
@@ -22,7 +23,11 @@ export function ListDetailPage({ nav, list }: ListDetailPageProps) {
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">
-      <ListsColumn nav={nav} lists={nav.lists} activeListId={list.id} />
+      <ListsColumn
+        nav={nav}
+        lists={activeLists(nav.lists, list.id)}
+        activeListId={list.id}
+      />
       <article className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-1.5 border-b px-6 py-2.5 text-xs text-muted-foreground">
           <Link

@@ -7,6 +7,8 @@ import { BrandLink } from '../shared/BrandLink';
 import { NavLink } from '../shared/NavLink';
 import { navItems } from '../shared/nav';
 import { Avatar } from '../shared/Avatar';
+import { ArchiveFilterLink } from '../shared/ArchiveFilterLink';
+import { activeLists, archivedLists } from '../shared/category-filter';
 import { categoryColor } from '../shared/list-stats';
 
 // Workspace: persistent left sidebar (nav + categories + user), content to
@@ -23,7 +25,7 @@ export function Shell({ locale, nav, children }: ShellProps) {
   const items = navItems(nav);
   const countByCategory = new Map<string, number>();
   let uncategorized = 0;
-  for (const list of nav.lists) {
+  for (const list of activeLists(nav.lists)) {
     if (list.myCategory) {
       countByCategory.set(
         list.myCategory.id,
@@ -106,6 +108,11 @@ export function Shell({ locale, nav, children }: ShellProps) {
                 {uncategorized}
               </span>
             </Link>
+            <ArchiveFilterLink
+              count={archivedLists(nav.lists).length}
+              className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              countClassName="ml-auto text-xs tabular-nums"
+            />
           </nav>
         </div>
 

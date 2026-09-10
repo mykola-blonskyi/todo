@@ -2,10 +2,13 @@ import { useTranslations } from 'next-intl';
 import { CategoryCreateForm, CategoryRow } from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { TuiHeading } from './Shell';
+import { activeLists } from '../shared/category-filter';
 
 export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
   const t = useTranslations('Categories');
   const tNav = useTranslations('Nav');
+
+  const live = activeLists(nav.lists);
 
   return (
     <div className="flex max-w-3xl flex-col gap-5">
@@ -22,7 +25,7 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
           <li className="text-muted-foreground">{t('emptyState')}</li>
         ) : null}
         {categories.map((category) => {
-          const lists = nav.lists.filter(
+          const lists = live.filter(
             (list) => list.myCategory?.id === category.id,
           );
           return (
@@ -49,7 +52,7 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
       <section>
         <TuiHeading>{tNav('uncategorized').toLowerCase()}</TuiHeading>
         <ul className="pl-6 text-muted-foreground">
-          {nav.lists
+          {live
             .filter((list) => !list.myCategory)
             .map((list) => (
               <li key={list.id}>└ {list.title}</li>

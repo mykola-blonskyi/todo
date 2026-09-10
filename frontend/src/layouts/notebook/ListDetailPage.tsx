@@ -13,6 +13,7 @@ import { Spread } from './Spread';
 import { Contents } from './Contents';
 import { Sticky } from './Sticky';
 import { formatDueDate, taskProgress } from '../shared/list-stats';
+import { activeLists } from '../shared/category-filter';
 
 export function ListDetailPage({ nav, list }: ListDetailPageProps) {
   const t = useTranslations('Notebook');
@@ -28,7 +29,7 @@ export function ListDetailPage({ nav, list }: ListDetailPageProps) {
       tabsLabel={tNav('categories')}
       left={
         <Contents
-          lists={nav.lists}
+          lists={activeLists(nav.lists, list.id)}
           activeListId={list.id}
           emptyText={tOverview('emptyFiltered')}
         />
