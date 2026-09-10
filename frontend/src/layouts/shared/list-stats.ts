@@ -1,4 +1,13 @@
 import type { ListOverview, TaskOverview } from '../types';
+import { daysBetween, todayIso } from '@shared/lib/dates';
+
+export {
+  daysBetween,
+  formatDueDate,
+  formatOccurrenceDate,
+  formatRelativeDay,
+  todayIso,
+} from '@shared/lib/dates';
 
 export interface Progress {
   done: number;
@@ -35,53 +44,6 @@ export function dueStatus(
   if (due === today) return 'today';
   const diff = daysBetween(today, due);
   return diff <= 7 ? 'soon' : 'later';
-}
-
-export function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-export function daysBetween(fromIso: string, toIso: string): number {
-  const from = Date.UTC(
-    Number(fromIso.slice(0, 4)),
-    Number(fromIso.slice(5, 7)) - 1,
-    Number(fromIso.slice(8, 10)),
-  );
-  const to = Date.UTC(
-    Number(toIso.slice(0, 4)),
-    Number(toIso.slice(5, 7)) - 1,
-    Number(toIso.slice(8, 10)),
-  );
-  return Math.round((to - from) / 86_400_000);
-}
-
-// "Tue 8 Sep" style, in the UI locale; date-only so no timezone shifting.
-export function formatDueDate(
-  dueDate: string,
-  locale: string,
-  options: Intl.DateTimeFormatOptions = {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  },
-): string {
-  const [y, m, d] = dueDate.slice(0, 10).split('-').map(Number);
-  return new Intl.DateTimeFormat(locale, {
-    ...options,
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(y, m - 1, d)));
-}
-
-export function formatRelativeDay(iso: string, locale: string): string {
-  const then = new Date(iso).getTime();
-  const diffMinutes = Math.round((Date.now() - then) / 60_000);
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-  if (Math.abs(diffMinutes) < 60) return rtf.format(-diffMinutes, 'minute');
-  const diffHours = Math.round(diffMinutes / 60);
-  if (Math.abs(diffHours) < 24) return rtf.format(-diffHours, 'hour');
-  const diffDays = Math.round(diffHours / 24);
-  if (Math.abs(diffDays) < 30) return rtf.format(-diffDays, 'day');
-  return rtf.format(-Math.round(diffDays / 30), 'month');
 }
 
 // Stable, palette-independent hue per category so the same category keeps

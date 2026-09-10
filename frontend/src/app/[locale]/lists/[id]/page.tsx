@@ -30,6 +30,7 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
           }
           collaborators { id email name image }
           templateId
+          createdAt
           comments { id body createdAt author { id email name } }
           myCategory { id name }
         }

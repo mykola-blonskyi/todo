@@ -19,6 +19,7 @@ import {
   categoryColor,
   dueStatus,
   formatDueDate,
+  formatOccurrenceDate,
   listProgress,
   sortByDue,
 } from '../shared/list-stats';
@@ -197,7 +198,7 @@ function ListCard({
             className="ml-1.5 text-xs font-semibold text-muted-foreground"
             title={t('recurring')}
           >
-            ↻
+            ↻ {formatOccurrenceDate(list.createdAt, locale)}
           </span>
         ) : null}
       </Link>

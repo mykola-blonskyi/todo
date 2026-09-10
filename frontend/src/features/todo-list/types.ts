@@ -17,6 +17,8 @@ export interface ListDetailData {
   tasks: Task[];
   collaborators: Collaborator[];
   templateId: string | null;
+  // Occurrence date for a template-spawned List - see ListMetaControls.
+  createdAt: string;
   comments: Comment[];
   myCategory: { id: string; name: string } | null;
 }

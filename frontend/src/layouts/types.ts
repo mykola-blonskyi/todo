@@ -23,6 +23,10 @@ export interface ListOverview {
   dueDate: string | null;
   updatedAt: string;
   templateId: string | null;
+  // Spawn time of the List. For a template-spawned one (templateId set) this
+  // is its Occurrence date - what the overview renders to tell sibling
+  // Occurrences apart.
+  createdAt: string;
   isOwner: boolean;
   myCategory: { id: string; name: string } | null;
   tasks: TaskOverview[];

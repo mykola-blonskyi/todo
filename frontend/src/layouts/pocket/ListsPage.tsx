@@ -10,6 +10,7 @@ import {
   categoryColor,
   dueStatus,
   formatDueDate,
+  formatOccurrenceDate,
   listProgress,
   sortByDue,
 } from '../shared/list-stats';
@@ -128,7 +129,9 @@ export function ListsPage({ nav, lists, filter }: ListsPageProps) {
                       : ''}
                     {' · '}
                     {progress.done}/{progress.total}
-                    {list.templateId ? ' · ↻' : ''}
+                    {list.templateId
+                      ? ` · ↻ ${formatOccurrenceDate(list.createdAt, locale)}`
+                      : ''}
                   </span>
                 </span>
                 <ProgressRing progress={progress} size={38} />
