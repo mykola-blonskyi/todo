@@ -71,7 +71,9 @@ Additional project-specific instructions may exist in:
 
 ### Issue tracker
 
-GitHub Issues in `mykola-blonskyi/todo`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Plane, self-hosted at `plane.blonskyi.dev` (workspace `blonskyi`, project `TODO`), via its REST
+API. The GitHub Issues on `mykola-blonskyi/todo` were migrated here on 2026-08-07 and are all
+closed — `gh issue` is no longer the tracker. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

@@ -164,3 +164,14 @@ clicks "Connect Google Calendar" and grants the Calendar scope.
 The one-way, manual, per-user action of pushing a Task with a due date to the acting User's own
 Google Calendar. Never used to mean reading changes back from Calendar into todolist — that
 direction does not exist in this system.
+
+---
+
+### Disconnect (verb, as in "disconnect Google Calendar")
+
+The User-initiated action of withdrawing todolist's write access to their Google Calendar: the
+**GoogleCalendarConnection** is revoked at Google and deleted locally, while every already-synced
+Calendar event and **CalendarSync** row survives untouched (business-rules.md Rule 27). Distinct
+from two neighbouring things it is easily confused with: revoking access from the User's own Google
+Account (same effect on the grant, but todolist keeps a dead row until it next tries to sync), and
+signing out of todolist via **login** (which touches no Calendar state at all).

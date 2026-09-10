@@ -257,3 +257,27 @@ todolist's own.
 Google only re-issues a `refresh_token` when the consent screen is forced (`prompt=consent`, which
 the connect flow always sets) — a reconnect that omits one from Google's response keeps the
 previously-stored (still encrypted) `refreshToken` rather than overwriting it with nothing.
+
+---
+
+## Rule 27 — Disconnecting Google Calendar revokes the grant but keeps the synced events
+
+Disconnecting revokes todolist's OAuth grant at Google and deletes the stored
+`GoogleCalendarConnection` (and with it both tokens). It deliberately does **not** delete the
+User's already-synced Calendar events, and does not delete their `CalendarSync` rows:
+
+- The events are data in the User's own calendar, and the published Privacy Policy already tells
+  them the events survive — only a List deletion removes an event automatically (Rule 10).
+- Keeping the `CalendarSync` rows means a later reconnect + re-sync updates those same events
+  instead of creating duplicates. Between disconnect and reconnect the rows are inert, the same way
+  Rule 11 leaves everything intact when hub access is revoked.
+
+This is the deliberate asymmetry with Rule 10: there, the User has *lost access to the List*, so
+their copy of its event is cleaned up; here they keep the List and only withdraw todolist's write
+access to their calendar.
+
+Revocation is best-effort: a revoke call Google refuses is logged and the local tokens are deleted
+anyway, and the mutation still reports success — once the row is gone todolist has no Calendar
+access either way, and the User's remaining recourse (revoking directly in their Google Account) is
+already documented in the Privacy Policy. Disconnecting when nothing is connected is a no-op, not
+an error.

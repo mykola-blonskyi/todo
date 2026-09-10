@@ -13,3 +13,14 @@ export async function syncListToCalendarAction(listId: string): Promise<void> {
 
   revalidatePath('/[locale]/lists/[id]', 'page');
 }
+
+export async function disconnectGoogleCalendarAction(): Promise<void> {
+  await graphqlFetch<{ disconnectGoogleCalendar: boolean }>(
+    `mutation DisconnectGoogleCalendar {
+      disconnectGoogleCalendar
+    }`,
+  );
+
+  // No success banner needed: Settings re-renders with the Connect button.
+  revalidatePath('/[locale]/settings', 'page');
+}

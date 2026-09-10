@@ -254,7 +254,9 @@ Constraints: unique on (`userId`, `taskId`) — one calendar event per user per 
 
 Responsibilities:
 - Holds the OAuth grant that authorizes todolist to write to one User's Google Calendar. Created
-  only via an explicit "Connect Google Calendar" action — never implied by hub login.
+  only via an explicit "Connect Google Calendar" action — never implied by hub login. Deleted only
+  by an explicit "Disconnect" action, which also revokes the grant at Google and leaves the User's
+  CalendarSync rows and synced events intact (business-rules.md Rule 27).
 
 Fields:
 - `id`, `accessToken` (encrypted), `refreshToken` (encrypted), `expiresAt`, `scope`, `connectedAt`

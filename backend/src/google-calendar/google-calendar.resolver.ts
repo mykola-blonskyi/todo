@@ -35,4 +35,11 @@ export class GoogleCalendarResolver {
     await this.googleCalendarService.connect(user.id, code, redirectUri);
     return true;
   }
+
+  // Always true, even when nothing was connected or Google refused (Rule 27).
+  @Mutation(() => Boolean)
+  async disconnectGoogleCalendar(@CurrentUser() identity: Identity) {
+    const user = await this.usersService.findOrCreateByIdentity(identity);
+    return this.googleCalendarService.disconnect(user.id);
+  }
 }
