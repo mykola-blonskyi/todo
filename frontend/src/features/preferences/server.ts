@@ -3,8 +3,10 @@ import { cookies, headers } from 'next/headers';
 import { graphqlFetch } from '@shared/lib/graphql-client';
 import {
   LAYOUT_COOKIE,
+  MODE_COOKIE,
   PALETTE_COOKIE,
   parseLayout,
+  parseMode,
   parsePalette,
   type Appearance,
 } from './types';
@@ -22,31 +24,46 @@ export interface ResolvedAppearance extends Appearance {
 // Per-request cached so the root layout and the page can both call it.
 export const getAppearance = cache(async (): Promise<ResolvedAppearance> => {
   const cookieStore = await cookies();
+  const modeCookie = cookieStore.get(MODE_COOKIE)?.value;
   const paletteCookie = cookieStore.get(PALETTE_COOKIE)?.value;
   const layoutCookie = cookieStore.get(LAYOUT_COOKIE)?.value;
 
-  if (paletteCookie !== undefined && layoutCookie !== undefined) {
+  function fromCookies(): ResolvedAppearance {
     return {
+      mode: parseMode(modeCookie),
       palette: parsePalette(paletteCookie),
       layout: parseLayout(layoutCookie),
       fromBackend: false,
     };
+  }
+
+  // Any one cookie missing is enough to ask: a browser that predates the
+  // mode cookie carries the other two, and its stored mode is exactly what
+  // this lookup is for. One query, then PreferenceCookieSync back-fills all
+  // three and the next request is cookie-only again.
+  if (
+    modeCookie !== undefined &&
+    paletteCookie !== undefined &&
+    layoutCookie !== undefined
+  ) {
+    return fromCookies();
   }
 
   const headerList = await headers();
   if (headerList.get('x-user-id') === null) {
-    return {
-      palette: parsePalette(paletteCookie),
-      layout: parseLayout(layoutCookie),
-      fromBackend: false,
-    };
+    return fromCookies();
   }
 
   try {
     const { me } = await graphqlFetch<{
-      me: { palette: string; layout: string };
-    }>(`query Appearance { me { palette layout } }`);
+      me: { theme: string; palette: string; layout: string };
+    }>(`query Appearance { me { theme palette layout } }`);
     return {
+      // A cookie beats the row: it records what this device settled on -
+      // either an explicit choice here, or what PreferenceCookieSync wrote
+      // back after a previous lookup. For mode that cookie tracks
+      // next-themes' own localStorage, which is what actually gets applied.
+      mode: parseMode(modeCookie ?? me.theme),
       palette: parsePalette(paletteCookie ?? me.palette),
       layout: parseLayout(layoutCookie ?? me.layout),
       fromBackend: true,
@@ -54,10 +71,6 @@ export const getAppearance = cache(async (): Promise<ResolvedAppearance> => {
   } catch {
     // Appearance must never take the page down - fall back to defaults and
     // let the next request try again.
-    return {
-      palette: parsePalette(paletteCookie),
-      layout: parseLayout(layoutCookie),
-      fromBackend: false,
-    };
+    return fromCookies();
   }
 });

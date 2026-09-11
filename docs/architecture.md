@@ -41,7 +41,7 @@ Responsibilities:
 
 Stack: Next.js 16, TypeScript, shadcn/ui, Tailwind CSS v3 (matched to the hub's version so shadcn
 components/theme tokens can be copied directly — see [ADR-007](decisions.md)), `next-themes`
-(light/dark/system), cookie-backed palette + layout preferences rendered server-side
+(light/dark/system), cookie-backed mode + palette + layout preferences rendered server-side
 (`src/features/preferences`, `src/layouts/*` — [ADR-017](decisions.md)), `next-intl` (en/ru/uk/es,
 URL-based, same as hub)
 

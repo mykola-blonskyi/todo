@@ -10,7 +10,7 @@ import { Avatar } from '../shared/Avatar';
 
 // Ledger: a flat toolbar, then full-width tables. Dense by design - the
 // [data-layout=ledger] rules in globals.css shrink the primitives to match.
-export function Shell({ locale, nav, children }: ShellProps) {
+export function Shell({ locale, appearance, nav, children }: ShellProps) {
   const t = useTranslations('Nav');
 
   return (
@@ -48,7 +48,7 @@ export function Shell({ locale, nav, children }: ShellProps) {
                   {t('pendingInvites')}: {nav.pendingInvites.length}
                 </Link>
               ) : null}
-              <ModeToggle className="h-8 text-xs" />
+              <ModeToggle mode={appearance.mode} className="h-8 text-xs" />
               <Avatar
                 person={nav.user}
                 className="bg-primary text-primary-foreground"

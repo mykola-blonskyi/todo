@@ -20,6 +20,7 @@ interface AppearanceSettingsProps extends Appearance {
 // SettingsPage places this inside its own idiom; the header/quick controls
 // in the shells use the individual switchers instead.
 export function AppearanceSettings({
+  mode,
   palette,
   layout,
   className,
@@ -47,7 +48,7 @@ export function AppearanceSettings({
       </label>
       <label className={row}>
         <span className={label}>{t('mode')}</span>
-        <ModeToggle />
+        <ModeToggle mode={mode} />
       </label>
       <label className={row}>
         <span className={label}>{t('language')}</span>

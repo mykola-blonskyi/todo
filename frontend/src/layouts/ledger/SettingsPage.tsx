@@ -24,8 +24,7 @@ export function SettingsPage({
             {t('appearanceTitle')}
           </div>
           <AppearanceSettings
-            palette={appearance.palette}
-            layout={appearance.layout}
+            {...appearance}
             className="px-4"
             rowClassName="grid grid-cols-[10rem_1fr] justify-items-start border-b py-2 last:border-b-0"
           />

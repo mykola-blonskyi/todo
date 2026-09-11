@@ -718,7 +718,7 @@ the direction like they pick a theme.
 
 | axis | values | where it lives | who applies it |
 |---|---|---|---|
-| `theme` (mode) | `light` · `dark` · `system` | `next-themes` (localStorage + `dark` class), mirrored to `User.theme` | client |
+| `theme` (mode) | `light` · `dark` · `system` | `next-themes` (localStorage + `dark` class) + cookie `todolist-mode` + `User.theme` | client applies it; the server supplies next-themes' `defaultTheme` |
 | `palette` | `classic` · `rose` · `indigo` · `ocean` · `forest` · `olive` · `honey` · `clay` · `coral` · `violet` · `graphite` · `paper` | cookie `todolist-palette` + `User.palette` | server renders `<html class="theme-<id>">`; the switcher flips the class synchronously too |
 | `layout` | `workspace` · `board` · `notebook` · `pocket` · `terminal` · `ledger` | cookie `todolist-layout` + `User.layout` | server picks the shell + page components |
 
@@ -786,6 +786,9 @@ Default for everyone is `workspace` / `classic` / `light` — the closest to wha
   layout pages and `ModeToggle`. Nothing references them.
 - Adding a layout = a folder implementing `LayoutViews`, an id in `features/preferences/types.ts`,
   a value in `UserLayout`, a `[data-layout]` block in `globals.css`, a label in each locale.
-- Read-side wiring of the persisted `User.theme` (mode) on a fresh device is still not done — mode
-  stays a client/localStorage-first preference exactly as before; only palette and layout are
-  read back from the row.
+- Read-side wiring of the persisted `User.theme` (mode) on a fresh device is done (TODO-61): mode
+  now has a `todolist-mode` cookie like the other two axes, `getAppearance` falls back to
+  `User.theme` when any of the three cookies is missing, and the resolved value is handed to
+  next-themes as its `defaultTheme` so the pre-paint script applies it — no flash, and no effect
+  running after hydration. next-themes still owns the applied class, and a choice already in this
+  device's `localStorage` still wins over the row.

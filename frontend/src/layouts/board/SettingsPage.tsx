@@ -19,8 +19,7 @@ export function SettingsPage({
         <section className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm md:row-span-2">
           <h2 className="text-sm font-bold">{t('appearanceTitle')}</h2>
           <AppearanceSettings
-            palette={appearance.palette}
-            layout={appearance.layout}
+            {...appearance}
             rowClassName="border-b last:border-b-0"
           />
         </section>

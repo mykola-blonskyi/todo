@@ -21,8 +21,7 @@ export function SettingsPage({
             {t('appearanceTitle')}
           </h2>
           <AppearanceSettings
-            palette={appearance.palette}
-            layout={appearance.layout}
+            {...appearance}
             className="mt-6 text-sm"
             rowClassName="min-h-8 border-b border-dotted border-muted-foreground/40 py-1"
           />

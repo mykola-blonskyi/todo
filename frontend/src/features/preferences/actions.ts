@@ -40,8 +40,9 @@ export async function updateLocaleAction(locale: Locale) {
 // device backup (read once when a browser has no cookie yet - see
 // features/preferences/server.ts).
 //
-// Not httpOnly: PreferenceCookieSync writes the same cookies from the client
-// when it back-fills them from the User row.
+// Not httpOnly: PreferenceCookieSync and ModeToggle write the same cookies
+// from the client (see preferences/write-cookie.ts, which mirrors these
+// attributes), and a cookie written from JS can never be httpOnly.
 function cookieOptions() {
   return {
     path: '/',

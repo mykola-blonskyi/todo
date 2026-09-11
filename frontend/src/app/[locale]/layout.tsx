@@ -131,13 +131,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          themes={['light', 'dark']}
-          disableTransitionOnChange
-        >
+        <ThemeProvider mode={appearance.mode}>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <QueryProvider>
               <Shell locale={locale} appearance={appearance} nav={nav}>
