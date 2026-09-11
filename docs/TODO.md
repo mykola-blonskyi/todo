@@ -1,9 +1,11 @@
 # TODO
 
 See [plans/current.md](../plans/current.md) for the phased implementation plan this list feeds, and
-[GitHub Issues](https://github.com/mykola-blonskyi/todo/issues) for the actual ticket-level,
+Plane (`plane.blonskyi.dev`, project `TODO` — see
+[docs/agents/issue-tracker.md](agents/issue-tracker.md)) for the actual ticket-level,
 dependency-ordered breakdown — this file tracks coarser-grained, cross-cutting items, not individual
-tickets.
+tickets. The GitHub Issues this file used to link were migrated to Plane on 2026-08-07 and their
+numbers no longer match; anything below referencing a ticket uses its Plane id (`TODO-n`).
 
 ## Backlog
 
@@ -29,11 +31,10 @@ tickets.
 
 ## Planned
 
-- [ ] Sharing flow frontend: search UI, invite button, pending-invite surface + accept/decline,
-      collaborators list with remove/leave actions — see GitHub Issues #14–#18 (backend done)
-- [ ] Comment flow: task-level and list-level, both roles (Rule 6) — see GitHub Issue #19
-- [ ] Google Calendar connect flow + one-way manual sync + delete-on-complete (Rules 8–10) — see
-      GitHub Issues #20–#24
+- [ ] Playwright e2e job in CI (ADR-008) — nothing exists yet, and GitHub Actions is billing-blocked
+      on this repo, so a new job couldn't be proven green anyway
+- [ ] Phase 9 layout follow-ups: touch drag-and-drop on the Board, reading the persisted mode back
+      on a fresh device, per-layout PWA `theme_color` (see plans/current.md)
 
 ---
 
@@ -50,6 +51,19 @@ tickets.
 ---
 
 ## Done
+
+- [x] Sharing flow frontend: share search + invite UI (TODO-42), pending invites with accept/decline
+      (TODO-43), collaborators list with owner-remove and collaborator-leave (TODO-44) — completes
+      the sharing phase whose backend landed with TODO-11–TODO-15
+
+- [x] Comment flow: task-level and list-level comments, both roles (Rule 6) — backend resolvers plus
+      `features/comments` wired into all six layouts (TODO-16)
+
+- [x] Google Calendar connect (OAuth, encrypted tokens at rest) and manual one-way sync (TODO-17,
+      TODO-18). Sync is List-level with a Task checklist in the event description, not per-Task
+      (ADR-015) — which is why delete-on-complete was cancelled (TODO-19) and Rule 9 retired in
+      place; cleanup now happens only via Rule 10's List-deletion/collaborator-removal cascade
+      (TODO-20, TODO-21)
 
 - [x] Auto-archive of stale template-spawned Lists: `List.archivedAt`/`unarchivedAt`, a daily
       `ListArchiveCron`, an Archive filter + owner-only restore in all six layouts, Rule 28
@@ -68,32 +82,34 @@ tickets.
 - [x] Hub repo: added `GET /api/auth/project-members?project=<slug>&q=<term>` endpoint (ADR-009,
       hub's own ADR-022) — merged
 - [x] Hub repo / Google Cloud Console: added the Calendar-callback redirect URI (ADR-004)
-- [x] Prisma schema for the full domain model + Postgres connection (issue #8) — Prisma 6, see
+- [x] Prisma schema for the full domain model + Postgres connection (TODO-5) — Prisma 6, see
       ADR-011
-- [x] Published 4 specs (#3–#6) and 17 implementation tickets (#8–#24) to GitHub Issues
-- [x] GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)
+- [x] Published 4 specs and 17 implementation tickets to the issue tracker (GitHub Issues at the
+      time; migrated to Plane on 2026-08-07, where they are TODO-1–TODO-21)
+- [x] GraphQL module (code-first) + trusted-identity guard + `me` query (TODO-6)
 - [x] Downgraded frontend to Tailwind v3, copied hub's shadcn theme tokens (ADR-007)
 - [x] Frontend middleware: hub validate + next-intl locale routing, with a documented local-dev
-      bypass (issue #10)
-- [x] Backend List create/myLists/list(id) + frontend Lists overview and detail page (issue #10)
-- [x] Backend renameList/deleteList + frontend rename/delete UI, owner-only (issue #11)
+      bypass (TODO-7)
+- [x] Backend List create/myLists/list(id) + frontend Lists overview and detail page (TODO-7)
+- [x] Backend renameList/deleteList + frontend rename/delete UI, owner-only (TODO-8)
 - [x] Backend createTask/toggleTaskDone + frontend Task list/add/toggle UI, owner-only, cascade
-      verified e2e (issue #12)
+      verified e2e (TODO-9)
 - [x] Backend updateTask/deleteTask/reorderTasks + frontend Task edit/delete/reorder UI,
-      owner-only (issue #13) — Phase 3 complete
+      owner-only (TODO-10) — Phase 3 complete
 - [x] Backend sharing & collaboration: searchShareCandidates, inviteToList, pendingInvites/
       acceptInvite/declineInvite, collaborator permission boundary (requireAccess/
-      requireAccessToTask), removeCollaborator/leaveList (issues #14–#18) — frontend still open
-- [x] Dockerfiles for backend/frontend + root `docker-compose.yml` for Coolify (issue #55) — no
+      requireAccessToTask), removeCollaborator/leaveList (TODO-11–TODO-15) — frontend landed
+      later, see above
+- [x] Dockerfiles for backend/frontend + root `docker-compose.yml` for Coolify (TODO-35) — no
       Postgres service (shared VPS instance, ADR-002), backend stays internal-only (ADR-003)
 - [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color,
-      manually verified installing on mobile (issues #38/#48)
+      manually verified installing on mobile (TODO-24/TODO-34)
 - [x] Hub repo: registered `todo` project slug in the `projects` table
 - [x] Provisioned `todo_app` Postgres role + `todo` database on the shared VPS instance for prod
       (ADR-002)
 - [x] Registered `todo` in Coolify (Docker Compose resource, env vars, "Connect to Predefined
       Network", `COOLIFY_WEBHOOK_URL`/`COOLIFY_WEBHOOK_TOKEN` repo secrets) — `todo.blonskyi.dev` is
-      live, gated deploy confirmed working end to end (issue #55)
+      live, gated deploy confirmed working end to end (TODO-35)
 - [x] Google Calendar disconnect: `disconnectGoogleCalendar` mutation (best-effort revoke at
       Google, tokens deleted regardless), Settings disconnect button, Rule 27 — synced events and
       `CalendarSync` rows survive a disconnect (TODO-55). Also corrected the Privacy Policy's
