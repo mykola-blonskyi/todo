@@ -33,8 +33,11 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 - [ ] Playwright e2e job in CI (ADR-008) — nothing exists yet, and GitHub Actions is billing-blocked
       on this repo, so a new job couldn't be proven green anyway
-- [ ] Phase 9 layout follow-ups: touch drag-and-drop on the Board, reading the persisted mode back
-      on a fresh device, per-layout PWA `theme_color` (see plans/current.md)
+- [ ] Phase 9 layout follow-ups, now ticketed: touch drag-and-drop on the Board (TODO-62),
+      per-layout PWA `theme_color` (TODO-63). Reading the persisted mode back on a fresh device
+      (TODO-61) is done
+- [ ] Sign-out leaves the appearance cookies behind, so the next user on a shared browser inherits
+      them and their own `User` row is never read (TODO-64)
 
 ---
 
@@ -51,6 +54,11 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 ---
 
 ## Done
+
+- [x] Reading the persisted mode back on a fresh device (TODO-61): mode gained a `todolist-mode`
+      cookie and a `User.theme` fallback, handed to next-themes as its `defaultTheme` so the
+      pre-paint script applies it without a flash, while a choice already in this device's
+      localStorage still wins. Closes the write-side/read-side asymmetry ADR-017 had left open
 
 - [x] Sharing flow frontend: share search + invite UI (TODO-42), pending invites with accept/decline
       (TODO-43), collaborators list with owner-remove and collaborator-leave (TODO-44) — completes
