@@ -142,11 +142,11 @@ is annotation only, never a substitute for the owner-only Task edit rules.
 
 ### CalendarSync
 
-A per-user, per-Task record (`userId`, `taskId`, `googleEventId`, `googleCalendarId`) tracking that a
-given User has pushed a given Task to their own Google Calendar. Because sync is one-way and
-per-user, the same Task can have independent CalendarSync rows for the owner and for each
-Collaborator who opted in — they are separate calendar events in separate calendars, not one shared
-event.
+A per-user, per-List record (`userId`, `listId`, `googleEventId`, `googleCalendarId`) tracking that
+a given User has pushed a given List to their own Google Calendar — one event per List, never one
+per Task (ADR-015). Because sync is one-way and per-user, the same List can have independent
+CalendarSync rows for the owner and for each Collaborator who opted in — they are separate calendar
+events in separate calendars, not one shared event.
 
 ---
 
@@ -159,11 +159,12 @@ clicks "Connect Google Calendar" and grants the Calendar scope.
 
 ---
 
-### Sync (verb, as in "sync a Task")
+### Sync (verb, as in "sync a List")
 
-The one-way, manual, per-user action of pushing a Task with a due date to the acting User's own
-Google Calendar. Never used to mean reading changes back from Calendar into todolist — that
-direction does not exist in this system.
+The one-way, manual, per-user action of pushing a List with a due date to the acting User's own
+Google Calendar, as a single event whose description carries the List's Tasks as a checklist
+(ADR-015). Never used to mean reading changes back from Calendar into todolist — that direction does
+not exist in this system.
 
 ---
 

@@ -75,8 +75,10 @@ hub's Google SSO — this repo never implements its own login. Full design in
 
 ## Issue tracking
 
-Specs and implementation tickets live as GitHub Issues in this repo (`mykola-blonskyi/todo`), not
-just in plans/current.md — see docs/agents/issue-tracker.md and docs/agents/triage-labels.md.
-plans/current.md tracks phase-level progress; GitHub Issues track the actual ticket-level breakdown
-(vertical slices, dependency-ordered) generated from each phase's spec. Check both — a phase
-checkbox here can be "not started" while its tickets already exist and are ready to pick up.
+Specs and implementation tickets live in Plane (self-hosted at `plane.blonskyi.dev`, workspace
+`blonskyi`, project `TODO`), not just in plans/current.md — see docs/agents/issue-tracker.md and
+docs/agents/triage-labels.md. The GitHub Issues on `mykola-blonskyi/todo` were migrated there on
+2026-08-07 and are all closed. plans/current.md tracks phase-level progress; Plane tracks the actual
+ticket-level breakdown (vertical slices, dependency-ordered) generated from each phase's spec. Check
+both — a phase checkbox here can be "not started" while its tickets already exist and are ready to
+pick up.
