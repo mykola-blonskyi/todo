@@ -95,7 +95,7 @@ Tickets: TODO-16. Complete.
 
 ## Phase 6 — Google Calendar sync
 
-Tickets: TODO-17 – TODO-21, TODO-52, TODO-55, TODO-56.
+Tickets: TODO-17 – TODO-21, TODO-52, TODO-55, TODO-56. Complete.
 
 - [x] "Connect Google Calendar" OAuth flow, `GoogleCalendarConnection` storage, tokens encrypted at
       rest (ADR-004, Rule 26) (TODO-17)
@@ -107,9 +107,10 @@ Tickets: TODO-17 – TODO-21, TODO-52, TODO-55, TODO-56.
       died with ADR-015; Rule 9 is retired in place
 - [x] Disconnect: revoke the grant at Google, delete the tokens, keep the synced events and
       `CalendarSync` rows (Rule 27) (TODO-55)
-- [ ] Stale-connection handling: flag a Google-side revoke (`invalid_grant` / Calendar-API 401),
-      "Reconnect needed" in Settings instead of a permanent "Connected" (Rule 29) — TODO-56,
-      PR #120 open, awaiting merge
+- [x] Stale-connection handling: flag a Google-side revoke (`invalid_grant` at refresh, or a
+      Calendar-API 401), "Reconnect needed" in Settings instead of a permanent "Connected", cleared
+      by a successful reconnect (Rule 29) (TODO-56). Detection is lazy — nothing polls Google, so
+      the flag appears the first time something actually tries to use the grant
 - [x] Keep this whole phase behind a mocked Google API in tests — no real dogfooding until a second
       Google account is available (still true; see Risks)
 
