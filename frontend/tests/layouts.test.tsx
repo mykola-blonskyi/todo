@@ -10,6 +10,7 @@ import {
   template,
 } from './setup/fixtures';
 import { ListSelectionProvider } from '@/features/todos-list/ListSelection';
+import { CategorySelectionProvider } from '@/features/categories/CategorySelection';
 import { layouts } from '@/features/preferences/types';
 import { getLayoutViews } from '@/layouts/registry';
 import { applyCategoryFilter } from '@/layouts/shared/category-filter';
@@ -54,6 +55,7 @@ vi.mock('@/features/categories/actions', () => ({
   createCategoryAction: vi.fn(),
   renameCategoryAction: vi.fn(),
   deleteCategoryAction: vi.fn(),
+  deleteCategoriesAction: vi.fn(),
 }));
 vi.mock('@/features/list-templates/actions', () => ({
   createListTemplateAction: vi.fn(),
@@ -322,6 +324,36 @@ describe.each(layouts)('layout: %s', (layout) => {
     expect(screen.getAllByRole('button', { name: 'Edit' })).toHaveLength(2);
     expect(
       screen.getByPlaceholderText('New category name'),
+    ).toBeInTheDocument();
+  });
+
+  it('categories page offers bulk selection with the count in view', async () => {
+    const user = userEvent.setup();
+    const { CategoriesPage } = views;
+    renderWithProviders(
+      <CategorySelectionProvider categories={nav.categories}>
+        <CategoriesPage nav={nav} categories={nav.categories} />
+      </CategorySelectionProvider>,
+    );
+
+    expect(
+      screen.queryAllByRole('checkbox'),
+      `${layout}: no checkboxes before selection mode`,
+    ).toHaveLength(0);
+
+    await user.click(screen.getByRole('button', { name: 'Select' }));
+
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Work' }),
+      `${layout}: checkbox on the category row`,
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Select all 2' }),
+      `${layout}: select-all counts the categories`,
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Clear' }),
+      `${layout}: bulk action bar`,
     ).toBeInTheDocument();
   });
 

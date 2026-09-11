@@ -2,12 +2,17 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BulkDeleteResult } from '../graphql/bulk-delete-result.model';
+import { bulkDelete } from '../graphql/bulk-delete';
 
 @Injectable()
 export class CategoriesService {
+  private readonly logger = new Logger(CategoriesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   myCategories(ownerId: string) {
@@ -39,10 +44,18 @@ export class CategoriesService {
 
   async deleteCategory(ownerId: string, id: string) {
     await this.requireOwned(ownerId, id);
-    // No cascade to Lists themselves - ListCategoryAssignment doesn't exist
-    // yet (TODO-31, business-rules.md Rule 23).
     await this.prisma.category.delete({ where: { id } });
     return true;
+  }
+
+  async deleteCategories(
+    ownerId: string,
+    ids: string[],
+  ): Promise<BulkDeleteResult> {
+    return bulkDelete(ids, (id) => this.deleteCategory(ownerId, id), {
+      logger: this.logger,
+      entity: 'Category',
+    });
   }
 
   private requireName(name: string): string {

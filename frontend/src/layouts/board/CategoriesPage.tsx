@@ -1,6 +1,11 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
-import { CategoryCreateForm, CategoryRow } from '@features/categories';
+import {
+  CategoryCreateForm,
+  CategoryRow,
+  CategorySelectionBar,
+  CategorySelectionToggle,
+} from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { categoryColor, listProgress } from '../shared/list-stats';
 import { activeLists } from '../shared/category-filter';
@@ -25,7 +30,11 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-      <h1 className="text-xl font-extrabold tracking-tight">{t('title')}</h1>
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="text-xl font-extrabold tracking-tight">{t('title')}</h1>
+        <CategorySelectionToggle />
+      </div>
+      <CategorySelectionBar />
       <div className="flex gap-4 overflow-x-auto">
         <section
           aria-label={t('createButton')}

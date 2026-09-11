@@ -1,4 +1,5 @@
 import { getAppearance } from '@features/preferences/server';
+import { CategorySelectionProvider } from '@features/categories';
 import { getLayoutViews } from '@/layouts/registry';
 import { fetchNavData } from '@/layouts/data';
 
@@ -9,5 +10,9 @@ export default async function CategoriesPage() {
   ]);
   const { CategoriesPage: View } = getLayoutViews(appearance.layout);
 
-  return <View nav={nav} categories={nav.categories} />;
+  return (
+    <CategorySelectionProvider categories={nav.categories}>
+      <View nav={nav} categories={nav.categories} />
+    </CategorySelectionProvider>
+  );
 }

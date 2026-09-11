@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-export class DeleteListsResult {
+export class BulkDeleteResult {
   @Field(() => [ID])
   deletedIds: string[];
 

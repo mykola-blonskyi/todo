@@ -1,5 +1,10 @@
 import { useTranslations } from 'next-intl';
-import { CategoryCreateForm, CategoryRow } from '@features/categories';
+import {
+  CategoryCreateForm,
+  CategoryRow,
+  CategorySelectionBar,
+  CategorySelectionToggle,
+} from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { categoryColor, listProgress } from '../shared/list-stats';
 import { activeLists } from '../shared/category-filter';
@@ -27,10 +32,12 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
         <span className="text-xs text-muted-foreground">
           {categories.length}
         </span>
+        <CategorySelectionToggle />
         <div className="ml-auto w-full max-w-sm sm:w-auto">
           <CategoryCreateForm />
         </div>
       </div>
+      <CategorySelectionBar className="border-b px-4 py-2" />
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead className="bg-muted/60 text-xs">

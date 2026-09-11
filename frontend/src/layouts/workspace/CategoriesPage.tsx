@@ -1,6 +1,11 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@shared/lib/i18n/navigation';
-import { CategoryCreateForm, CategoryRow } from '@features/categories';
+import {
+  CategoryCreateForm,
+  CategoryRow,
+  CategorySelectionBar,
+  CategorySelectionToggle,
+} from '@features/categories';
 import type { CategoriesPageProps } from '../types';
 import { categoryColor } from '../shared/list-stats';
 import { activeLists } from '../shared/category-filter';
@@ -30,7 +35,11 @@ export function CategoriesPage({ nav, categories }: CategoriesPageProps) {
         aria-label={t('title')}
         className="flex w-full shrink-0 flex-col gap-3 border-b p-4 md:w-80 md:border-b-0 md:border-r"
       >
-        <h2 className="text-sm font-semibold">{t('title')}</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">{t('title')}</h2>
+          <CategorySelectionToggle className="-mr-2" />
+        </div>
+        <CategorySelectionBar />
         <CategoryCreateForm />
         {categories.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('emptyState')}</p>

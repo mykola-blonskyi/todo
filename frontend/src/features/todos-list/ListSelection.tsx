@@ -8,6 +8,10 @@ import {
   SelectionProvider,
   SelectionToggle,
 } from '@ui/selection';
+import {
+  useSelectionBarCopy,
+  useSelectionToggleCopy,
+} from '@shared/lib/selection-copy';
 import { deleteListsAction } from './actions';
 
 export interface SelectableList {
@@ -35,15 +39,9 @@ export function ListSelectionProvider({
 }
 
 export function ListSelectionToggle({ className }: { className?: string }) {
-  const t = useTranslations('Lists');
+  const copy = useSelectionToggleCopy('Lists');
 
-  return (
-    <SelectionToggle
-      className={className}
-      selectLabel={t('selectButton')}
-      cancelLabel={t('selectCancelButton')}
-    />
-  );
+  return <SelectionToggle className={className} {...copy} />;
 }
 
 export function ListSelectionCheckbox({
@@ -65,22 +63,13 @@ export function ListSelectionCheckbox({
 }
 
 export function ListSelectionBar({ className }: { className?: string }) {
-  const t = useTranslations('Lists');
+  const copy = useSelectionBarCopy('Lists');
 
   return (
     <SelectionActionBar
       className={className}
       action={deleteListsAction}
-      copy={{
-        selectedCount: (count) => t('selectedCount', { count }),
-        selectAll: (count) => t('selectAllVisible', { count }),
-        clear: t('clearSelection'),
-        delete: t('deleteButton'),
-        confirm: (count) => t('deleteSelectedConfirm', { count }),
-        partialFailure: (succeeded, failed) =>
-          t('deleteSelectedPartial', { deleted: succeeded, failed }),
-        failed: t('deleteSelectedFailed'),
-      }}
+      copy={copy}
     />
   );
 }
