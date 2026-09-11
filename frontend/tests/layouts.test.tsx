@@ -86,7 +86,11 @@ vi.mock('@/features/preferences/actions', () => ({
   updateLayoutAction: vi.fn(),
 }));
 
-const appearance = { palette: 'classic', layout: 'workspace' } as const;
+const appearance = {
+  mode: 'light',
+  palette: 'classic',
+  layout: 'workspace',
+} as const;
 
 const unfiltered = {
   categoryId: null,

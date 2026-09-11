@@ -21,6 +21,7 @@ export function SettingsPage({
             {t('appearanceTitle')}
           </h2>
           <AppearanceSettings
+            mode={appearance.mode}
             palette={appearance.palette}
             layout={appearance.layout}
             className="mt-6 text-sm"

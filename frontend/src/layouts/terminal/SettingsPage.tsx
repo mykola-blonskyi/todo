@@ -22,6 +22,7 @@ export function SettingsPage({
       <section>
         <TuiHeading>{t('appearanceTitle').toLowerCase()}</TuiHeading>
         <AppearanceSettings
+          mode={appearance.mode}
           palette={appearance.palette}
           layout={appearance.layout}
           className="mt-1"

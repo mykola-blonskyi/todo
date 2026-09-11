@@ -133,7 +133,7 @@ export default async function LocaleLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme={appearance.mode}
           enableSystem
           themes={['light', 'dark']}
           disableTransitionOnChange
@@ -147,6 +147,7 @@ export default async function LocaleLayout({
           </NextIntlClientProvider>
           {appearance.fromBackend ? (
             <PreferenceCookieSync
+              mode={appearance.mode}
               palette={appearance.palette}
               layout={appearance.layout}
             />

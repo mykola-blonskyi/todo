@@ -18,6 +18,7 @@ export function SettingsPage({
       <h1 className="text-3xl font-extrabold tracking-tight">{t('title')}</h1>
       <Group title={t('appearanceTitle')}>
         <AppearanceSettings
+          mode={appearance.mode}
           palette={appearance.palette}
           layout={appearance.layout}
           rowClassName="border-b py-2.5 font-bold last:border-b-0"

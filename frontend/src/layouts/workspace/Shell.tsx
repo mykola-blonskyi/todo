@@ -15,7 +15,7 @@ import { categoryColor } from '../shared/list-stats';
 // the right. Pages then split the content into a list column and a detail
 // pane themselves (ListsColumn), so the same three-pane rhythm holds on
 // every screen.
-export function Shell({ locale, nav, children }: ShellProps) {
+export function Shell({ locale, appearance, nav, children }: ShellProps) {
   const t = useTranslations('Nav');
 
   if (!nav) {
@@ -127,7 +127,7 @@ export function Shell({ locale, nav, children }: ShellProps) {
             </span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <ModeToggle className="h-7 px-1 text-xs" />
+            <ModeToggle mode={appearance.mode} className="h-7 px-1 text-xs" />
             <LoginSignOutButton locale={locale} />
           </div>
         </div>

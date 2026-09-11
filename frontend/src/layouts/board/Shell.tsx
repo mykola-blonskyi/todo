@@ -10,7 +10,7 @@ import { Avatar } from '../shared/Avatar';
 
 // Board: a single top bar with pill navigation; everything below is a wide,
 // horizontally scrolling canvas of columns.
-export function Shell({ locale, nav, children }: ShellProps) {
+export function Shell({ locale, appearance, nav, children }: ShellProps) {
   const t = useTranslations('Nav');
 
   return (
@@ -49,7 +49,10 @@ export function Shell({ locale, nav, children }: ShellProps) {
                     {t('pendingInvites')} · {nav.pendingInvites.length}
                   </Link>
                 ) : null}
-                <ModeToggle className="h-8 rounded-full text-xs" />
+                <ModeToggle
+                  mode={appearance.mode}
+                  className="h-8 rounded-full text-xs"
+                />
                 <Avatar
                   person={nav.user}
                   size="md"

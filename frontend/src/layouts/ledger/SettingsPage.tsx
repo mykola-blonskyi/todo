@@ -24,6 +24,7 @@ export function SettingsPage({
             {t('appearanceTitle')}
           </div>
           <AppearanceSettings
+            mode={appearance.mode}
             palette={appearance.palette}
             layout={appearance.layout}
             className="px-4"

@@ -46,12 +46,17 @@ export const DEFAULT_MODE: Mode = 'light';
 export const DEFAULT_PALETTE: Palette = 'classic';
 export const DEFAULT_LAYOUT: Layout = 'workspace';
 
+export const MODE_COOKIE = 'todolist-mode';
 export const PALETTE_COOKIE = 'todolist-palette';
 export const LAYOUT_COOKIE = 'todolist-layout';
 // One year - these are durable preferences, not session state.
 export const PREFERENCE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export interface Appearance {
+  // next-themes still owns applying the mode on the client; this is the
+  // value the server hands it as `defaultTheme`, so a device with nothing in
+  // localStorage yet starts from the User's real choice (TODO-61).
+  mode: Mode;
   palette: Palette;
   layout: Layout;
 }
@@ -77,6 +82,10 @@ export function isLayout(value: unknown): value is Layout {
 // Lenient parsers for cookie / backend values: anything unknown (an old
 // value, a typo, a value from a future version) falls back to the default
 // instead of throwing during render.
+export function parseMode(value: unknown): Mode {
+  return isMode(value) ? value : DEFAULT_MODE;
+}
+
 export function parsePalette(value: unknown): Palette {
   return isPalette(value) ? value : DEFAULT_PALETTE;
 }

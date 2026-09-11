@@ -39,6 +39,7 @@ export function SettingsPage({
         <section id="appearance" className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">{t('appearanceTitle')}</h2>
           <AppearanceSettings
+            mode={appearance.mode}
             palette={appearance.palette}
             layout={appearance.layout}
             rowClassName="border-b last:border-b-0"

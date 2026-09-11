@@ -14,7 +14,7 @@ import { TuiKeys } from './TuiKeys';
 // Terminal: status bar · tree sidebar · main pane · command line. Everything
 // is monospace and keyboard-first (TuiKeys + CommandLine); the mouse still
 // works everywhere.
-export function Shell({ locale, nav, children }: ShellProps) {
+export function Shell({ locale, appearance, nav, children }: ShellProps) {
   const t = useTranslations('Terminal');
   const tNav = useTranslations('Nav');
 
@@ -83,7 +83,10 @@ export function Shell({ locale, nav, children }: ShellProps) {
           </Link>
         ) : null}
         <span className="hidden px-3 sm:inline">{nav.user.email}</span>
-        <ModeToggle className="h-6 rounded-none border-0 bg-transparent px-1 text-xs text-primary-foreground" />
+        <ModeToggle
+          mode={appearance.mode}
+          className="h-6 rounded-none border-0 bg-transparent px-1 text-xs text-primary-foreground"
+        />
         <span className="flex items-center pr-2 [&_button]:h-6 [&_button]:px-2 [&_button]:text-xs [&_button]:text-primary-foreground">
           <LoginSignOutButton locale={locale} />
         </span>

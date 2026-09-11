@@ -8,7 +8,7 @@ import { navItems } from '../shared/nav';
 
 // Notebook: a desk (dotted ground) with a thin strip of links above the
 // spread. The pages themselves come from Spread.tsx.
-export function Shell({ locale, nav, children }: ShellProps) {
+export function Shell({ locale, appearance, nav, children }: ShellProps) {
   const t = useTranslations('Nav');
 
   return (
@@ -61,7 +61,10 @@ export function Shell({ locale, nav, children }: ShellProps) {
               <span className="hidden text-xs sm:inline">
                 {nav.user.name ?? nav.user.email}
               </span>
-              <ModeToggle className="h-7 border-0 bg-transparent px-1 text-xs" />
+              <ModeToggle
+                mode={appearance.mode}
+                className="h-7 border-0 bg-transparent px-1 text-xs"
+              />
               <LoginSignOutButton locale={locale} />
             </div>
           </>

@@ -6,8 +6,11 @@ import { ModeToggle } from '@/features/preferences/ModeToggle';
 import { updateThemeAction } from '@/features/preferences/actions';
 
 const setTheme = vi.fn();
+// What next-themes reports for this device; undefined until hydration, and
+// on a device that has never stored a choice.
+let storedTheme: string | undefined = 'light';
 vi.mock('next-themes', () => ({
-  useTheme: () => ({ theme: 'light', setTheme }),
+  useTheme: () => ({ theme: storedTheme, setTheme }),
 }));
 
 vi.mock('@/features/preferences/actions', () => ({
@@ -16,7 +19,7 @@ vi.mock('@/features/preferences/actions', () => ({
 
 describe('ModeToggle', () => {
   it('renders light / dark / system', () => {
-    renderWithIntl(<ModeToggle />);
+    renderWithIntl(<ModeToggle mode="light" />);
 
     expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveValue('light');
     expect(screen.getByRole('option', { name: 'Light' })).toBeInTheDocument();
@@ -26,7 +29,7 @@ describe('ModeToggle', () => {
 
   it('switches immediately client-side and persists in the background', async () => {
     const user = userEvent.setup();
-    renderWithIntl(<ModeToggle />);
+    renderWithIntl(<ModeToggle mode="light" />);
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Mode' }),
@@ -35,5 +38,26 @@ describe('ModeToggle', () => {
 
     expect(setTheme).toHaveBeenCalledWith('dark');
     expect(updateThemeAction).toHaveBeenCalledWith('dark');
+  });
+
+  it('shows the mode the server resolved when this device has stored none', async () => {
+    storedTheme = undefined;
+
+    renderWithIntl(<ModeToggle mode="dark" />);
+
+    expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveValue('dark');
+    storedTheme = 'light';
+  });
+
+  it('writes the mode cookie so the server renders it on the next request', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<ModeToggle mode="light" />);
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Mode' }),
+      'dark',
+    );
+
+    expect(document.cookie).toContain('todolist-mode=dark');
   });
 });
