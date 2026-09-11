@@ -59,8 +59,10 @@ export const getAppearance = cache(async (): Promise<ResolvedAppearance> => {
       me: { theme: string; palette: string; layout: string };
     }>(`query Appearance { me { theme palette layout } }`);
     return {
-      // A cookie beats the row: it is this device's own explicit choice,
-      // and for mode it is what next-themes' localStorage already applied.
+      // A cookie beats the row: it records what this device settled on -
+      // either an explicit choice here, or what PreferenceCookieSync wrote
+      // back after a previous lookup. For mode that cookie tracks
+      // next-themes' own localStorage, which is what actually gets applied.
       mode: parseMode(modeCookie ?? me.theme),
       palette: parsePalette(paletteCookie ?? me.palette),
       layout: parseLayout(layoutCookie ?? me.layout),

@@ -145,5 +145,7 @@ sequenced against Phases 5–6, tracked here as it lands.
       mutations, data migration of `theme-rose`
 - [x] Frontend: three-axis preferences (mode / palette / layout), cookie-backed server rendering,
       `src/layouts/*` registry with six full layouts × seven screens, ten new palettes, four locales
-- [ ] Follow-ups: touch drag-and-drop on the Board; read persisted mode back on a fresh device;
-      per-layout PWA `theme_color`
+- [x] Follow-up: read the persisted mode back on a fresh device — `todolist-mode` cookie plus a
+      `User.theme` fallback, handed to next-themes as its `defaultTheme` (TODO-61)
+- [ ] Follow-ups still open: touch drag-and-drop on the Board (TODO-62); per-layout PWA
+      `theme_color` (TODO-63)

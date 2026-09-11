@@ -22,9 +22,7 @@ export function SettingsPage({
       <section>
         <TuiHeading>{t('appearanceTitle').toLowerCase()}</TuiHeading>
         <AppearanceSettings
-          mode={appearance.mode}
-          palette={appearance.palette}
-          layout={appearance.layout}
+          {...appearance}
           className="mt-1"
           rowClassName="border-b border-dashed py-1.5 last:border-b-0"
           labelClassName="before:mr-2 before:text-muted-foreground before:content-['$']"
