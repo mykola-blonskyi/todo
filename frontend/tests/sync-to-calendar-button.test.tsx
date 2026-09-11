@@ -14,7 +14,7 @@ const syncMock = vi.mocked(syncListToCalendarAction);
 describe('SyncToCalendarButton', () => {
   it('calls syncListToCalendarAction with the list id and shows success', async () => {
     const user = userEvent.setup();
-    syncMock.mockResolvedValue(undefined);
+    syncMock.mockResolvedValue('success');
 
     renderWithIntl(<SyncToCalendarButton listId="list-1" />);
 
@@ -47,5 +47,30 @@ describe('SyncToCalendarButton', () => {
         "Couldn't sync to Google Calendar. Make sure the list has a due date, then try again.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it('asks for a reconnect when the Google-side grant is gone', async () => {
+    const user = userEvent.setup();
+    syncMock.mockResolvedValue('reconnect');
+
+    renderWithIntl(<SyncToCalendarButton listId="list-1" />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Sync to Google Calendar' }),
+    );
+
+    expect(
+      await screen.findByText('Google Calendar access was revoked.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Reconnect it in Settings' }),
+    ).toHaveAttribute('href', '/settings');
+    // The generic failure message would send the User hunting for a missing
+    // due date instead - the two must not both show.
+    expect(
+      screen.queryByText(
+        "Couldn't sync to Google Calendar. Make sure the list has a due date, then try again.",
+      ),
+    ).not.toBeInTheDocument();
   });
 });

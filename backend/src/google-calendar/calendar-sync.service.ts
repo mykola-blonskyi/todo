@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ListShareStatus } from '@prisma/client';
 import { GoogleCalendarService } from './google-calendar.service';
 import { GoogleCalendarApiClient } from './google-calendar-api.client';
+import { GoogleGrantRevokedError } from './google-calendar.errors';
 
 @Injectable()
 export class CalendarSyncService {
@@ -45,15 +46,24 @@ export class CalendarSyncService {
       where: { userId_listId: { userId, listId } },
     });
 
-    const { eventId, calendarId } = await this.apiClient.upsertEvent(
-      accessToken,
-      {
+    let eventId: string;
+    let calendarId: string;
+    try {
+      ({ eventId, calendarId } = await this.apiClient.upsertEvent(accessToken, {
         eventId: existing?.googleEventId,
         summary: list.title,
         description: buildChecklist(tasks),
         dueDate: list.dueDate.toISOString().slice(0, 10),
-      },
-    );
+      }));
+    } catch (error) {
+      await this.flagIfRevoked(userId, error);
+      if (error instanceof GoogleGrantRevokedError) {
+        throw new BadRequestException(
+          'Google Calendar access was revoked - reconnect to sync again',
+        );
+      }
+      throw error;
+    }
 
     await this.prisma.calendarSync.upsert({
       where: { userId_listId: { userId, listId } },
@@ -85,6 +95,7 @@ export class CalendarSyncService {
           await this.googleCalendarService.getValidAccessToken(sync.userId);
         await this.apiClient.deleteEvent(accessToken, sync.googleEventId);
       } catch (error) {
+        await this.flagIfRevoked(sync.userId, error);
         this.logger.error(
           `Failed to delete synced Calendar event for list ${listId}, user ${sync.userId}`,
           error instanceof Error ? error.stack : error,
@@ -116,6 +127,7 @@ export class CalendarSyncService {
         await this.googleCalendarService.getValidAccessToken(userId);
       await this.apiClient.deleteEvent(accessToken, sync.googleEventId);
     } catch (error) {
+      await this.flagIfRevoked(userId, error);
       this.logger.error(
         `Failed to delete synced Calendar event for list ${listId}, user ${userId}`,
         error instanceof Error ? error.stack : error,
@@ -125,6 +137,16 @@ export class CalendarSyncService {
     await this.prisma.calendarSync.delete({
       where: { userId_listId: { userId, listId } },
     });
+  }
+
+  // Whichever call first notices the grant is gone flags the connection, so
+  // Settings stops claiming "Connected" (Rule 29) - including from the
+  // best-effort cleanup paths, which swallow the error itself but shouldn't
+  // swallow what it told us.
+  private async flagIfRevoked(userId: string, error: unknown): Promise<void> {
+    if (error instanceof GoogleGrantRevokedError) {
+      await this.googleCalendarService.markRevoked(userId);
+    }
   }
 
   // Same owner-or-accepted-collaborator check duplicated across services -

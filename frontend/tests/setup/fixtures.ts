@@ -16,6 +16,7 @@ export const nav: NavData = {
     email: 'mykola@example.com',
     name: 'Mykola',
     googleCalendarConnected: false,
+    googleCalendarNeedsReconnect: false,
   },
   categories: [
     { id: 'c-work', name: 'Work', createdAt: '2026-09-01T00:00:00.000Z' },

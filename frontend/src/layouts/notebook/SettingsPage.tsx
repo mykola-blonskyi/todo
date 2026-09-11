@@ -35,6 +35,7 @@ export function SettingsPage({
           </h2>
           <GoogleCalendarSettings
             connected={nav.user.googleCalendarConnected}
+            needsReconnect={nav.user.googleCalendarNeedsReconnect}
             banner={googleCalendarBanner}
             className="mt-6 text-sm"
           />

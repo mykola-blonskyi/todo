@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@ui/components/button';
-import { syncListToCalendarAction } from './actions';
+import { Link } from '@shared/lib/i18n/navigation';
+import { syncListToCalendarAction, type SyncResult } from './actions';
 
 interface SyncToCalendarButtonProps {
   listId: string;
@@ -12,7 +13,7 @@ interface SyncToCalendarButtonProps {
 export function SyncToCalendarButton({ listId }: SyncToCalendarButtonProps) {
   const t = useTranslations('CalendarSync');
   const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<'success' | 'error' | null>(null);
+  const [result, setResult] = useState<SyncResult | null>(null);
 
   return (
     <div className="flex items-center gap-3">
@@ -23,8 +24,7 @@ export function SyncToCalendarButton({ listId }: SyncToCalendarButtonProps) {
         onClick={() => {
           startTransition(async () => {
             try {
-              await syncListToCalendarAction(listId);
-              setResult('success');
+              setResult(await syncListToCalendarAction(listId));
             } catch {
               // Realistic failure modes, not just a fluke - e.g. no due date
               // set yet, or the connection was revoked on Google's side
@@ -39,6 +39,14 @@ export function SyncToCalendarButton({ listId }: SyncToCalendarButtonProps) {
       {result === 'success' ? (
         <span className="text-sm text-muted-foreground">
           {t('syncSuccess')}
+        </span>
+      ) : null}
+      {result === 'reconnect' ? (
+        <span className="text-sm text-destructive">
+          {t('syncRevoked')}{' '}
+          <Link href="/settings" className="underline underline-offset-4">
+            {t('syncRevokedLink')}
+          </Link>
         </span>
       ) : null}
       {result === 'error' ? (

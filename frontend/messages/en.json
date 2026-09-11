@@ -40,6 +40,9 @@
     "disconnectButton": "Disconnect",
     "disconnectConfirm": "Disconnect Google Calendar? Calendar events already created stay in your Google Calendar, but lists won't sync until you connect again.",
     "disconnectError": "Couldn't disconnect Google Calendar. Please try again.",
+    "reconnectNeeded": "Reconnect needed",
+    "reconnectExplanation": "Google Calendar access was revoked from your Google Account. Events already created stay in your calendar, but lists won't sync until you reconnect.",
+    "reconnectButton": "Reconnect Google Calendar",
     "appearanceTitle": "Appearance",
     "accountTitle": "Account",
     "signedInAs": "Signed in as {email}",
@@ -131,7 +134,9 @@
   "CalendarSync": {
     "syncButton": "Sync to Google Calendar",
     "syncSuccess": "Synced to Google Calendar.",
-    "syncError": "Couldn't sync to Google Calendar. Make sure the list has a due date, then try again."
+    "syncError": "Couldn't sync to Google Calendar. Make sure the list has a due date, then try again.",
+    "syncRevoked": "Google Calendar access was revoked.",
+    "syncRevokedLink": "Reconnect it in Settings"
   },
   "ListTemplates": {
     "title": "Recurring Templates",

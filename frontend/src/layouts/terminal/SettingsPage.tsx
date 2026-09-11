@@ -33,6 +33,7 @@ export function SettingsPage({
         <TuiHeading>{t('googleCalendarTitle').toLowerCase()}</TuiHeading>
         <GoogleCalendarSettings
           connected={nav.user.googleCalendarConnected}
+          needsReconnect={nav.user.googleCalendarNeedsReconnect}
           banner={googleCalendarBanner}
           className="mt-2"
         />

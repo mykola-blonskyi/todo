@@ -48,6 +48,7 @@ export function SettingsPage({
           <h2 className="text-sm font-semibold">{t('googleCalendarTitle')}</h2>
           <GoogleCalendarSettings
             connected={nav.user.googleCalendarConnected}
+            needsReconnect={nav.user.googleCalendarNeedsReconnect}
             banner={googleCalendarBanner}
           />
         </section>

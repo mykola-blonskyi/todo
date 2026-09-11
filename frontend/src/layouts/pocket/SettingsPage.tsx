@@ -26,6 +26,7 @@ export function SettingsPage({
       <Group title={t('googleCalendarTitle')}>
         <GoogleCalendarSettings
           connected={nav.user.googleCalendarConnected}
+          needsReconnect={nav.user.googleCalendarNeedsReconnect}
           banner={googleCalendarBanner}
         />
       </Group>

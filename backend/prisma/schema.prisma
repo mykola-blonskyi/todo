@@ -224,6 +224,13 @@ model GoogleCalendarConnection {
   scope        String
   connectedAt  DateTime @default(now())
 
+  // Set when Google answers a token refresh with `invalid_grant`, i.e. the
+  // User revoked our access from their Google Account instead of from our
+  // Settings page. The row is kept rather than deleted so the UI can ask for
+  // a reconnect instead of silently pretending nothing was ever connected
+  // (Rule 29). Cleared again by a successful reconnect.
+  revokedAt DateTime?
+
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 

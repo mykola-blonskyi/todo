@@ -40,6 +40,9 @@
     "disconnectButton": "Desconectar",
     "disconnectConfirm": "¿Desconectar Google Calendar? Los eventos ya creados permanecen en tu Google Calendar, pero las listas no se sincronizarán hasta que vuelvas a conectarlo.",
     "disconnectError": "No se pudo desconectar Google Calendar. Inténtalo de nuevo.",
+    "reconnectNeeded": "Hay que volver a conectar",
+    "reconnectExplanation": "Se revocó el acceso a Google Calendar desde tu cuenta de Google. Los eventos ya creados permanecen en tu calendario, pero las listas no se sincronizarán hasta que vuelvas a conectarlo.",
+    "reconnectButton": "Volver a conectar Google Calendar",
     "appearanceTitle": "Apariencia",
     "accountTitle": "Cuenta",
     "signedInAs": "Sesión iniciada como {email}",
@@ -131,7 +134,9 @@
   "CalendarSync": {
     "syncButton": "Sincronizar con Google Calendar",
     "syncSuccess": "Sincronizado con Google Calendar.",
-    "syncError": "No se pudo sincronizar con Google Calendar. Asegúrate de que la lista tenga una fecha límite e inténtalo de nuevo."
+    "syncError": "No se pudo sincronizar con Google Calendar. Asegúrate de que la lista tenga una fecha límite e inténtalo de nuevo.",
+    "syncRevoked": "Se revocó el acceso a Google Calendar.",
+    "syncRevokedLink": "Vuelve a conectarlo en Ajustes"
   },
   "ListTemplates": {
     "title": "Plantillas recurrentes",

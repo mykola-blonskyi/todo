@@ -325,3 +325,38 @@ that has it, forever, even if that List still satisfies every condition above. A
 a User's explicit decision on the next timer is the behaviour that makes people stop trusting
 automation. There is deliberately no manual archive action to pair with it — archiving is the job's
 business, restoring is the User's.
+
+---
+
+## Rule 29 — A Google-side revoke marks the connection stale; it never silently deletes it
+
+A User can withdraw todolist's Calendar access from their Google Account directly, without ever
+touching our Settings page (Rule 27's Disconnect). That kills the stored `refreshToken` but leaves
+the `GoogleCalendarConnection` row behind, so without this rule Settings goes on claiming
+*Connected* forever and every sync fails with a generic error that points nowhere.
+
+todolist notices this **lazily** — only when it next tries to use the grant, because nothing polls
+Google in the background. Two calls can notice it:
+
+- a token refresh Google answers with `invalid_grant`
+- a Calendar API call Google answers with `401`, which matters because the stored access token
+  stays usable for up to an hour after the revoke and no refresh is attempted in that window
+
+Either sets `GoogleCalendarConnection.revokedAt`. The row itself is **kept**, deliberately:
+deleting it on the first `invalid_grant` would make the app self-heal into a "never connected"
+state, and a transient Google failure that happens to carry that code would then silently discard a
+connection the User never withdrew. `googleCalendarConnected` therefore stays true, and a second
+field, `googleCalendarNeedsReconnect`, carries the staleness — Settings shows a *Reconnect needed*
+badge plus a reconnect action instead of the *Connected* badge, and a failed sync says the access
+was revoked rather than blaming a missing due date. A successful reconnect clears `revokedAt`.
+
+Two Google responses that look identical are deliberately **not** treated as a revoke:
+
+- `invalid_grant` from the initial code exchange, which means a stale or already-used authorization
+  code — "start the flow again", not "the grant is gone"
+- any other token-endpoint failure (`invalid_client`, a 5xx, a network error), which says nothing
+  about whether the User still trusts us
+
+Everything Rule 27 says about the User's data still holds: a stale connection is flagged, never
+cleaned up behind their back, and the Calendar events already synced stay in their calendar
+whichever way the connection ends.

@@ -261,10 +261,15 @@ Responsibilities:
 - Holds the OAuth grant that authorizes todolist to write to one User's Google Calendar. Created
   only via an explicit "Connect Google Calendar" action — never implied by hub login. Deleted only
   by an explicit "Disconnect" action, which also revokes the grant at Google and leaves the User's
-  CalendarSync rows and synced events intact (business-rules.md Rule 27).
+  CalendarSync rows and synced events intact (business-rules.md Rule 27). A revoke done on Google's
+  side instead flags the row as stale rather than deleting it (Rule 29).
 
 Fields:
 - `id`, `accessToken` (encrypted), `refreshToken` (encrypted), `expiresAt`, `scope`, `connectedAt`
+- `revokedAt` (nullable) — set when Google refuses the stored grant (`invalid_grant` on refresh, or
+  a `401` from the Calendar API), i.e. the User revoked todolist from their Google Account rather
+  than from Settings. The row is kept and still counts as connected; the UI asks for a reconnect,
+  which clears the field (business-rules.md Rule 29)
 - `userId` (→ User, unique — one connection per user)
 
 Relationships:

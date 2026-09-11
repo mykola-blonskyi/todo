@@ -25,6 +25,13 @@ export class GoogleCalendarResolver {
     return this.googleCalendarService.isConnected(user.id);
   }
 
+  // Stays true alongside googleCalendarConnected: the connection still
+  // exists, it just can't be used until the User reconnects (Rule 29).
+  @ResolveField(() => Boolean)
+  googleCalendarNeedsReconnect(@Parent() user: User) {
+    return this.googleCalendarService.needsReconnect(user.id);
+  }
+
   @Mutation(() => Boolean)
   async connectGoogleCalendar(
     @CurrentUser() identity: Identity,

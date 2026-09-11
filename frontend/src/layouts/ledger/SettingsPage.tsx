@@ -34,6 +34,7 @@ export function SettingsPage({
           </div>
           <GoogleCalendarSettings
             connected={nav.user.googleCalendarConnected}
+            needsReconnect={nav.user.googleCalendarNeedsReconnect}
             banner={googleCalendarBanner}
             className="px-4 py-3"
           />
