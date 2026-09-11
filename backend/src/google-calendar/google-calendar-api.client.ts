@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { GoogleGrantRevokedError } from './google-calendar.errors';
 
 export interface UpsertEventInput {
   // When set, the existing event is updated (PATCH) rather than created -
@@ -50,6 +51,7 @@ export class GoogleCalendarApiClient {
     });
 
     if (!res.ok) {
+      await throwIfRevoked(res);
       throw new Error(
         `Google Calendar event upsert failed: ${res.status} ${await errorReason(res)}`,
       );
@@ -73,10 +75,22 @@ export class GoogleCalendarApiClient {
     // success, not an error, so a retry of an already-cleaned-up event
     // doesn't get logged as a failure.
     if (!res.ok && res.status !== 410) {
+      await throwIfRevoked(res);
       throw new Error(
         `Google Calendar event deletion failed: ${res.status} ${await errorReason(res)}`,
       );
     }
+  }
+}
+
+// A 401 here means the access token we just presented isn't accepted any
+// more. Since getValidAccessToken refreshes anything within EXPIRY_SKEW_MS of
+// expiring, the realistic cause is a revoked grant rather than a token that
+// merely aged out mid-flight - so callers get the same signal a failed
+// refresh gives them (Rule 29).
+async function throwIfRevoked(res: Response): Promise<void> {
+  if (res.status === 401) {
+    throw new GoogleGrantRevokedError(`401 ${await errorReason(res)}`.trim());
   }
 }
 

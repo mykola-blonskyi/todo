@@ -35,6 +35,23 @@ describe('GoogleCalendarSettings', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('asks for a reconnect instead of claiming Connected once the grant is revoked', () => {
+    renderWithIntl(
+      <GoogleCalendarSettings connected needsReconnect banner={null} />,
+    );
+
+    expect(screen.getByText('Reconnect needed')).toBeInTheDocument();
+    expect(screen.queryByText('Connected')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Reconnect Google Calendar' }),
+    ).toHaveAttribute('href', '/api/google/calendar/connect');
+    // Still connected as far as our own row goes, so disconnecting for good
+    // stays available next to the reconnect.
+    expect(
+      screen.getByRole('button', { name: 'Disconnect' }),
+    ).toBeInTheDocument();
+  });
+
   it('does not disconnect when the confirm dialog is dismissed', async () => {
     const user = userEvent.setup();
     disconnectMock.mockResolvedValue(undefined);

@@ -475,3 +475,187 @@ describe('Google Calendar disconnect (GraphQL)', () => {
     expect(connection).toBeNull();
   });
 });
+
+// Rule 29: the User revoked todolist's access from their Google Account, so
+// the stored connection is dead but still sitting there claiming otherwise.
+describe('Google Calendar revoked grant (GraphQL)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  afterEach(async () => {
+    await app.close();
+    jest.restoreAllMocks();
+  });
+
+  function asUser(identitySub: string, email: string) {
+    return { 'x-user-id': identitySub, 'x-user-email': email };
+  }
+
+  async function graphql<T>(query: string, headers: Record<string, string>) {
+    const res = await request(app.getHttpServer())
+      .post('/graphql')
+      .set(headers)
+      .send({ query });
+    return res.body as GraphQLResponse<T>;
+  }
+
+  const CONNECT = `
+    mutation {
+      connectGoogleCalendar(
+        code: "auth-code"
+        redirectUri: "https://example.com/callback"
+      )
+    }
+  `;
+  const ME = `
+    query {
+      me {
+        googleCalendarConnected
+        googleCalendarNeedsReconnect
+      }
+    }
+  `;
+
+  interface MeResponse {
+    me: {
+      googleCalendarConnected: boolean;
+      googleCalendarNeedsReconnect: boolean;
+    };
+  }
+
+  async function connect(headers: Record<string, string>) {
+    mockTokenExchange({
+      access_token: 'plain-access-token',
+      refresh_token: 'plain-refresh-token',
+      expires_in: 3600,
+      scope: 'https://www.googleapis.com/auth/calendar.events',
+    });
+    const body = await graphql<{ connectGoogleCalendar: boolean }>(
+      CONNECT,
+      headers,
+    );
+    expect(body.errors).toBeUndefined();
+    return testDb.user.findUniqueOrThrow({
+      where: { identitySub: headers['x-user-id'] },
+    });
+  }
+
+  // Forces the next sync through the refresh path rather than reusing the
+  // still-valid stored access token.
+  async function expireAccessToken(userId: string) {
+    await testDb.googleCalendarConnection.update({
+      where: { userId },
+      data: { expiresAt: new Date(Date.now() - 1000) },
+    });
+  }
+
+  async function syncAList(userId: string, headers: Record<string, string>) {
+    const list = await testDb.list.create({
+      data: {
+        title: 'Groceries',
+        ownerId: userId,
+        dueDate: new Date('2026-09-01T00:00:00.000Z'),
+      },
+    });
+    return graphql<{ syncListToCalendar: boolean }>(
+      `mutation { syncListToCalendar(listId: "${list.id}") }`,
+      headers,
+    );
+  }
+
+  it('flags the connection when Google refuses the refresh with invalid_grant', async () => {
+    const owner = asUser('owner-1', 'owner@example.com');
+    const user = await connect(owner);
+    await expireAccessToken(user.id);
+    mockTokenExchange({ error: 'invalid_grant' }, false);
+
+    const syncBody = await syncAList(user.id, owner);
+    expect(syncBody.errors?.[0]).toBeDefined();
+
+    const connection = await testDb.googleCalendarConnection.findUniqueOrThrow({
+      where: { userId: user.id },
+    });
+    expect(connection.revokedAt).not.toBeNull();
+
+    // The row is deliberately kept, so the UI can ask for a reconnect
+    // instead of pretending nothing was ever connected.
+    const meBody = await graphql<MeResponse>(ME, owner);
+    expect(meBody.data?.me.googleCalendarConnected).toBe(true);
+    expect(meBody.data?.me.googleCalendarNeedsReconnect).toBe(true);
+  });
+
+  it('flags the connection when the Calendar API itself answers 401', async () => {
+    const owner = asUser('owner-1', 'owner@example.com');
+    const user = await connect(owner);
+    // Access token still valid, so nothing refreshes - a revoke Google
+    // applied to the grant surfaces on the events call instead.
+    jest.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { message: 'Invalid Credentials' } }),
+        {
+          status: 401,
+        },
+      ),
+    );
+
+    const syncBody = await syncAList(user.id, owner);
+    expect(syncBody.errors?.[0]).toBeDefined();
+
+    const meBody = await graphql<MeResponse>(ME, owner);
+    expect(meBody.data?.me.googleCalendarNeedsReconnect).toBe(true);
+  });
+
+  it('leaves the connection alone when the refresh fails for another reason', async () => {
+    const owner = asUser('owner-1', 'owner@example.com');
+    const user = await connect(owner);
+    await expireAccessToken(user.id);
+    // A configuration or transient failure is not the User revoking us -
+    // auto-flagging on every 400 is exactly what this ticket rejected.
+    mockTokenExchange({ error: 'invalid_client' }, false);
+
+    const syncBody = await syncAList(user.id, owner);
+    expect(syncBody.errors?.[0]).toBeDefined();
+
+    const connection = await testDb.googleCalendarConnection.findUniqueOrThrow({
+      where: { userId: user.id },
+    });
+    expect(connection.revokedAt).toBeNull();
+
+    const meBody = await graphql<MeResponse>(ME, owner);
+    expect(meBody.data?.me.googleCalendarNeedsReconnect).toBe(false);
+  });
+
+  it('clears the flag when the User reconnects', async () => {
+    const owner = asUser('owner-1', 'owner@example.com');
+    const user = await connect(owner);
+    await expireAccessToken(user.id);
+    mockTokenExchange({ error: 'invalid_grant' }, false);
+    await syncAList(user.id, owner);
+
+    await connect(owner);
+
+    const connection = await testDb.googleCalendarConnection.findUniqueOrThrow({
+      where: { userId: user.id },
+    });
+    expect(connection.revokedAt).toBeNull();
+
+    const meBody = await graphql<MeResponse>(ME, owner);
+    expect(meBody.data?.me.googleCalendarNeedsReconnect).toBe(false);
+  });
+
+  it('reports no reconnect needed while nothing is connected at all', async () => {
+    const owner = asUser('owner-1', 'owner@example.com');
+
+    const meBody = await graphql<MeResponse>(ME, owner);
+    expect(meBody.data?.me.googleCalendarConnected).toBe(false);
+    expect(meBody.data?.me.googleCalendarNeedsReconnect).toBe(false);
+  });
+});

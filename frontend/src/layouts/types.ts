@@ -45,6 +45,7 @@ export interface CurrentUser {
   email: string;
   name: string | null;
   googleCalendarConnected: boolean;
+  googleCalendarNeedsReconnect: boolean;
 }
 
 // What a shell needs to draw its navigation. null on unauthenticated pages

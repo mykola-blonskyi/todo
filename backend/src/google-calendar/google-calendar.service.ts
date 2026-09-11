@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { decryptToken, encryptToken } from './token-encryption';
+import { GoogleGrantRevokedError } from './google-calendar.errors';
 import z from 'zod';
 
 const tokenResponseSchema = z.object({
@@ -47,6 +48,9 @@ export class GoogleCalendarService {
       refreshToken,
       expiresAt: new Date(Date.now() + tokens.expires_in * 1000),
       scope: tokens.scope,
+      // A reconnect is exactly the fix a revoked connection was asking for
+      // (Rule 29) - clear the flag rather than leave the row nagging.
+      revokedAt: null,
     };
 
     return this.prisma.googleCalendarConnection.upsert({
@@ -85,6 +89,25 @@ export class GoogleCalendarService {
     return connection !== null;
   }
 
+  // True once we've seen Google refuse the stored grant. The row is kept
+  // (and still reports connected) so the UI can ask for a reconnect instead
+  // of silently resetting to "never connected" - see Rule 29.
+  async needsReconnect(userId: string): Promise<boolean> {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId },
+    });
+    return connection?.revokedAt != null;
+  }
+
+  // Idempotent: re-flagging an already-flagged connection keeps the first
+  // timestamp, which is the one that says when we actually noticed.
+  async markRevoked(userId: string): Promise<void> {
+    await this.prisma.googleCalendarConnection.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  }
+
   // Returns a plaintext access token guaranteed valid for at least
   // EXPIRY_SKEW_MS, refreshing (and persisting) a new one first if the
   // stored one is expired or about to be.
@@ -100,7 +123,8 @@ export class GoogleCalendarService {
       return decryptToken(connection.accessToken);
     }
 
-    const refreshed = await this.refreshAccessToken(
+    const refreshed = await this.refreshOrFlagRevoked(
+      userId,
       decryptToken(connection.refreshToken),
     );
 
@@ -115,12 +139,42 @@ export class GoogleCalendarService {
     return refreshed.access_token;
   }
 
+  // The refresh path is where a Google-side revoke actually shows up: the
+  // grant is gone, so the connection is flagged and the caller gets a plain
+  // "reconnect" error rather than a generic failure (Rule 29).
+  private async refreshOrFlagRevoked(userId: string, refreshToken: string) {
+    try {
+      return await this.refreshAccessToken(refreshToken);
+    } catch (error) {
+      if (error instanceof GoogleGrantRevokedError) {
+        await this.markRevoked(userId);
+        throw new BadRequestException(
+          'Google Calendar access was revoked - reconnect to sync again',
+        );
+      }
+      throw error;
+    }
+  }
+
   private async exchangeCode(code: string, redirectUri: string) {
-    return this.postToTokenEndpoint({
-      code,
-      redirect_uri: redirectUri,
-      grant_type: 'authorization_code',
-    });
+    try {
+      return await this.postToTokenEndpoint({
+        code,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      });
+    } catch (error) {
+      // A stale or already-used authorization code comes back as
+      // invalid_grant too, but at connect time that means "start the flow
+      // again", not "the User revoked us" - only the refresh path carries
+      // that meaning (Rule 29).
+      if (error instanceof GoogleGrantRevokedError) {
+        throw new BadRequestException(
+          'Google rejected the Calendar authorization code - try connecting again',
+        );
+      }
+      throw error;
+    }
   }
 
   private async refreshAccessToken(refreshToken: string) {
@@ -157,6 +211,14 @@ export class GoogleCalendarService {
     });
 
     if (!res.ok) {
+      // Google's OAuth errors all arrive as the same 400; only the body's
+      // `error` field separates "the User revoked us" (invalid_grant) from
+      // a transient or configuration failure, and the two want opposite
+      // handling - see Rule 29.
+      const reason = await errorCode(res);
+      if (reason === 'invalid_grant') {
+        throw new GoogleGrantRevokedError(reason);
+      }
       throw new BadRequestException(
         'Google rejected the Calendar token request - reconnect may be required',
       );
@@ -164,5 +226,16 @@ export class GoogleCalendarService {
 
     const data: unknown = await res.json();
     return tokenResponseSchema.parse(data);
+  }
+}
+
+// Best-effort read of Google's OAuth error body (`{"error": "invalid_grant",
+// ...}`); returns null if the body isn't that shape, or isn't JSON at all.
+async function errorCode(res: Response): Promise<string | null> {
+  try {
+    const body = (await res.clone().json()) as { error?: string };
+    return body.error ?? null;
+  } catch {
+    return null;
   }
 }

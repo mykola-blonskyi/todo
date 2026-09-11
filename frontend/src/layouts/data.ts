@@ -24,7 +24,7 @@ export const fetchNavData = cache(async (): Promise<NavData> => {
     myListTemplates: TemplateOverview[];
   }>(
     `query NavData {
-      me { id email name googleCalendarConnected }
+      me { id email name googleCalendarConnected googleCalendarNeedsReconnect }
       myLists {
         id
         title
