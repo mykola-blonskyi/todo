@@ -4,14 +4,20 @@
 
 Ship a working v1 of the todolist app at `todo.blonskyi.dev`: login via `login.blonskyi.dev`
 (ADR-016 — previously the hub directly), List/Task CRUD, sharing with accept/decline, comments,
-optional manual one-way Google Calendar sync, themed and localized to match the hub, deployed via
-Coolify on the same VPS as the hub. Full design rationale in
-[docs/decisions.md](../docs/decisions.md); domain rules in
+optional manual one-way Google Calendar sync, themed and localized (ADR-017 replaced "match the
+hub" with todolist's own six layouts and twelve palettes), deployed via Coolify on the same VPS as
+the hub. Full design rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 [knowledge/business-rules.md](../knowledge/business-rules.md).
 
-This file tracks phase-level progress. The actual ticket-level, dependency-ordered breakdown lives
-as [GitHub Issues](https://github.com/mykola-blonskyi/todo/issues) (4 specs, #3–#6; 17
-implementation tickets, #8–#24) — each phase below links its ticket range.
+**That v1 scope is delivered and live.** Phases 1–7 below are complete apart from the Playwright
+e2e job; Phases 8–11 are post-v1 work, tracked the same way.
+
+This file tracks phase-level progress. The ticket-level, dependency-ordered breakdown lives in
+Plane (`plane.blonskyi.dev`, workspace `blonskyi`, project `TODO`) — see
+[docs/agents/issue-tracker.md](../docs/agents/issue-tracker.md). The GitHub Issues this file used
+to link were migrated there on 2026-08-07 and are all closed, and Plane's numbering does **not**
+match the old one, so every reference below is a Plane id (`TODO-n`). Code review still happens on
+GitHub pull requests.
 
 ---
 
@@ -24,7 +30,7 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 - [x] Downgrade frontend to Tailwind v3, copy hub's shadcn theme tokens (ADR-007)
 - [x] Provision `todo_app` role / `todo` database on the shared Postgres instance for prod (ADR-002)
       — local dev/test use their own docker-compose Postgres instances
-- [x] Prisma schema + first migration for the domain model (issue #8) — Prisma 6, not 7, see ADR-011
+- [x] Prisma schema + first migration for the domain model (TODO-5) — Prisma 6, not 7, see ADR-011
 
 ---
 
@@ -40,61 +46,73 @@ implementation tickets, #8–#24) — each phase below links its ticket range.
 
 ## Phase 3 — Core List/Task (owner-only)
 
-Ticket breakdown: [issues #9–#13](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+9..13)
-— all done. Phase 3 is complete; Phase 4 (sharing) is next, gated on Phase 2's
-`project-members` endpoint (already done).
+Tickets: TODO-5 – TODO-10. Complete.
 
-- [x] Frontend middleware: hub validate + next-intl routing (issue #10 - includes a documented
-      local-dev bypass since `.blonskyi.dev` doesn't resolve on localhost)
-- [x] Backend: GraphQL module (code-first) + trusted-identity guard + `me` query (issue #9)
-- [x] Backend: List create/myLists/list(id), owner-only (issue #10)
-- [x] Backend: renameList/deleteList, owner-only (issue #11)
-- [x] Backend: createTask/toggleTaskDone resolvers, owner-only, cascade-verified e2e (issue #12)
-- [x] Backend: updateTask/deleteTask/reorderTasks resolvers, owner-only (ADR-003, issue #13)
-- [x] Frontend: Lists overview (create + navigate) and List detail page shell (issue #10)
-- [x] Frontend: rename + delete actions on the List detail page (issue #11)
+- [x] Frontend middleware: hub validate + next-intl routing (TODO-7 — included a documented
+      local-dev bypass since `.blonskyi.dev` doesn't resolve on localhost). The hub-validate half
+      was later superseded by ADR-016: `frontend/src/proxy.ts` now resolves todolist's own session
+      instead of calling the hub on every request
+- [x] Backend: GraphQL module (code-first) + trusted-identity guard + `me` query (TODO-6)
+- [x] Backend: List create/myLists/list(id), owner-only (TODO-7)
+- [x] Backend: renameList/deleteList, owner-only (TODO-8)
+- [x] Backend: createTask/toggleTaskDone resolvers, owner-only, cascade-verified e2e (TODO-9)
+- [x] Backend: updateTask/deleteTask/reorderTasks resolvers, owner-only (ADR-003, TODO-10)
+- [x] Frontend: Lists overview (create + navigate) and List detail page shell (TODO-7)
+- [x] Frontend: rename + delete actions on the List detail page (TODO-8)
 - [x] Frontend: Tasks render on the List detail page with add-task form and toggle-done checkbox
-      (issue #12)
+      (TODO-9)
 - [x] Frontend: Task edit (title/due date), delete, and button-based reorder on the List detail
-      page (issue #13)
+      page (TODO-10)
 
 ---
 
 ## Phase 4 — Sharing & collaboration
 
-Ticket breakdown: [issues #14–#18](https://github.com/mykola-blonskyi/todo/issues?q=is%3Aissue+14..18)
-— backend done; frontend still open.
+Tickets: TODO-11 – TODO-15 (backend), TODO-42 – TODO-44 (frontend). Complete.
 
-- [x] Backend: searchShareCandidates, owner-only (issue #14)
-- [x] Backend: inviteToList, idempotent re-invite semantics (issue #15)
-- [x] Backend: pendingInvites/acceptInvite/declineInvite, invitee-only (issue #16)
+- [x] Backend: searchShareCandidates, owner-only (TODO-11)
+- [x] Backend: inviteToList, idempotent re-invite semantics (TODO-12)
+- [x] Backend: pendingInvites/acceptInvite/declineInvite, invitee-only (TODO-13)
 - [x] Backend: collaborator permission boundary — requireAccess/requireAccessToTask, toggle-done
-      only, no task edit (Rule 2) (issue #17)
-- [x] Backend: removeCollaborator/leaveList, immediate access revocation (issue #18)
-- [ ] Frontend: Share search UI + invite button (calls hub's project-members endpoint)
-- [ ] Frontend: In-app "pending invite" surface on next login, accept/decline (Rule 7)
-- [ ] Frontend: Collaborators list on the List detail page, owner "Remove" + collaborator "Leave"
-      actions
+      only, no task edit (Rule 2) (TODO-14)
+- [x] Backend: removeCollaborator/leaveList, immediate access revocation (TODO-15)
+- [x] Frontend: Share search UI + invite button (TODO-42) — still calls the hub's project-members
+      endpoint, which ADR-016 leaves as todolist's one remaining hub dependency (docs/TODO.md)
+- [x] Frontend: In-app "pending invite" surface on next login, accept/decline (Rule 7) (TODO-43)
+- [x] Frontend: Collaborators list on the List detail page, owner "Remove" + collaborator "Leave"
+      actions (TODO-44)
 
 ---
 
 ## Phase 5 — Comments
 
-Ticket breakdown: issue #19
+Tickets: TODO-16. Complete.
 
-- [ ] Task-level and list-level comments, both roles (Rule 6)
+- [x] Task-level and list-level comments, both roles (Rule 6) — backend resolvers plus
+      `features/comments` (CommentThread, TaskCommentsToggle) wired into all six layouts
 
 ---
 
 ## Phase 6 — Google Calendar sync
 
-Ticket breakdown: issues #20–#24
+Tickets: TODO-17 – TODO-21, TODO-52, TODO-55, TODO-56. Complete.
 
-- [ ] "Connect Google Calendar" OAuth flow, `GoogleCalendarConnection` storage (ADR-004)
-- [ ] Manual per-list sync action, one-way push (ADR-005)
-- [ ] Delete-on-complete + cascade cleanup on list delete / collaborator removal (Rules 9–10)
-- [ ] Keep this whole phase behind mocked Google API in tests — no real dogfooding until a second
-      Google account is available
+- [x] "Connect Google Calendar" OAuth flow, `GoogleCalendarConnection` storage, tokens encrypted at
+      rest (ADR-004, Rule 26) (TODO-17)
+- [x] Manual per-list sync action, one-way push (ADR-005) — sync targets the List as a whole with a
+      Task checklist in the event description, not one event per Task (ADR-015, spec TODO-52,
+      implemented in TODO-18). Needs `List.dueDate`, added in TODO-53
+- [x] Cascade cleanup on list delete / collaborator removal (Rule 10) (TODO-20, TODO-21).
+      Delete-on-complete (old Rule 9) was **cancelled** with TODO-19 — it assumed per-Task sync and
+      died with ADR-015; Rule 9 is retired in place
+- [x] Disconnect: revoke the grant at Google, delete the tokens, keep the synced events and
+      `CalendarSync` rows (Rule 27) (TODO-55)
+- [x] Stale-connection handling: flag a Google-side revoke (`invalid_grant` at refresh, or a
+      Calendar-API 401), "Reconnect needed" in Settings instead of a permanent "Connected", cleared
+      by a successful reconnect (Rule 29) (TODO-56). Detection is lazy — nothing polls Google, so
+      the flag appears the first time something actually tries to use the grant
+- [x] Keep this whole phase behind a mocked Google API in tests — no real dogfooding until a second
+      Google account is available (still true; see Risks)
 
 ---
 
@@ -102,40 +120,35 @@ Ticket breakdown: issues #20–#24
 
 - [x] GitHub Actions: lint/format/typecheck/test both apps on every push (ADR-010) —
       `.github/workflows/ci.yml`
-- [ ] E2E job (Playwright, both apps) — waiting on Phase 3+ delivering real pages/flows to drive;
-      no point wiring it against the default Nest/Next boilerplate
+- [ ] E2E job (Playwright, both apps) (ADR-008) — no Playwright config or specs exist yet. The
+      original "wait for real pages to drive" reason is long gone; what blocks it now is that
+      Actions itself can't run (see Risks), so a new job couldn't be proven green anyway
 - [x] Dockerfiles for both apps, `docker-compose.yml`: frontend (public) + backend
-      (internal-only) — issue #55, env vars from Coolify's own per-resource panel, not a committed
+      (internal-only) — TODO-35, env vars from Coolify's own per-resource panel, not a committed
       `.env` (see `backend/.env.example`/`frontend/.env.example`)
 - [x] `deploy` CI job triggers a single Coolify deploy webhook after every check job passes on a
       push to `main` — Coolify builds both images itself from `docker-compose.yml`, no GHCR.
-      `todo.blonskyi.dev` is live and confirmed working (hub auth, cookie verification, project
+      `todo.blonskyi.dev` is live and confirmed working (auth, cookie verification, access
       validation, PWA install all verified end to end)
 
 ---
 
 ## Phase 8 — Recurring templates, categories, installable PWA
 
-Specs/tickets from the templates/categories/PWA grilling session (issues #36–#48) — not yet
-sequenced against Phases 5–6, tracked here as it lands.
+Specs/tickets from the templates/categories/PWA grilling session: TODO-22 – TODO-34, plus
+TODO-50/51, TODO-57 and TODO-58. Complete.
 
 - [x] Installable PWA: manifest, themed icon set, minimal service worker, viewport theme-color,
-      manually verified installing on mobile (issues #38/#48)
-- [ ] Recurring ListTemplates: schema, CRUD, occurrence-spawning engine, cron wiring, frontend
-      (issues #36/#39–#43)
-- [ ] List categories + filtering: schema, CRUD, per-user filter, frontend, ListTemplate
-      auto-categorization (issues #37/#44–#47)
-
----
-
-## Risks
-
-- Calendar sync correctness is only verified against a mocked Google API until real dogfooding
-  happens — real-world Google API quirks (rate limits, token expiry) may surface late
-- Two test runners (Jest + Vitest) in one repo is a deliberate exception (ADR-008) but adds a small
-  ongoing maintenance surface (two configs to keep working in CI)
-- Hub prerequisites (Phase 2) block Phase 4 (sharing) — sequence accordingly, don't start sharing UI
-  before the `project-members` endpoint exists
+      manually verified installing on mobile (TODO-24/TODO-34)
+- [x] Recurring ListTemplates: schema, CRUD, occurrence-spawning engine, cron wiring, frontend
+      (TODO-22, TODO-25 – TODO-29) — every Occurrence is an independent List (ADR-013)
+- [x] `everyNDays` fires in Streaks of consecutive ON days, not single-day pulses (ADR-014, Rule 25)
+      (spec TODO-50, implemented in TODO-51)
+- [x] Occurrence date shown on template-spawned Lists (TODO-57)
+- [x] Auto-archive of stale template-spawned Lists: `archivedAt`/`unarchivedAt`, daily cron,
+      Archive filter + owner-only restore, never touches Calendar (Rule 28) (TODO-58)
+- [x] List categories + filtering: schema, CRUD, per-user filter, frontend, ListTemplate
+      auto-categorization (TODO-23, TODO-30 – TODO-33)
 
 ---
 
@@ -145,7 +158,18 @@ sequenced against Phases 5–6, tracked here as it lands.
       mutations, data migration of `theme-rose`
 - [x] Frontend: three-axis preferences (mode / palette / layout), cookie-backed server rendering,
       `src/layouts/*` registry with six full layouts × seven screens, ten new palettes, four locales
-- [x] Follow-up: read the persisted mode back on a fresh device — `todolist-mode` cookie plus a
-      `User.theme` fallback, handed to next-themes as its `defaultTheme` (TODO-61)
-- [ ] Follow-ups still open: touch drag-and-drop on the Board (TODO-62); per-layout PWA
-      `theme_color` (TODO-63)
+
+Follow-ups, now tracked as tickets of their own:
+
+- [x] Read the persisted mode back on a fresh device (TODO-61) — mode gained a `todolist-mode`
+      cookie and a `User.theme` fallback, handed to next-themes as its `defaultTheme` so its
+      pre-paint script applies it without a flash
+- [ ] Touch drag-and-drop on the Board (TODO-62) — `layouts/board/BoardColumns.tsx` uses HTML5 drag
+      events only, so reordering is mouse-only on a phone
+- [ ] Per-layout PWA `theme_color` (TODO-63) — `shared/lib/pwa.ts` ships one constant for every
+      layout
+- [ ] Sign-out leaves the appearance cookies behind (TODO-64) — the next user on a shared browser
+      inherits them, and because they are present their own `User` row is never read. Pre-existing
+      for palette and layout; TODO-61's review surfaced it
+
+---
