@@ -23,10 +23,20 @@ describe('PreferenceCookieSync', () => {
   });
 
   it('back-fills the palette and layout cookies from the server value', () => {
-    render(<PreferenceCookieSync palette="ocean" layout="terminal" />);
+    render(
+      <PreferenceCookieSync palette="ocean" layout="terminal" owner="u1" />,
+    );
 
     expect(document.cookie).toContain('todolist-palette=ocean');
     expect(document.cookie).toContain('todolist-layout=terminal');
+  });
+
+  it('writes the owner stamp alongside palette and layout', () => {
+    render(
+      <PreferenceCookieSync palette="ocean" layout="terminal" owner="u1" />,
+    );
+
+    expect(document.cookie).toContain('todolist-owner=u1');
   });
 
   it('writes the mode this device actually applies, not the one from the row', () => {
@@ -37,7 +47,9 @@ describe('PreferenceCookieSync', () => {
     // contradicts (TODO-61).
     storedTheme = 'dark';
 
-    render(<PreferenceCookieSync palette="classic" layout="workspace" />);
+    render(
+      <PreferenceCookieSync palette="classic" layout="workspace" owner="u1" />,
+    );
 
     expect(document.cookie).toContain('todolist-mode=dark');
     expect(document.cookie).not.toContain('todolist-mode=light');
@@ -46,7 +58,9 @@ describe('PreferenceCookieSync', () => {
   it('keeps `system` as a preference rather than resolving it away', () => {
     storedTheme = 'system';
 
-    render(<PreferenceCookieSync palette="classic" layout="workspace" />);
+    render(
+      <PreferenceCookieSync palette="classic" layout="workspace" owner="u1" />,
+    );
 
     expect(document.cookie).toContain('todolist-mode=system');
   });
@@ -56,7 +70,9 @@ describe('PreferenceCookieSync', () => {
     // wrong value would persist until the User toggles mode by hand.
     storedTheme = undefined;
 
-    render(<PreferenceCookieSync palette="classic" layout="workspace" />);
+    render(
+      <PreferenceCookieSync palette="classic" layout="workspace" owner="u1" />,
+    );
 
     expect(document.cookie).not.toContain('todolist-mode=');
     expect(document.cookie).toContain('todolist-palette=classic');

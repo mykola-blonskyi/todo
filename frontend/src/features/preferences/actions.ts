@@ -3,8 +3,10 @@
 import { cookies } from 'next/headers';
 import { graphqlFetch } from '@shared/lib/graphql-client';
 import type { Locale } from '@shared/lib/i18n/config';
+import { currentPreferenceOwner } from './server';
 import {
   LAYOUT_COOKIE,
+  OWNER_COOKIE,
   PALETTE_COOKIE,
   PREFERENCE_COOKIE_MAX_AGE,
   isLayout,
@@ -57,6 +59,11 @@ export async function updatePaletteAction(palette: Palette) {
   if (!isPalette(palette)) return;
   const cookieStore = await cookies();
   cookieStore.set(PALETTE_COOKIE, palette, cookieOptions());
+  cookieStore.set(
+    OWNER_COOKIE,
+    await currentPreferenceOwner(),
+    cookieOptions(),
+  );
   await graphqlFetch(
     `mutation UpdatePalette($palette: UserPalette!) { updatePalette(palette: $palette) { id } }`,
     { palette },
@@ -67,6 +74,11 @@ export async function updateLayoutAction(layout: Layout) {
   if (!isLayout(layout)) return;
   const cookieStore = await cookies();
   cookieStore.set(LAYOUT_COOKIE, layout, cookieOptions());
+  cookieStore.set(
+    OWNER_COOKIE,
+    await currentPreferenceOwner(),
+    cookieOptions(),
+  );
   await graphqlFetch(
     `mutation UpdateLayout($layout: UserLayout!) { updateLayout(layout: $layout) { id } }`,
     { layout },

@@ -90,6 +90,7 @@ const appearance = {
   mode: 'light',
   palette: 'classic',
   layout: 'workspace',
+  owner: 'anon',
 } as const;
 
 const unfiltered = {
