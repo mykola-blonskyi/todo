@@ -16,6 +16,12 @@ class ResizeObserverStub {
 }
 vi.stubGlobal('ResizeObserver', ResizeObserverStub);
 
+// jsdom implements no pointer capture, which the board's touch drag claims on
+// the grip handle. Stubbed so tests exercise the same call a browser would.
+Element.prototype.setPointerCapture = () => {};
+Element.prototype.releasePointerCapture = () => {};
+Element.prototype.hasPointerCapture = () => false;
+
 // next-intl's Link (createNavigation) reads next/navigation's useRouter/
 // usePathname, which need a real Next.js App Router context jsdom/RTL
 // doesn't provide. It's a third-party integration, not our logic - stand in

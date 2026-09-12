@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 
 // Color tokens/theme copied from the hub (ADR-007) so shadcn components and
 // theme CSS variables can be reused as-is instead of re-themed on Tailwind v4.
@@ -49,7 +50,13 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Tailwind v3 has no pointer-capability variant. `any-pointer` rather than
+    // `pointer` so a touchscreen laptop still gets the board's drag handles.
+    plugin(({ addVariant }) => {
+      addVariant('any-pointer-coarse', '@media (any-pointer: coarse)');
+    }),
+  ],
 };
 
 export default config;
