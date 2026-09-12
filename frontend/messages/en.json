@@ -280,6 +280,10 @@
     "invites": "Invites",
     "addList": "Add list",
     "dropHint": "Drop to move here",
+    "dragHandle": "Move {list}",
+    "dragMoving": "Moving {list} to {column}. Press Enter to confirm, Escape to cancel.",
+    "dragMoved": "{list} moved to {column}.",
+    "dragCancelled": "Move cancelled.",
     "close": "Close",
     "cancel": "Cancel"
   },

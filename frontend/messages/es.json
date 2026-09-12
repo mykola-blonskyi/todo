@@ -280,6 +280,10 @@
     "invites": "Invitaciones",
     "addList": "Añadir lista",
     "dropHint": "Suelta para mover aquí",
+    "dragHandle": "Mover {list}",
+    "dragMoving": "Moviendo {list} a {column}. Pulsa Enter para confirmar, Escape para cancelar.",
+    "dragMoved": "{list} se ha movido a {column}.",
+    "dragCancelled": "Movimiento cancelado.",
     "close": "Cerrar",
     "cancel": "Cancelar"
   },

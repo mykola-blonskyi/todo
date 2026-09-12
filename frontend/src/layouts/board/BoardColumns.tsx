@@ -2,6 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { GripVertical } from 'lucide-react';
 import { Link } from '@shared/lib/i18n/navigation';
 import { cn } from '@shared/lib/utils';
 import { Button } from '@ui/components/button';
@@ -17,6 +18,7 @@ import {
 } from '@features/todos-list';
 import { RestoreListButton } from '@features/todo-list';
 import type { ListOverview } from '../types';
+import { useBoardDrag } from './board-drag';
 import { ProgressBar } from '../shared/ProgressBar';
 import { AvatarStack } from '../shared/Avatar';
 import {
@@ -41,9 +43,10 @@ interface BoardColumnsProps {
 
 const UNCATEGORIZED = '__uncategorized__';
 
-// Categories as columns, lists as cards. Native HTML5 drag-and-drop (no
-// library): dropping a card on a column re-files the list, optimistically on
-// the client and via the per-user assignment mutation on the server.
+// Categories as columns, lists as cards. Native HTML5 drag-and-drop for mouse
+// (no library) and a pointer-driven grip handle for touch: dropping a card on
+// a column re-files the list, optimistically on the client and via the
+// per-user assignment mutation on the server.
 export function BoardColumns({
   categories,
   lists,
@@ -56,6 +59,7 @@ export function BoardColumns({
   const tNav = useTranslations('Nav');
   const [isPending, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState('');
   const [placed, movePlaced] = useOptimistic(
     lists,
     (state, move: { listId: string; categoryId: string | null }) =>
@@ -95,17 +99,42 @@ export function BoardColumns({
     });
   }
 
+  function listTitle(listId: string) {
+    return placed.find((list) => list.id === listId)?.title ?? '';
+  }
+
+  const { drag, boardRef, gripProps } = useBoardDrag({
+    columnKeys: columns.map((column) => column.key),
+    onCommit: (listId, columnKey) => {
+      const column = columns.find((c) => c.key === columnKey);
+      if (!column) return;
+      drop(column.id, listId);
+      setAnnouncement(
+        t('dragMoved', { list: listTitle(listId), column: column.name }),
+      );
+    },
+    onCancel: (mode) => {
+      if (mode === 'keyboard') setAnnouncement(t('dragCancelled'));
+    },
+  });
+
   return (
-    <div className="flex flex-1 gap-4 overflow-x-auto p-4 md:p-6">
+    <div
+      ref={boardRef}
+      className="flex flex-1 gap-4 overflow-x-auto p-4 md:p-6"
+    >
       {columns.map((column) => {
         const cards = sortByDue(
           placed.filter((list) => (list.myCategory?.id ?? null) === column.id),
         );
-        const over = dragOver === column.key;
+        const over =
+          dragOver === column.key ||
+          (drag.mode !== 'idle' && drag.overKey === column.key);
         return (
           <section
             key={column.key}
             aria-label={column.name}
+            data-column-key={column.key}
             onDragOver={(event) => {
               event.preventDefault();
               if (dragOver !== column.key) setDragOver(column.key);
@@ -146,6 +175,8 @@ export function BoardColumns({
                 list={list}
                 active={list.id === activeListId}
                 disabled={isPending}
+                dragging={drag.mode !== 'idle' && drag.listId === list.id}
+                grip={gripProps(list.id, column.key)}
               />
             ))}
 
@@ -159,6 +190,25 @@ export function BoardColumns({
         );
       })}
       {trailing ? <div className="contents">{trailing}</div> : null}
+      <p aria-live="polite" className="sr-only">
+        {drag.mode === 'keyboard'
+          ? t('dragMoving', {
+              list: listTitle(drag.listId),
+              column:
+                columns.find((column) => column.key === drag.overKey)?.name ??
+                '',
+            })
+          : announcement}
+      </p>
+      {drag.mode === 'pointer' ? (
+        <div
+          aria-hidden="true"
+          style={{ left: drag.x, top: drag.y }}
+          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-card px-3 py-2 text-sm font-bold shadow-lg"
+        >
+          {listTitle(drag.listId)}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -167,12 +217,17 @@ function ListCard({
   list,
   active,
   disabled,
+  dragging,
+  grip,
 }: {
   list: ListOverview;
   active: boolean;
   disabled: boolean;
+  dragging: boolean;
+  grip: React.ComponentPropsWithoutRef<'button'>;
 }) {
   const t = useTranslations('Overview');
+  const tBoard = useTranslations('Board');
   const locale = useLocale();
   const progress = listProgress(list);
   const status = dueStatus(list.dueDate);
@@ -190,6 +245,7 @@ function ListCard({
         'flex cursor-grab flex-col gap-2 rounded-xl border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing',
         active && 'border-primary ring-2 ring-primary/30',
         disabled && 'opacity-60',
+        dragging && 'opacity-50',
       )}
     >
       <div className="flex items-start gap-2">
@@ -208,6 +264,13 @@ function ListCard({
             </span>
           ) : null}
         </Link>
+        <button
+          {...grip}
+          aria-label={tBoard('dragHandle', { list: list.title })}
+          className="ml-auto hidden h-11 w-11 shrink-0 touch-none items-center justify-center rounded-md text-muted-foreground any-pointer-coarse:flex"
+        >
+          <GripVertical aria-hidden="true" className="h-4 w-4" />
+        </button>
       </div>
       {preview.length > 0 ? (
         <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
