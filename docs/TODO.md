@@ -33,9 +33,11 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 - [ ] Playwright e2e job in CI (ADR-008) — nothing exists yet, and GitHub Actions is billing-blocked
       on this repo, so a new job couldn't be proven green anyway
-- [ ] Phase 9 layout follow-ups, now ticketed: touch drag-and-drop on the Board (TODO-62),
-      per-layout PWA `theme_color` (TODO-63). Reading the persisted mode back on a fresh device
-      (TODO-61) is done
+- [ ] Phase 9 layout follow-ups, now ticketed: per-layout PWA `theme_color` (TODO-63). Touch
+      drag-and-drop on the Board (TODO-62) and reading the persisted mode back on a fresh device
+      (TODO-61) are done
+- [ ] Real-device pass for the Board's touch drag (TODO-62 shipped verified only under Chrome
+      touch emulation, never on an actual iOS Safari or low-end Android)
 - [ ] Sign-out leaves the appearance cookies behind, so the next user on a shared browser inherits
       them and their own `User` row is never read (TODO-64)
 

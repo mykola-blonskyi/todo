@@ -164,8 +164,12 @@ Follow-ups, now tracked as tickets of their own:
 - [x] Read the persisted mode back on a fresh device (TODO-61) — mode gained a `todolist-mode`
       cookie and a `User.theme` fallback, handed to next-themes as its `defaultTheme` so its
       pre-paint script applies it without a flash
-- [ ] Touch drag-and-drop on the Board (TODO-62) — `layouts/board/BoardColumns.tsx` uses HTML5 drag
-      events only, so reordering is mouse-only on a phone
+- [x] Touch drag-and-drop on the Board (TODO-62) — cards gained a grip handle carrying
+      `touch-action: none`, so the browser yields the gesture by geometry instead of by a
+      long-press timer; edge auto-scroll ships with it because only ~2 of 6 columns fit at 390px.
+      The grip is a real button, so the board also gained its first keyboard-operable move. Note
+      the ticket's `reorderTasks` hint was wrong: the board re-files a List into a Category via
+      `assignCategoryAction`, and orders nothing
 - [ ] Per-layout PWA `theme_color` (TODO-63) — `shared/lib/pwa.ts` ships one constant for every
       layout
 - [ ] Sign-out leaves the appearance cookies behind (TODO-64) — the next user on a shared browser
