@@ -172,8 +172,12 @@ Follow-ups, now tracked as tickets of their own:
       `assignCategoryAction`, and orders nothing
 - [ ] Per-layout PWA `theme_color` (TODO-63) — `shared/lib/pwa.ts` ships one constant for every
       layout
-- [ ] Sign-out leaves the appearance cookies behind (TODO-64) — the next user on a shared browser
-      inherits them, and because they are present their own `User` row is never read. Pre-existing
-      for palette and layout; TODO-61's review surfaced it
+- [x] Sign-out leaves the appearance cookies behind (TODO-64) — a fourth cookie `todolist-owner`
+      stamps the other three with a digest of the user id, and `getAppearance` trusts them only
+      when it matches, so an expired session or a closed tab is covered as well as an explicit
+      sign-out. Mode needed more than a cookie: next-themes applies `localStorage` before paint
+      where no Server Action reaches, so its `storageKey` is owner-scoped and the incoming user
+      reads an empty key and falls back to the row. The login page reverts to the defaults with
+      mode `system`. `NEXT_LOCALE` has the same leak and is TODO-65
 
 ---
