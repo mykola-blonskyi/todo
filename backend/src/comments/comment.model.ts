@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { User } from '../users/user.model';
+import { PublicUser } from '../users/public-user.model';
 
 @ObjectType()
 export class Comment {
@@ -12,8 +12,8 @@ export class Comment {
   @Field()
   createdAt: Date;
 
-  @Field(() => User)
-  author?: User;
+  @Field(() => PublicUser)
+  author?: PublicUser;
 
   authorId: string;
   taskId: string | null;

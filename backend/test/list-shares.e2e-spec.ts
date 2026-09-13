@@ -1501,4 +1501,104 @@ describe('List Sharing (GraphQL)', () => {
       );
     });
   });
+
+  // ListShare.list used to be a full `List`, so a pending or declined invitee
+  // could read the tasks, comments and collaborators of a List they had no
+  // access to (Rule 3). It is a ListSummary now, which is why these are
+  // schema-validation failures rather than permission denials: the fields are
+  // not reachable to ask for.
+  describe('what an invite exposes about the List it points at', () => {
+    async function invitePending() {
+      const { owner, listId } = await getOwnerAndList();
+      const invitee = asUser('invitee-1', 'invitee@example.com');
+
+      await graphql(
+        `mutation {createTask(listId: "${listId}", title: "Severance terms") {id}}`,
+        owner,
+      );
+      await graphql(
+        `mutation {addComment(listId: "${listId}", body: "secret") {id}}`,
+        owner,
+      );
+      const invite = await graphql<{ inviteToList: { id: string } }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "invitee-1", email: "invitee@example.com", name: null, image: null
+        }) {id}}`,
+        owner,
+      );
+
+      return { invitee, shareId: invite.data!.inviteToList.id };
+    }
+
+    it('gives a pending invitee the id and title, and nothing else', async () => {
+      const { invitee } = await invitePending();
+
+      const body = await graphql<{
+        pendingInvites: { list: { id: string; title: string } }[];
+      }>(
+        `
+          query {
+            pendingInvites {
+              list {
+                id
+                title
+              }
+            }
+          }
+        `,
+        invitee,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.pendingInvites[0].list.title).toBe('Groceries');
+    });
+
+    it.each(['tasks {title}', 'comments {body}', 'collaborators {email}'])(
+      'has no %s to select on a pending invite',
+      async (selection) => {
+        const { invitee } = await invitePending();
+
+        const body = await graphql(
+          `query {pendingInvites {list {${selection}}}}`,
+          invitee,
+        );
+
+        expect(body.data).toBeUndefined();
+        expect(body.errors?.[0].extensions.code).toBe(
+          'GRAPHQL_VALIDATION_FAILED',
+        );
+      },
+    );
+
+    it('has no task or comment to select on the declineInvite response either', async () => {
+      const { invitee, shareId } = await invitePending();
+
+      const body = await graphql(
+        `mutation {declineInvite(shareId: "${shareId}") {list {tasks {title}}}}`,
+        invitee,
+      );
+
+      expect(body.data).toBeUndefined();
+      expect(body.errors?.[0].extensions.code).toBe(
+        'GRAPHQL_VALIDATION_FAILED',
+      );
+    });
+
+    // A collaborator is another person, not a profile to read: theme, locale,
+    // layout and the Google Calendar connection state were all selectable
+    // through List.collaborators, ListShare.user and Comment.author.
+    it.each([
+      'myLists {collaborators {googleCalendarConnected}}',
+      'pendingInvites {user {theme}}',
+    ])("does not expose another User's own settings through %s", async (q) => {
+      const { owner } = await getOwnerAndList();
+
+      const body = await graphql(`query {${q}}`, owner);
+
+      expect(body.data).toBeUndefined();
+      expect(body.errors?.[0].extensions.code).toBe(
+        'GRAPHQL_VALIDATION_FAILED',
+      );
+    });
+  });
 });

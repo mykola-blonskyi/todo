@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Task } from '../tasks/task.model';
-import { User } from '../users/user.model';
+import { PublicUser } from '../users/public-user.model';
 import { Comment } from '../comments/comment.model';
 import { Category } from '../categories/category.model';
 
@@ -29,8 +29,8 @@ export class List {
   @Field(() => Boolean)
   isOwner?: boolean;
 
-  @Field(() => [User])
-  collaborators?: User[];
+  @Field(() => [PublicUser])
+  collaborators?: PublicUser[];
 
   @Field(() => [Comment])
   comments?: Comment[];
