@@ -35,14 +35,20 @@ export class ListSharesService {
     ownerId: string,
     listId: string,
     candidate: ShareCandidateInput,
+    sessionCookie: string,
   ) {
     await this.listsService.requireOwned(ownerId, listId);
 
+    const member = await this.hubClientService.requireProjectMember(
+      candidate,
+      sessionCookie,
+    );
+
     const invitee = await this.usersService.findOrCreateCandidate({
-      hubUserId: candidate.hubUserId,
-      email: candidate.email,
-      name: candidate.name ?? undefined,
-      image: candidate.image ?? undefined,
+      hubUserId: member.hubUserId,
+      email: member.email,
+      name: member.name ?? undefined,
+      image: member.image ?? undefined,
     });
 
     const existing = await this.prisma.listShare.findUnique({

@@ -3,11 +3,22 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { stubHubProjectMembers } from './setup/hub';
 
 interface GraphQLResponse<T> {
   data: T | null;
   errors?: { extensions: { code: string } }[];
 }
+
+// Every candidate any test in this file invites, so requireProjectMember
+// (Rule 4) finds them on the hub roster.
+const HUB_MEMBERS = [
+  {
+    hubUserId: 'collaborator-1',
+    email: 'collaborator@example.com',
+    name: 'Collaborator',
+  },
+];
 
 describe('Comments (GraphQL)', () => {
   let app: INestApplication<App>;
@@ -19,6 +30,7 @@ describe('Comments (GraphQL)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    stubHubProjectMembers(HUB_MEMBERS);
   });
 
   afterEach(async () => {
@@ -26,7 +38,12 @@ describe('Comments (GraphQL)', () => {
   });
 
   function asUser(identitySub: string, email: string) {
-    return { 'x-user-id': identitySub, 'x-user-email': email };
+    // inviteToList now needs a session cookie too (requireProjectMember).
+    return {
+      'x-user-id': identitySub,
+      'x-user-email': email,
+      cookie: `authjs.session-token=${identitySub}-session`,
+    };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {

@@ -4,11 +4,24 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { testDb } from './setup/db';
+import { stubHubProjectMembers } from './setup/hub';
 
 interface GraphQLResponse<T> {
   data: T | null;
   errors?: { extensions: { code: string } }[];
 }
+
+// Every candidate any test in this file adds as a collaborator, so
+// requireProjectMember (Rule 4) finds them on the hub roster.
+const HUB_MEMBERS = [
+  { hubUserId: 'hub-2', email: 'collab@example.com', name: 'Collab' },
+  {
+    hubUserId: 'victim-1',
+    email: 'attacker-controlled@evil.example.com',
+    name: 'Spoofed Name',
+  },
+  { hubUserId: 'hub-3', email: 'x@example.com', name: null },
+];
 
 describe('ListTemplate (GraphQL)', () => {
   let app: INestApplication<App>;
@@ -20,6 +33,7 @@ describe('ListTemplate (GraphQL)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    stubHubProjectMembers(HUB_MEMBERS);
   });
 
   afterEach(async () => {

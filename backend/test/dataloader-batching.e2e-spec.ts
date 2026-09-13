@@ -4,11 +4,18 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { stubHubProjectMembers } from './setup/hub';
 
 interface GraphQLResponse<T> {
   data: T | null;
   errors?: { extensions: { code: string } }[];
 }
+
+// Every candidate any test in this file invites, so requireProjectMember
+// (Rule 4) finds them on the hub roster.
+const HUB_MEMBERS = [
+  { hubUserId: 'collab-1', email: 'collab@example.com', name: 'Collab' },
+];
 
 // Regression guard for TODO-47: proves the fan-out query below issues the
 // same number of DB queries whether myLists returns one List or three -
@@ -27,6 +34,7 @@ describe('DataLoader batching (myLists fan-out)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    stubHubProjectMembers(HUB_MEMBERS);
 
     prisma = app.get(PrismaService);
     queryCount = 0;
@@ -40,7 +48,12 @@ describe('DataLoader batching (myLists fan-out)', () => {
   });
 
   function asUser(identitySub: string, email: string) {
-    return { 'x-user-id': identitySub, 'x-user-email': email };
+    // inviteToList now needs a session cookie too (requireProjectMember).
+    return {
+      'x-user-id': identitySub,
+      'x-user-email': email,
+      cookie: `authjs.session-token=${identitySub}-session`,
+    };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {

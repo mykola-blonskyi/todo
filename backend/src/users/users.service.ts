@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Identity } from '../identity/identity.types';
-import { UserLayout, UserLocale, UserPalette, UserTheme } from '@prisma/client';
+import {
+  Prisma,
+  User,
+  UserLayout,
+  UserLocale,
+  UserPalette,
+  UserTheme,
+} from '@prisma/client';
 
 interface Candidate {
   hubUserId: string;
@@ -82,16 +89,50 @@ export class UsersService {
   // identitySub as-is - login has no equivalent search yet (TODO-54). When
   // that person later signs in for real, findOrCreateByIdentity reattaches
   // this row by email instead of leaving it stranded.
-  findOrCreateCandidate(candidate: Candidate) {
-    return this.prisma.user.upsert({
-      where: { identitySub: candidate.hubUserId },
-      update: {},
-      create: {
-        identitySub: candidate.hubUserId,
-        email: candidate.email,
-        name: candidate.name,
-        image: candidate.image,
-      },
+  //
+  // Email is the second lookup for the same reason, in the other direction:
+  // someone who has already signed in carries login's `sub`, which never
+  // equals the hub id the search returns, so matching on identitySub alone
+  // meant every invite aimed at an existing user tried to create a second row
+  // and collided on User.email - i.e. sharing failed for exactly the people
+  // who use the app. Unlike findOrCreateByIdentity this leaves the row it
+  // finds untouched, identitySub included: a candidate is client-supplied, so
+  // writing it would let any caller repoint a real user's row at an id of
+  // their choosing.
+  findOrCreateCandidate(candidate: Candidate): Promise<User> {
+    return this.prisma.$transaction(async (tx) => {
+      const existing =
+        (await tx.user.findUnique({
+          where: { identitySub: candidate.hubUserId },
+        })) ??
+        (await tx.user.findUnique({ where: { email: candidate.email } }));
+
+      if (existing) {
+        return existing;
+      }
+
+      try {
+        return await tx.user.create({
+          data: {
+            identitySub: candidate.hubUserId,
+            email: candidate.email,
+            name: candidate.name,
+            image: candidate.image,
+          },
+        });
+      } catch (error) {
+        // Two invites for the same new person in flight at once: the loser of
+        // the create reads the winner's row rather than failing the caller.
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          return tx.user.findUniqueOrThrow({
+            where: { email: candidate.email },
+          });
+        }
+        throw error;
+      }
     });
   }
 

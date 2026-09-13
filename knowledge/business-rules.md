@@ -31,10 +31,19 @@ List to a third party.
 
 ## Rule 4 — Share targets must already have hub project access
 
-A List may only be shared with a User who already has `project_access` for the `todo` project
-slug on the hub (checked via the hub's `project-members` search endpoint at invite time, see ADR-004
-in [docs/decisions.md](../docs/decisions.md)). Sharing with an arbitrary email address is not
+A List may only be shared with a User who already has access to the `todo` project on the hub,
+checked against the hub's `project-members` search endpoint at invite time (ADR-009 in
+[docs/decisions.md](../docs/decisions.md)). Sharing with an arbitrary email address is not
 supported — someone who can't reach todo.blonskyi.dev at all can't act on a shared List anyway.
+
+The check runs inside `inviteToList` and `addTemplateCollaborator`, not only inside
+`searchShareCandidates`: the search is a separate query a caller is free to skip, and for a while
+nothing tied an invite to a prior search, so any owner could mint a User row for a stranger's email.
+The candidate the caller sends names a person; the hub's own record is what gets stored.
+
+Both mutations therefore need the caller's live `.blonskyi.dev` hub session, exactly as the search
+does. ADR-016 moved sign-in to login.blonskyi.dev, which does not itself issue that session, so this
+is the one place todolist still depends on the hub — see `docs/TODO.md`.
 
 ---
 
@@ -141,7 +150,8 @@ already spawned.
 ## Rule 15 — Occurrences are anchored to the template's own timezone
 
 A ListTemplate's recurrence rule (what counts as "today," a weekday, or a day of the month) is
-evaluated against its own `timezone` field, captured once at creation — never UTC, and never the
+evaluated against its own `timezone` field (set at creation and editable afterwards per Rule 19,
+and validated as a real IANA zone at both) — never UTC, and never the
 owner's current profile setting (the owner's timezone isn't tracked anywhere; see
 [domain-model.md](domain-model.md) User). If the owner is later in a different timezone, the
 template's schedule does not silently shift.
@@ -237,6 +247,11 @@ period), then repeats — each ON day within a Streak spawns its own independent
 still applies per-day, not per-Streak). `streakDays = 1` is the degenerate case: a single-day pulse
 repeated every `1 + intervalDays` days, which is the entire behavior this recurrence type had before
 Streaks existed.
+
+`intervalDays` is required for this recurrence type and must be at least 1, and `streakDays` at
+least 1 where it is set. A rest period below 1 makes the cycle equal the Streak, which is `daily`
+under another name and was never what the caller meant; the arithmetic also degenerated, with
+`intervalDays = -1` giving a cycle length of 0 and a template that silently never fired again.
 
 Streak position is computed as pure calendar arithmetic anchored to `streakStartDate` (defaults to
 the template's `createdAt`, in the template's own `timezone` per Rule 15) — `daysSince(streakStartDate)

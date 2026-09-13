@@ -56,12 +56,18 @@ export class ListSharesResolver {
   @Mutation(() => ListShare)
   async inviteToList(
     @CurrentUser() identity: Identity,
+    @HubSessionCookie() sessionCookie: string,
     @Args('listId', { type: () => ID }) listId: string,
     @Args('candidate', { type: () => ShareCandidateInput })
     candidate: ShareCandidateInput,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
-    return this.listSharesService.invite(user.id, listId, candidate);
+    return this.listSharesService.invite(
+      user.id,
+      listId,
+      candidate,
+      sessionCookie,
+    );
   }
 
   @Query(() => [ListShare])
