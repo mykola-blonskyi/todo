@@ -6,9 +6,14 @@
 # instance (ADR-002, host alias `postgres`), enable this stack's "Connect to
 # Predefined Network" toggle in the Coolify UI.
 #
-# Every ${VAR} below is supplied by Coolify's own per-resource environment
+# Every ${VAR:?} below is supplied by Coolify's own per-resource environment
 # variable panel at deploy time - never a committed .env file. See
 # backend/.env.example and frontend/.env.example for what each one means.
+#
+# The `:?` matters: a bare ${VAR} resolves to an empty string when the panel is
+# missing an entry, so both containers would start, both healthchecks would go
+# green, and the typo would surface days later as a 500 the first time someone
+# touched the feature that needed it. With `:?` the deploy fails instead.
 
 services:
   backend:
@@ -16,12 +21,12 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      HUB_URL: ${HUB_URL}
-      PROJECT_SLUG: ${PROJECT_SLUG}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      DATABASE_URL: ${DATABASE_URL:?}
+      HUB_URL: ${HUB_URL:?}
+      PROJECT_SLUG: ${PROJECT_SLUG:?}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:?}
       PORT: 4000
     restart: unless-stopped
     # No ports/domain: stays private on Coolify's network (ADR-003 - the
@@ -43,16 +48,21 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     environment:
-      APP_URL: ${APP_URL}
-      AUTH_URL: https://todo.blonskyi.dev/api/auth
-      HUB_URL: ${HUB_URL}
-      OIDC_ISSUER: ${OIDC_ISSUER}
-      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
-      AUTH_SECRET: ${AUTH_SECRET}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      APP_URL: ${APP_URL:?}
+      AUTH_URL: ${AUTH_URL:?}
+      HUB_URL: ${HUB_URL:?}
+      OIDC_ISSUER: ${OIDC_ISSUER:?}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?}
+      AUTH_SECRET: ${AUTH_SECRET:?}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?}
       BACKEND_URL: http://backend:4000/graphql
+    # Long form, so this waits for the backend to be *healthy* rather than
+    # merely started - the short form ignored the healthcheck below it, and on
+    # a cold start the frontend took traffic while the backend was still
+    # running `migrate deploy`.
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     # Public domain is assigned via Coolify's own per-service domain config,
     # not declared here - Coolify's proxy picks up the Dockerfile's EXPOSE.
