@@ -320,4 +320,20 @@ describe('Task (GraphQL)', () => {
     expect(body.data).toBeNull();
     expect(body.errors?.[0]).toBeDefined();
   });
+
+  // GraphQL cannot express "optional but never null" for a scalar argument, so
+  // an explicit null reaches the service. It used to hit .trim() as a
+  // TypeError and surface as a server fault.
+  it('rejects an explicit null title as a bad request', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const taskId = await createTask(owner, listId, 'Milk');
+
+    const body = await graphql(
+      `mutation {updateTask(id: "${taskId}", title: null) {id title}}`,
+      owner,
+    );
+
+    expect(body.errors?.[0].extensions.code).toBe('BAD_REQUEST');
+  });
 });

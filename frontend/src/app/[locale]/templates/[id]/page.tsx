@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { graphqlFetch, GraphQLRequestError } from '@shared/lib/graphql-client';
+import { graphqlFetch, isMissing } from '@shared/lib/graphql-client';
 import type { ListTemplate } from '@features/list-templates';
 import { getAppearance } from '@features/preferences/server';
 import { getLayoutViews } from '@/layouts/registry';
@@ -24,7 +24,7 @@ export default async function TemplateDetailPage({
     );
     template = data.listTemplate;
   } catch (error) {
-    if (error instanceof GraphQLRequestError) {
+    if (isMissing(error)) {
       notFound();
     }
     throw error;

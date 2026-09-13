@@ -116,8 +116,11 @@ export class TasksService {
     return this.tasksForList(listId);
   }
 
-  private requireTitle(title: string): string {
-    const trimmed = title.trim();
+  // Nullable in the schema because GraphQL has no way to say "optional but
+  // never null" for a scalar argument, so an explicit null arrives here and
+  // used to reach .trim() as a TypeError - a 500 for what is a bad request.
+  private requireTitle(title: string | null | undefined): string {
+    const trimmed = title?.trim();
     if (!trimmed) {
       throw new BadRequestException('Task title must not be empty');
     }

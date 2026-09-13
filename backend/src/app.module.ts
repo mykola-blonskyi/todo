@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { Prisma } from '@prisma/client';
 import { HttpException, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
@@ -29,6 +30,26 @@ import { ListCategoryAssignmentsService } from './list-category-assignments/list
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { createLoaders } from './graphql/loaders';
 import type { Request } from 'express';
+
+// @nestjs/apollo maps 400, 401, 403 and 422 to Apollo codes itself and leaves
+// everything else as INTERNAL_SERVER_ERROR, so a "List not found" reached the
+// caller indistinguishable from a real fault - which is why the frontend used
+// to render every GraphQL failure on a list page as "not found".
+const STATUS_CODES: Record<number, string> = {
+  404: 'NOT_FOUND',
+  409: 'CONFLICT',
+};
+
+// Every check-then-write in this app is a race: uniqueness is checked, then
+// written, with no lock between. The sequential path returns a clean
+// ConflictException and the concurrent one used to return "Internal server
+// error" for the identical situation. Translating here rather than in each
+// service keeps one maintenance site instead of one per constraint, and keeps
+// the constraint name - which describes the schema - out of the response.
+const PRISMA_CODES: Record<string, { code: string; message: string }> = {
+  P2002: { code: 'CONFLICT', message: 'That already exists' },
+  P2025: { code: 'NOT_FOUND', message: 'Not found' },
+};
 
 const CLIENT_FAULT_CODES = new Set([
   'GRAPHQL_PARSE_FAILED',
@@ -91,7 +112,21 @@ const CLIENT_FAULT_CODES = new Set([
             error instanceof GraphQLError ? error.originalError : undefined;
 
           if (originalError instanceof HttpException) {
-            return formattedError;
+            const mapped = STATUS_CODES[originalError.getStatus()];
+            return mapped
+              ? {
+                  ...formattedError,
+                  extensions: { ...formattedError.extensions, code: mapped },
+                }
+              : formattedError;
+          }
+
+          if (
+            originalError instanceof Prisma.PrismaClientKnownRequestError &&
+            PRISMA_CODES[originalError.code]
+          ) {
+            const { code, message } = PRISMA_CODES[originalError.code];
+            return { message, extensions: { code } };
           }
 
           // Apollo raises these before a resolver ever runs, and each one
