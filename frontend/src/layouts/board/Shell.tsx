@@ -15,7 +15,7 @@ export function Shell({ locale, appearance, nav, children }: ShellProps) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-muted/40">
-      <header className="sticky top-0 z-20 border-b bg-card">
+      <header className="sticky top-0 z-20 border-b bg-background">
         <div className="flex h-14 items-center gap-4 px-4 md:px-6">
           <BrandLink locale={locale} />
           {nav ? (
