@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { ListShareStatus } from '@prisma/client';
-import { List } from '../lists/list.model';
-import { User } from '../users/user.model';
+import { ListSummary } from '../lists/list-summary.model';
+import { PublicUser } from '../users/public-user.model';
 
 registerEnumType(ListShareStatus, { name: 'ListShareStatus' });
 
@@ -19,11 +19,11 @@ export class ListShare {
   @Field(() => Date, { nullable: true })
   respondedAt: Date | null;
 
-  @Field(() => List)
-  list?: List;
+  @Field(() => ListSummary)
+  list?: ListSummary;
 
-  @Field(() => User)
-  user?: User;
+  @Field(() => PublicUser)
+  user?: PublicUser;
 
   listId: string;
   userId: string;

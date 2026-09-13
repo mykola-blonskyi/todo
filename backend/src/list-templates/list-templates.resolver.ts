@@ -11,7 +11,7 @@ import {
 import { ListTemplate } from './list-template.model';
 import { ListTemplatesService } from './list-templates.service';
 import { UsersService } from '../users/users.service';
-import { User } from '../users/user.model';
+import { PublicUser } from '../users/public-user.model';
 import { CurrentUser } from '../identity/current-user.decorator';
 import type { Identity } from '../identity/identity.types';
 import { ListTemplateRecurrenceType } from '@prisma/client';
@@ -28,7 +28,7 @@ export class ListTemplatesResolver {
     private readonly usersService: UsersService,
   ) {}
 
-  @ResolveField(() => [User])
+  @ResolveField(() => [PublicUser])
   collaborators(
     @Parent() template: ListTemplate,
     @Loaders() loaders: GqlLoaders,
@@ -171,7 +171,7 @@ export class ListTemplatesResolver {
     return this.listTemplatesService.deleteListTemplate(user.id, id);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => PublicUser)
   async addTemplateCollaborator(
     @CurrentUser() identity: Identity,
     @Args('templateId', { type: () => ID }) templateId: string,
