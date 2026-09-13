@@ -193,5 +193,16 @@ Follow-ups, now tracked as tickets of their own:
       deletes it outright instead. That closes the leak but not its other half — nothing in the app
       reads `User.locale` to pick a language, so the next user falls to Accept-Language rather than
       their stored preference. Applying the row is TODO-66
+- [x] Nothing reads `User.locale` to pick the rendered language (TODO-66) — the ticket assumed
+      applying it meant resolving the user's row on every navigation, and it does not. `localePrefix`
+      is next-intl's default `always` and every in-app link goes through next-intl's own `Link`, so a
+      normal navigation already carries a prefix, which wins ahead of the cookie and Accept-Language
+      in next-intl's own resolution. The stored locale is only consulted on a prefixless, cookieless
+      request (a bare `/`, a bookmark), so `proxy.ts` gates the lookup on exactly that and injects the
+      result with `request.cookies.set` before handing off — feeding next-intl's existing rung rather
+      than building a parallel redirect. Best-effort behind a 1s timeout: a failure falls through to
+      the old resolution, so a backend hiccup costs the language and never the page. The session-JWT
+      alternative was rejected — no locale claim in the OIDC profile, no `User` row yet at first
+      sign-in, and no re-issue path for a 24h token
 
 ---

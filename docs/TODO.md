@@ -32,21 +32,18 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 ## Planned
 
-- [ ] Playwright e2e job in CI (ADR-008) — nothing exists yet, and GitHub Actions is billing-blocked
-      on this repo, so a new job couldn't be proven green anyway
+- [ ] Playwright e2e job in CI (ADR-008) — nothing exists yet. The standing caveat that Actions was
+      billing-blocked, so a new job couldn't be proven green anyway, no longer applies: CI ran and
+      passed every backend and frontend job on PR #131 (TODO-66). Nothing but the work is in the way
+      now
 - [ ] `CHROME_TOKEN` (`frontend/src/features/preferences/chrome.ts`) records which surface sits at
       the top of each layout, mirroring the six `Shell.tsx` files with nothing enforcing it — change
       a Shell's top surface and every test still passes while the `theme-color` meta lies (TODO-67).
       The sibling risk, hex drifting from `globals.css`, is already covered by a parity test. Needs
-      the Playwright job above, since no unit test can see rendered markup
+      the Playwright job above, since no unit test can see rendered markup — a dependency on work
+      not yet done, no longer on a blocked CI account
 - [ ] Real-device pass for the Board's touch drag (TODO-62 shipped verified only under Chrome
       touch emulation, never on an actual iOS Safari or low-end Android)
-- [ ] Nothing reads `User.locale` to pick the rendered language — the field is written by
-      `updateLocale` and sits on the model, but the locale comes from the URL, then `NEXT_LOCALE`,
-      then next-intl's Accept-Language fallback (TODO-66). TODO-65 cleared the cookie on sign-out,
-      so nobody inherits a departed user's language, but nobody gets their stored one either.
-      Applying it means `proxy.ts` resolving the user's row on every navigation; carrying the locale
-      in the session JWT at sign-in is the cheaper shape worth checking first
 
 ---
 
