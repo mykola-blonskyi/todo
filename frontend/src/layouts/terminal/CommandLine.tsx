@@ -10,8 +10,8 @@ import { createTaskAction } from '@features/todo-list/actions';
 import {
   updateLayoutAction,
   updatePaletteAction,
-  updateThemeAction,
 } from '@features/preferences/actions';
+import { applyMode } from '@features/preferences/ModeToggle';
 import {
   isLayout,
   isMode,
@@ -141,8 +141,7 @@ export function CommandLine({ lists, templates }: CommandLineProps) {
       case 'mode':
         if (!isMode(arg))
           return setOutput(t('usage', { usage: `mode <${modes.join('|')}>` }));
-        setTheme(arg);
-        void updateThemeAction(arg);
+        applyMode(arg, setTheme);
         return;
       default:
         setOutput(t('unknown', { command }));

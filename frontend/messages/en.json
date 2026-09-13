@@ -70,6 +70,13 @@
     "contactBody": "Questions about this policy, or about your data, can be sent to:",
     "backToSettings": "Back to Settings"
   },
+  "Error": {
+    "title": "Something went wrong",
+    "body": "This page couldn't be loaded. Try again in a moment.",
+    "retry": "Try again",
+    "backToLists": "Back to lists",
+    "reference": "Reference: {digest}"
+  },
   "Lists": {
     "title": "Your Lists",
     "createPlaceholder": "New list title",
