@@ -18,7 +18,7 @@ import { ThemeProvider } from '@/shared/ui/theme-provider';
 import { QueryProvider } from '@/shared/ui/query-provider';
 import { ServiceWorkerRegistration } from '@/shared/ui/service-worker-registration';
 import { locales, type Locale } from '@shared/lib/i18n/config';
-import { THEME_COLOR } from '@shared/lib/pwa';
+import { viewportThemeColor } from '@features/preferences/chrome';
 import { getAppearance } from '@features/preferences/server';
 import { PreferenceCookieSync, paletteClassName } from '@features/preferences';
 import { getLayoutViews } from '@/layouts/registry';
@@ -82,9 +82,9 @@ export const metadata: Metadata = {
   description: 'Advanced TODO list at todo.blonskyi.dev',
 };
 
-export const viewport: Viewport = {
-  themeColor: THEME_COLOR,
-};
+export async function generateViewport(): Promise<Viewport> {
+  return { themeColor: viewportThemeColor(await getAppearance()) };
+}
 
 interface LocaleLayoutProps {
   children: React.ReactNode;

@@ -790,6 +790,25 @@ browser whose Accept-Language never suggested it. A later, cookie-less visit (a 
 bookmark to `/`) no longer inherits the departed user's locale either: with the cookie cleared,
 next-intl's own Accept-Language/default-locale fallback decides instead.
 
+**The browser chrome colour is part of the appearance, so it follows the same axes** (TODO-63).
+One `THEME_COLOR` constant fed both the manifest and the viewport meta, so an installed app showed
+slate `#0f172a` whatever the user had picked. Terminal was the worst layout, because its shell
+header is `bg-primary`, and Paper the worst palette, because its `--primary` is an ink brown.
+Layouts own no colour, so the split follows the CSS: the layout decides *which* surface token sits
+at the top of the viewport (`terminal` → `primary`, `board` and `ledger` → `card`, the rest →
+`background`), and the palette and mode decide what that token is worth. Both tables live in
+`preferences/chrome.ts`. `generateViewport` resolves them against the same per-request cached
+`getAppearance` the shell already calls, so the meta costs no extra round-trip, and `mode: system`
+emits both `prefers-color-scheme` variants instead of guessing at the OS.
+
+The manifest stays statically prerendered. Its `theme_color` is only the pre-launch default — the
+manifest spec lets an in-scope document's `<meta name="theme-color">` override it, and a manifest is
+fetched per install rather than per navigation, so a per-request manifest would have cost
+cacheability and still not tracked a palette change. It ships the default appearance's colour,
+`#ffffff`. The hex table duplicates the HSL custom properties in `globals.css` because no runtime
+can read that file; `tests/chrome-color.test.ts` re-parses it and diffs the whole table, so the two
+cannot drift apart silently.
+
 ### Alternatives Considered
 - **One combined `theme` enum of every mode × palette pair** — rejected: 24 values, no way to add
   `system`, and the palette CSS already ships light and dark blocks per palette; two selects that

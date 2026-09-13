@@ -1,16 +1,15 @@
 import type { MetadataRoute } from 'next';
 
 export const APP_NAME = 'Todolist';
-export const THEME_COLOR = '#0f172a';
 export const BACKGROUND_COLOR = '#ffffff';
 
-export function buildManifest(): MetadataRoute.Manifest {
+export function buildManifest(themeColor: string): MetadataRoute.Manifest {
   return {
     name: APP_NAME,
     short_name: APP_NAME,
     start_url: '/',
     display: 'standalone',
-    theme_color: THEME_COLOR,
+    theme_color: themeColor,
     background_color: BACKGROUND_COLOR,
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
