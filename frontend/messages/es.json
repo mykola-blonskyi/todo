@@ -70,6 +70,13 @@
     "contactBody": "Las preguntas sobre esta política, o sobre tus datos, pueden enviarse a:",
     "backToSettings": "Volver a Ajustes"
   },
+  "Error": {
+    "title": "Algo ha salido mal",
+    "body": "No se ha podido cargar esta página. Inténtalo de nuevo en un momento.",
+    "retry": "Intentar de nuevo",
+    "backToLists": "Volver a las listas",
+    "reference": "Referencia: {digest}"
+  },
   "Lists": {
     "title": "Tus listas",
     "createPlaceholder": "Título de la nueva lista",

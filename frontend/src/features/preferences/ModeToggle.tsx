@@ -15,9 +15,20 @@ interface ModeToggleProps {
   className?: string;
 }
 
-// Light / dark / system. next-themes owns the client state (localStorage +
-// the `dark` class on <html>); the backend mirror is fire-and-forget, and the
-// cookie is what lets the server render the right mode on the next request.
+// Mode takes three writes where palette and layout take one: next-themes owns
+// the client state, the cookie is what the server renders from (its Server
+// Action cannot write it - next-themes applies localStorage before paint,
+// where no Server Action reaches), and the User row is the cross-device
+// backup. Exported because the terminal's `:mode` is a second way in, not a
+// second implementation, and it used to do only two of the three - leaving
+// generateViewport emitting the old theme-color.
+export function applyMode(mode: Mode, setTheme: (mode: Mode) => void) {
+  setTheme(mode);
+  writePreferenceCookie(MODE_COOKIE, mode);
+  void updateThemeAction(mode);
+}
+
+// Light / dark / system.
 export function ModeToggle({ mode, className }: ModeToggleProps) {
   const { theme, setTheme } = useTheme();
   const t = useTranslations('ThemeSwitcher');
@@ -33,9 +44,7 @@ export function ModeToggle({ mode, className }: ModeToggleProps) {
   function handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const next = event.target.value;
     if (!isMode(next)) return;
-    setTheme(next); // immediate client-side update, no flash/reload
-    writePreferenceCookie(MODE_COOKIE, next); // so the server renders it too
-    void updateThemeAction(next); // persist in the background
+    applyMode(next, setTheme);
   }
 
   const current: Mode = mounted && isMode(theme) ? theme : mode;
