@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { hubSessionCookie } from '@features/auth/lib/session-cookie';
 import type { Identity } from './identity';
+import { getServerIdentity } from './server-identity';
 
 interface GraphQLErrorPayload {
   message: string;
@@ -16,28 +17,27 @@ export class GraphQLRequestError extends Error {
   }
 }
 
-// Forwards the trusted identity headers the proxy already validated
-// (ADR-003). An explicit `identity` is needed wherever those headers aren't on
-// the incoming request yet: routes the proxy's matcher excludes (e.g.
-// /api/google/calendar/callback), and the proxy itself, which resolves the
-// identity before it sets them.
+// Sends the caller's identity to the backend, which trusts it absolutely
+// (ADR-003), so this is the trust boundary: the identity must come from the
+// signed session and never from a request header a client can set. An
+// explicit `identity` is for callers that have already resolved one and have
+// no `headers()` of their own - proxy.ts, which runs before a Server
+// Component exists, and the /api/google/calendar routes.
 export async function graphqlFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
   identity?: Identity,
 ): Promise<T> {
-  let userId: string | null = identity?.userId ?? null;
-  let email: string | null = identity?.email ?? null;
+  const caller = identity ?? (await getServerIdentity());
+  const userId = caller?.userId ?? null;
+  const email = caller?.email ?? null;
   let cookie: string | null = null;
   if (!identity) {
-    const headerList = await headers();
-    userId = headerList.get('x-user-id');
-    email = headerList.get('x-user-email');
     // Forwarded on to the hub by searchShareCandidates, which needs the
     // caller's own .blonskyi.dev session (TODO-54). Only that cookie is
     // passed through: nothing else here is the hub's to receive, least of
     // all this app's own session state.
-    const incomingCookie = headerList.get('cookie');
+    const incomingCookie = (await headers()).get('cookie');
     cookie = incomingCookie ? hubSessionCookie(incomingCookie) : null;
   }
 

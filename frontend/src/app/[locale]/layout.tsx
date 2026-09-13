@@ -12,12 +12,12 @@ import {
 } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ThemeProvider } from '@/shared/ui/theme-provider';
 import { QueryProvider } from '@/shared/ui/query-provider';
 import { ServiceWorkerRegistration } from '@/shared/ui/service-worker-registration';
 import { locales, type Locale } from '@shared/lib/i18n/config';
+import { getServerIdentity } from '@shared/lib/server-identity';
 import { viewportThemeColor } from '@features/preferences/chrome';
 import { getAppearance } from '@features/preferences/server';
 import { PreferenceCookieSync, paletteClassName } from '@features/preferences';
@@ -101,16 +101,16 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const [messages, appearance, headerList] = await Promise.all([
+  const [messages, appearance, identity] = await Promise.all([
     getMessages(),
     getAppearance(),
-    headers(),
+    getServerIdentity(),
   ]);
 
-  // proxy.ts sets x-user-id only on gated pages, so it's absent on
-  // /[locale]/login - exactly where there is no nav to load.
+  // No session means no nav to load - /[locale]/login and /[locale]/privacy
+  // render logged out.
   let nav: NavData | null = null;
-  if (headerList.get('x-user-id') !== null) {
+  if (identity) {
     try {
       nav = await fetchNavData();
     } catch {

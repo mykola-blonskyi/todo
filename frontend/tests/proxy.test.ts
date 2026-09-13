@@ -38,21 +38,74 @@ describe('proxy middleware', () => {
   // Ordering regression (TODO-48): rebuilding a response after next-intl ran
   // dropped the locale header it sets internally, so every non-default-locale
   // URL rendered in English.
-  it('sets identity headers on the request before handing off to next-intl middleware', async () => {
+  // The proxy used to stamp x-user-id/x-user-email onto the request and the
+  // data layer used to read them back as proof of identity. Anything the
+  // proxy did not overwrite was whatever the caller sent, so these three
+  // pin the shape that replaced it: identity rides the signed session only,
+  // and no page escapes the gate.
+  it('passes the request to next-intl without stamping identity headers on it', async () => {
     getTokenMock.mockResolvedValue({
       userId: 'login-user-1',
       email: 'user@example.com',
     });
-    const request = new NextRequest('http://localhost:3000/uk');
 
-    await proxy(request);
+    await proxy(new NextRequest('http://localhost:3000/uk'));
 
     expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
     const forwardedRequest = intlMiddlewareMock.mock.calls[0][0];
-    expect(forwardedRequest.headers.get('x-user-id')).toBe('login-user-1');
-    expect(forwardedRequest.headers.get('x-user-email')).toBe(
-      'user@example.com',
+    expect(forwardedRequest.headers.get('x-user-id')).toBeNull();
+    expect(forwardedRequest.headers.get('x-user-email')).toBeNull();
+  });
+
+  it('redirects a sessionless request to login even when it carries identity headers', async () => {
+    getTokenMock.mockResolvedValue(null);
+    const request = new NextRequest('http://localhost:3000/en', {
+      headers: {
+        'x-user-id': 'attacker-made-up',
+        'x-user-email': 'victim@example.com',
+      },
+    });
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toContain('/en/login');
+    expect(intlMiddlewareMock).not.toHaveBeenCalled();
+  });
+
+  it('gates a page path containing a dot', async () => {
+    getTokenMock.mockResolvedValue(null);
+
+    const response = await proxy(
+      new NextRequest('http://localhost:3000/en/lists/foo.bar'),
     );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toContain('/en/login');
+  });
+
+  it('ignores a NEXT_LOCALE cookie that is not a real locale', async () => {
+    getTokenMock.mockResolvedValue(null);
+    const request = new NextRequest('http://localhost:3000/');
+    request.cookies.set(LOCALE_COOKIE, '/evil.com');
+
+    const response = await proxy(request);
+
+    const location = new URL(response.headers.get('location')!);
+    expect(location.host).toBe('localhost:3000');
+    expect(location.pathname).toBe('/en/login');
+  });
+
+  it('skips a static file path that carries no locale prefix', async () => {
+    getTokenMock.mockResolvedValue(null);
+
+    const response = await proxy(
+      new NextRequest('http://localhost:3000/sw.js'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+    expect(intlMiddlewareMock).not.toHaveBeenCalled();
   });
 
   it('injects the stored locale cookie for a signed-in user with no prefix and no cookie', async () => {

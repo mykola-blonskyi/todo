@@ -1,6 +1,7 @@
 import { cache } from 'react';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { graphqlFetch } from '@shared/lib/graphql-client';
+import { getServerIdentity } from '@shared/lib/server-identity';
 import { ANON_OWNER, preferenceOwner, type PreferenceOwner } from './owner';
 import {
   DEFAULT_LAYOUT,
@@ -27,7 +28,7 @@ export interface ResolvedAppearance extends Appearance {
 }
 
 export async function currentPreferenceOwner(): Promise<PreferenceOwner> {
-  return preferenceOwner((await headers()).get('x-user-id'));
+  return preferenceOwner((await getServerIdentity())?.userId ?? null);
 }
 
 // Server Components only. Cookie-first avoids a network hop and a flash.
@@ -39,8 +40,7 @@ export const getAppearance = cache(async (): Promise<ResolvedAppearance> => {
   const layoutCookie = cookieStore.get(LAYOUT_COOKIE)?.value;
   const stampCookie = cookieStore.get(OWNER_COOKIE)?.value;
 
-  const headerList = await headers();
-  const userId = headerList.get('x-user-id');
+  const userId = (await getServerIdentity())?.userId ?? null;
   const owner = preferenceOwner(userId);
 
   // A foreign or missing stamp means these cookies are someone else's.
