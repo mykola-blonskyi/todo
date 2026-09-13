@@ -18,6 +18,16 @@ import type { RecurrenceType } from './types';
 import type { TemplateFormInput } from './actions';
 import { weekdayLabels } from './recurrence-summary';
 
+interface TaskTitleRow {
+  id: string;
+  value: string;
+}
+
+let nextRowId = 0;
+function newRow(value: string): TaskTitleRow {
+  return { id: `task-title-${nextRowId++}`, value };
+}
+
 interface TemplateFormProps {
   initialValues?: TemplateFormInput;
   onSubmit: (input: TemplateFormInput) => Promise<void>;
@@ -34,10 +44,14 @@ export function TemplateForm({
   const [isPending, startTransition] = useTransition();
 
   const [title, setTitle] = useState(initialValues?.title ?? '');
-  const [taskTitles, setTaskTitles] = useState<string[]>(
+  // Rows carry an id rather than being keyed by position: these are
+  // controlled inputs the user can delete from the middle, and React reuses a
+  // DOM node by key - so with the index as key, deleting row 1 left the caret
+  // sitting in what was row 2, silently editing a different task.
+  const [taskTitles, setTaskTitles] = useState<TaskTitleRow[]>(() =>
     initialValues?.taskTitles && initialValues.taskTitles.length > 0
-      ? initialValues.taskTitles
-      : [''],
+      ? initialValues.taskTitles.map(newRow)
+      : [newRow('')],
   );
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>(
     initialValues?.recurrenceType ?? 'daily',
@@ -59,12 +73,14 @@ export function TemplateForm({
     initialValues?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
 
-  function updateTaskTitle(index: number, value: string) {
-    setTaskTitles((prev) => prev.map((t, i) => (i === index ? value : t)));
+  function updateTaskTitle(id: string, value: string) {
+    setTaskTitles((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, value } : row)),
+    );
   }
 
-  function removeTaskTitle(index: number) {
-    setTaskTitles((prev) => prev.filter((_, i) => i !== index));
+  function removeTaskTitle(id: string) {
+    setTaskTitles((prev) => prev.filter((row) => row.id !== id));
   }
 
   function toggleWeekDay(day: number) {
@@ -78,7 +94,7 @@ export function TemplateForm({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedTaskTitles = taskTitles
-      .map((title) => title.trim())
+      .map((row) => row.value.trim())
       .filter(Boolean);
 
     startTransition(async () => {
@@ -115,11 +131,13 @@ export function TemplateForm({
       <div className="flex flex-col gap-2">
         <Label>{t('taskTitlesLabel')}</Label>
         <div className="flex flex-col gap-2">
-          {taskTitles.map((taskTitle, index) => (
-            <div key={index} className="flex gap-2">
+          {taskTitles.map((row) => (
+            <div key={row.id} className="flex gap-2">
               <Input
-                value={taskTitle}
-                onChange={(event) => updateTaskTitle(index, event.target.value)}
+                value={row.value}
+                onChange={(event) =>
+                  updateTaskTitle(row.id, event.target.value)
+                }
                 placeholder={t('taskTitlePlaceholder')}
               />
               <Button
@@ -127,7 +145,7 @@ export function TemplateForm({
                 variant="ghost"
                 size="icon"
                 disabled={taskTitles.length === 1}
-                onClick={() => removeTaskTitle(index)}
+                onClick={() => removeTaskTitle(row.id)}
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">{t('removeTaskButton')}</span>
@@ -140,7 +158,7 @@ export function TemplateForm({
           variant="outline"
           size="sm"
           className="self-start"
-          onClick={() => setTaskTitles((prev) => [...prev, ''])}
+          onClick={() => setTaskTitles((prev) => [...prev, newRow('')])}
         >
           {t('addTaskButton')}
         </Button>
