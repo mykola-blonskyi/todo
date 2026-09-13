@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { HubClientService } from '../hub/hub-client.service';
 import { ListTemplateRecurrenceType, ListTemplateStatus } from '@prisma/client';
 import type { ShareCandidateInput } from '../list-shares/share-candidate.input';
+import { validateRecurrence } from './validate-recurrence';
 
 interface ListTemplateInput {
   title: string;
@@ -69,18 +70,23 @@ export class ListTemplatesService {
       await this.requireOwnedCategory(ownerId, input.defaultCategoryId);
     }
 
+    const recurrence = {
+      recurrenceType: input.recurrenceType,
+      weekDays: input.weekDays ?? [],
+      dayOfMonth: input.dayOfMonth ?? null,
+      intervalDays: input.intervalDays ?? null,
+      streakDays: input.streakDays ?? null,
+      timezone: input.timezone,
+    };
+    validateRecurrence(recurrence);
+
     return this.prisma.listTemplate.create({
       data: {
         ownerId,
         title: this.requireTitle(input.title),
         taskTitles: input.taskTitles,
-        recurrenceType: input.recurrenceType,
-        weekDays: input.weekDays ?? [],
-        dayOfMonth: input.dayOfMonth ?? null,
-        intervalDays: input.intervalDays ?? null,
-        streakDays: this.requireStreakDays(input.streakDays),
+        ...recurrence,
         streakStartDate: input.streakStartDate ?? null,
-        timezone: input.timezone,
         defaultCategoryId: input.defaultCategoryId ?? null,
       },
     });
@@ -91,11 +97,32 @@ export class ListTemplatesService {
     id: string,
     updates: ListTemplateUpdate,
   ) {
-    await this.requireOwned(ownerId, id);
+    const existing = await this.requireOwned(ownerId, id);
 
     if (updates.defaultCategoryId) {
       await this.requireOwnedCategory(ownerId, updates.defaultCategoryId);
     }
+
+    // Validate the row as it will be, not the patch: switching to `monthly`
+    // without sending a dayOfMonth has to fail, and it can only be seen
+    // against the existing values.
+    validateRecurrence({
+      recurrenceType: updates.recurrenceType ?? existing.recurrenceType,
+      weekDays: updates.weekDays ?? existing.weekDays,
+      dayOfMonth:
+        updates.dayOfMonth !== undefined
+          ? updates.dayOfMonth
+          : existing.dayOfMonth,
+      intervalDays:
+        updates.intervalDays !== undefined
+          ? updates.intervalDays
+          : existing.intervalDays,
+      streakDays:
+        updates.streakDays !== undefined
+          ? updates.streakDays
+          : existing.streakDays,
+      timezone: updates.timezone ?? existing.timezone,
+    });
 
     return this.prisma.listTemplate.update({
       where: { id },
@@ -117,7 +144,7 @@ export class ListTemplatesService {
           intervalDays: updates.intervalDays,
         }),
         ...(updates.streakDays !== undefined && {
-          streakDays: this.requireStreakDays(updates.streakDays),
+          streakDays: updates.streakDays,
         }),
         ...(updates.streakStartDate !== undefined && {
           streakStartDate: updates.streakStartDate,
@@ -226,18 +253,6 @@ export class ListTemplatesService {
       throw new BadRequestException('ListTemplate title must not be empty');
     }
     return trimmed;
-  }
-
-  private requireStreakDays(
-    streakDays: number | null | undefined,
-  ): number | null {
-    if (streakDays == null) {
-      return null;
-    }
-    if (!Number.isInteger(streakDays) || streakDays < 1) {
-      throw new BadRequestException('streakDays must be a positive integer');
-    }
-    return streakDays;
   }
 
   private async requireOwned(ownerId: string, id: string) {
