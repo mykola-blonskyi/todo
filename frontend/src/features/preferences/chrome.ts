@@ -16,7 +16,7 @@ export const CHROME_TOKEN: Record<Layout, ChromeToken> = {
   workspace: 'background',
   board: 'card',
   notebook: 'background',
-  pocket: 'primary',
+  pocket: 'background',
   terminal: 'primary',
   ledger: 'card',
 };
