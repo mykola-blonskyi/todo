@@ -18,7 +18,8 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
       comes from the hub. (Only the hub's own cookie is passed through in `graphqlFetch`;
       todolist's is not the hub's to receive and it couldn't validate it anyway.) Needs a login-side
       equivalent of the hub's ADR-009 endpoint (or the `client_members` table exposed some other
-      way) before this dependency can be fully removed.
+      way) before this dependency can be fully removed. `scripts/hub-callers.sh` reports how many
+      call sites remain (2 today) and what gets deleted alongside the last one.
 - [ ] Real-time updates (WebSocket subscriptions) instead of refresh-to-see-changes
 - [ ] Telegram bot notification channel (business-rules.md Rule 7 names this as a possible future
       addition, not built now)
