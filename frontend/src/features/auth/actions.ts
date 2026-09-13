@@ -1,8 +1,11 @@
 'use server';
 
+import { clearAppearanceCookies } from '@features/preferences/server';
 import { signOut } from './lib/auth';
 
 export async function signOutAction(locale: string) {
+  // signOut redirects by throwing; nothing after it runs.
+  await clearAppearanceCookies();
   // Absolute URL: signOut()'s own host detection resolves to the container's
   // internal bind address behind Coolify/Traefik, the same gotcha proxy.ts
   // documents for request.url.

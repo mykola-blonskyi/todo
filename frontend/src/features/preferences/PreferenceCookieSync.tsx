@@ -2,13 +2,22 @@
 
 import { useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { LAYOUT_COOKIE, MODE_COOKIE, PALETTE_COOKIE, isMode } from './types';
+import {
+  LAYOUT_COOKIE,
+  MODE_COOKIE,
+  OWNER_COOKIE,
+  PALETTE_COOKIE,
+  isMode,
+} from './types';
 import type { Appearance } from './types';
 import { writePreferenceCookie } from './write-cookie';
 
 // Mode is deliberately absent: it comes from next-themes below, not from the
 // server-resolved value the other two axes use.
-type PreferenceCookieSyncProps = Pick<Appearance, 'palette' | 'layout'>;
+type PreferenceCookieSyncProps = Pick<
+  Appearance,
+  'palette' | 'layout' | 'owner'
+>;
 
 // Rendered only when the server had to fall back to the User row because
 // this browser carried no preference cookies (see preferences/server.ts).
@@ -16,6 +25,7 @@ type PreferenceCookieSyncProps = Pick<Appearance, 'palette' | 'layout'>;
 export function PreferenceCookieSync({
   palette,
   layout,
+  owner,
 }: PreferenceCookieSyncProps) {
   // Mode is the one axis with a second client-side source of truth: this
   // device's localStorage, which next-themes applies before paint and which
@@ -35,7 +45,8 @@ export function PreferenceCookieSync({
   useEffect(() => {
     writePreferenceCookie(PALETTE_COOKIE, palette);
     writePreferenceCookie(LAYOUT_COOKIE, layout);
-  }, [palette, layout]);
+    writePreferenceCookie(OWNER_COOKIE, owner);
+  }, [palette, layout, owner]);
 
   return null;
 }

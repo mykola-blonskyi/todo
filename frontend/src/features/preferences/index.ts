@@ -15,3 +15,5 @@ export {
   parsePalette,
 } from './types';
 export type { Mode, Palette, Layout, Appearance } from './types';
+export { ANON_OWNER, fnv1a32, modeStorageKey, preferenceOwner } from './owner';
+export type { PreferenceOwner } from './owner';

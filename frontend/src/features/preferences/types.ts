@@ -13,6 +13,8 @@
 // The enum ids match the backend's UserTheme / UserPalette / UserLayout
 // exactly, so they round-trip through GraphQL unchanged.
 
+import type { PreferenceOwner } from './owner';
+
 export const modes = ['light', 'dark', 'system'] as const;
 export type Mode = (typeof modes)[number];
 
@@ -49,8 +51,20 @@ export const DEFAULT_LAYOUT: Layout = 'workspace';
 export const MODE_COOKIE = 'todolist-mode';
 export const PALETTE_COOKIE = 'todolist-palette';
 export const LAYOUT_COOKIE = 'todolist-layout';
+// Stamps who the three cookies above belong to, so a shared browser can't
+// inherit them (owner.ts).
+export const OWNER_COOKIE = 'todolist-owner';
+export const PREFERENCE_COOKIES = [
+  MODE_COOKIE,
+  PALETTE_COOKIE,
+  LAYOUT_COOKIE,
+  OWNER_COOKIE,
+] as const;
 // One year - these are durable preferences, not session state.
 export const PREFERENCE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+// Nothing known about this device: follow the OS rather than flash `light`.
+export const UNKNOWN_MODE: Mode = 'system';
 
 export interface Appearance {
   // next-themes still owns applying the mode on the client; this is the
@@ -59,6 +73,7 @@ export interface Appearance {
   mode: Mode;
   palette: Palette;
   layout: Layout;
+  owner: PreferenceOwner;
 }
 
 export function isMode(value: unknown): value is Mode {

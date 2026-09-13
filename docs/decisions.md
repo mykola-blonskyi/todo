@@ -752,6 +752,20 @@ re-renders the route after a cookie-setting Server Action, which is what swaps t
 reload) and then persist. A browser with no cookie yet (new device) is served from the `User` row
 once (`preferences/server.ts`) and back-fills its cookies client-side.
 
+**A preference cookie records a value, so it also has to record whose value it is** (TODO-64).
+The three cookies outlive a session by up to a year, so without that the next person to sign in on
+a shared browser inherited the previous user's appearance, and because the cookies were present
+`getAppearance` never consulted their own `User` row. A fourth cookie `todolist-owner` stamps the
+other three with an opaque digest of the user id (`preferences/owner.ts`), and the read path trusts
+them only when the stamp matches the current owner. A missing or foreign stamp falls through to the
+row, so an expired session or a closed tab is covered as well as an explicit sign-out. `signOutAction`
+deletes all four up front, before Auth.js `signOut` redirects by throwing.
+
+Mode needed one more thing, because next-themes keeps it in `localStorage` and applies it before
+paint, which no Server Action can reach. Its `storageKey` is owner-scoped too (`todolist-mode.<owner>`),
+so the incoming user reads an empty key and next-themes falls back to the `defaultTheme` the server
+resolved from their row. Nothing has to be erased for that to hold.
+
 Default for everyone is `workspace` / `classic` / `light` — the closest to what shipped before.
 
 ### Alternatives Considered

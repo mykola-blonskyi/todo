@@ -131,7 +131,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <ThemeProvider mode={appearance.mode}>
+        <ThemeProvider mode={appearance.mode} owner={appearance.owner}>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <QueryProvider>
               <Shell locale={locale} appearance={appearance} nav={nav}>
@@ -143,6 +143,7 @@ export default async function LocaleLayout({
             <PreferenceCookieSync
               palette={appearance.palette}
               layout={appearance.layout}
+              owner={appearance.owner}
             />
           ) : null}
           <ServiceWorkerRegistration />
