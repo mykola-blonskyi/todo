@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { graphqlFetch, GraphQLRequestError } from '@shared/lib/graphql-client';
+import { graphqlFetch, isMissing } from '@shared/lib/graphql-client';
 import type { ListDetailData } from '@features/todo-list';
 import { getAppearance } from '@features/preferences/server';
 import { getLayoutViews } from '@/layouts/registry';
@@ -39,7 +39,7 @@ export default async function ListDetailPage({ params }: ListDetailPageProps) {
     );
     list = data.list;
   } catch (error) {
-    if (error instanceof GraphQLRequestError) {
+    if (isMissing(error)) {
       notFound();
     }
     throw error;

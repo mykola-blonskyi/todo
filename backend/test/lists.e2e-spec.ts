@@ -430,4 +430,24 @@ describe('List (GraphQL)', () => {
       });
     });
   });
+
+  // @nestjs/apollo leaves any status it does not know as INTERNAL_SERVER_ERROR,
+  // so "this list does not exist" and "the database is down" reached the
+  // caller identically - and the frontend rendered both as "not found".
+  it('reports a missing List as NOT_FOUND, not as a server fault', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+
+    const body = await graphql(
+      `
+        query {
+          list(id: "00000000-0000-0000-0000-000000000000") {
+            id
+          }
+        }
+      `,
+      owner,
+    );
+
+    expect(body.errors?.[0].extensions.code).toBe('NOT_FOUND');
+  });
 });
