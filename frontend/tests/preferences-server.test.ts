@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ANON_OWNER, preferenceOwner } from '@/features/preferences/owner';
 
 const cookieValues = new Map<string, string>();
-const headerValues = new Map<string, string>();
 
 vi.mock('next/headers', () => ({
   cookies: () =>
@@ -12,8 +11,14 @@ vi.mock('next/headers', () => ({
         return value === undefined ? undefined : { name, value };
       },
     }),
-  headers: () =>
-    Promise.resolve({ get: (name: string) => headerValues.get(name) ?? null }),
+}));
+
+// The owner stamp keys off the signed session, not a request header - a
+// header would let a caller claim someone else's appearance cookies.
+const getServerIdentity =
+  vi.fn<() => Promise<{ userId: string; email: string } | null>>();
+vi.mock('@shared/lib/server-identity', () => ({
+  getServerIdentity: () => getServerIdentity(),
 }));
 
 const graphqlFetch = vi.fn();
@@ -34,9 +39,12 @@ const OWNER_1 = preferenceOwner('user-1');
 describe('getAppearance', () => {
   beforeEach(() => {
     cookieValues.clear();
-    headerValues.clear();
     graphqlFetch.mockReset();
-    headerValues.set('x-user-id', 'user-1');
+    getServerIdentity.mockReset();
+    getServerIdentity.mockResolvedValue({
+      userId: 'user-1',
+      email: 'user-1@example.com',
+    });
   });
 
   it('returns cookie values without asking the backend when the stamp matches the owner', async () => {
@@ -136,7 +144,7 @@ describe('getAppearance', () => {
   });
 
   it('falls back to defaults with the unknown mode when unauthenticated, without asking', async () => {
-    headerValues.delete('x-user-id');
+    getServerIdentity.mockResolvedValue(null);
 
     const appearance = await getAppearance();
 

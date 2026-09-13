@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getIdentity } from '@shared/lib/identity';
 import { routing } from '@shared/lib/i18n/routing';
-import { LOCALE_COOKIE } from '@shared/lib/i18n/config';
+import { LOCALE_COOKIE, parseLocale } from '@shared/lib/i18n/config';
 import { graphqlFetch } from '@shared/lib/graphql-client';
 import {
   GOOGLE_OAUTH_STATE_COOKIE,
@@ -14,7 +14,8 @@ import {
 // proxy.ts's page-auth gate, so identity is resolved independently here too.
 export async function GET(request: NextRequest) {
   const locale =
-    request.cookies.get(LOCALE_COOKIE)?.value ?? routing.defaultLocale;
+    parseLocale(request.cookies.get(LOCALE_COOKIE)?.value) ??
+    routing.defaultLocale;
   const settingsUrl = new URL(`${process.env.APP_URL}/${locale}/settings`);
 
   function redirectWithResult(result: 'connected' | 'error') {

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from '@shared/lib/i18n/routing';
-import { LOCALE_COOKIE, locales, type Locale } from '@shared/lib/i18n/config';
+import {
+  isLocale,
+  LOCALE_COOKIE,
+  locales,
+  parseLocale,
+  type Locale,
+} from '@shared/lib/i18n/config';
 import { getIdentity, signInUrl, type Identity } from '@shared/lib/identity';
 import { graphqlFetch } from '@shared/lib/graphql-client';
 
@@ -23,12 +29,6 @@ const PUBLIC_PATH_PATTERN = new RegExp(
   `^/(?:${locales.join('|')})/(?:login|privacy)(?:/|$)`,
 );
 
-function isLocale(value: unknown): value is Locale {
-  return (
-    typeof value === 'string' && (locales as readonly string[]).includes(value)
-  );
-}
-
 function pathLocale(pathname: string): Locale | null {
   const first = pathname.split('/')[1];
   return isLocale(first) ? first : null;
@@ -37,10 +37,10 @@ function pathLocale(pathname: string): Locale | null {
 // The path's own locale prefix comes first: on a first-ever visit there is no
 // NEXT_LOCALE cookie yet, and falling straight to the default would send
 // /uk/lists/42 to /en/login.
-function redirectLocale(request: NextRequest): string {
+function redirectLocale(request: NextRequest): Locale {
   return (
     pathLocale(request.nextUrl.pathname) ??
-    request.cookies.get(LOCALE_COOKIE)?.value ??
+    parseLocale(request.cookies.get(LOCALE_COOKIE)?.value) ??
     routing.defaultLocale
   );
 }
@@ -78,11 +78,16 @@ async function fetchStoredLocale(identity: Identity): Promise<Locale | null> {
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // A dot in the path used to be enough to skip the gate, which also skipped
+  // it for a page: /en/lists/foo.bar rendered ungated. localePrefix is
+  // 'always', so a real page always carries a locale prefix and a static file
+  // never does - that, not the dot alone, is what separates them.
   if (
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/_vercel') ||
-    /\.[^/]+$/.test(pathname)
+    pathname === '/api' ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/_vercel/') ||
+    (pathLocale(pathname) === null && /\.[^/]+$/.test(pathname))
   ) {
     return NextResponse.next();
   }
@@ -121,16 +126,11 @@ export default async function proxy(request: NextRequest) {
     }
   }
 
-  // Set on the request *before* handing off to next-intl, not on a fresh
-  // NextResponse afterwards: next-intl carries the resolved locale on the
-  // response it builds internally, so rebuilding one here dropped it and every
-  // non-default-locale URL rendered in English (TODO-48).
-  request.headers.set('x-user-id', identity.userId);
-  request.headers.set('x-user-email', identity.email);
-
   return intlMiddleware(request);
 }
 
+// Only the two pure-asset paths are excluded here; every other skip is
+// decided in one place, at the top of proxy(), so the two can't disagree.
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|_vercel|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image).*)'],
 };
