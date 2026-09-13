@@ -89,8 +89,9 @@ External systems:
 - **Google Calendar API** — one-way event push/delete per user, triggered manually, never read from.
 - **Coolify** — self-hosted PaaS, same VPS as the hub: Docker container orchestration, Traefik
   reverse proxy, SSL, deploy webhooks.
-- **GitHub Actions → GHCR** — CI/CD: lint/typecheck/test both apps on every push; on merge to
-  `main`, build and push two images, trigger two Coolify webhooks.
+- **GitHub Actions** — CI: lint/format/typecheck/unit/e2e on every push; on merge to `main`, it
+  calls one Coolify deploy webhook. It builds no images — Coolify builds them itself from the root
+  `docker-compose.yml`, as the Deployment section below says.
 
 ---
 
@@ -105,10 +106,16 @@ User → todo.blonskyi.dev → frontend middleware (proxy.ts)
 → sign-in page form POSTs to /api/auth/signin/login → Auth.js redirects to login's /authorize
   (PKCE + state) → login/Google → login redirects back to /api/auth/callback/login → Auth.js
   exchanges the code, verifies the ID token against login's JWKS, sets the session cookie
-→ present → set x-user-id (login's sub)/x-user-email headers from the decoded token → serve page
-→ backend upserts the local shadow User row (identitySub, email, ...) from those headers, same as
-  before (ADR-003) — login has already enforced approval + the todolist client_members grant before
-  issuing a token at all, so no separate access-gate call is needed (ADR-016)
+→ present → serve page
+→ every server-side backend call resolves the caller from that same session cookie
+  (shared/lib/server-identity.ts) and sends x-user-id/x-user-email on the outbound GraphQL request
+→ backend upserts the local shadow User row (identitySub, email, ...) from those headers (ADR-003)
+  — login has already enforced approval + the todolist client_members grant before issuing a token
+  at all, so no separate access-gate call is needed (ADR-016)
+
+The identity headers exist only on the hop from the frontend server to the backend. They are never
+read off an inbound request: the proxy used to stamp them onto the request it forwarded, which made
+them forgeable by anyone who could reach a route the proxy did not gate.
 ```
 
 ### Share flow
@@ -120,14 +127,19 @@ Owner searches "share with…" → frontend calls backend GraphQL
 → accepted → invitee is now a Collaborator (Rule 3, Rule 4 in business-rules.md)
 ```
 
-### Calendar sync flow (one task, one user, manual trigger)
+### Calendar sync flow (one list, one user, manual trigger)
 ```
-User clicks "Sync to Google Calendar" on a List (with a valid GoogleCalendarConnection)
-→ backend: for each Task with a dueDate and no existing CalendarSync row for this user
-→ Google Calendar API: insert event → store CalendarSync(userId, taskId, googleEventId)
-→ (later) Task marked done → backend deletes the event for every CalendarSync row on that Task,
-  best-effort, then deletes the rows (Rule 9)
+User clicks "Sync to Google Calendar" on a List that has a dueDate (and a valid
+GoogleCalendarConnection)
+→ backend: one all-day event per List, its description a checklist of that List's Tasks (ADR-015)
+→ Google Calendar API: insert or update by the stored googleEventId
+→ store CalendarSync(userId, listId, googleEventId, googleCalendarId)
+→ re-syncing updates the same event rather than creating a second one (Rule 8)
+→ (later) List deleted, or a collaborator removed/leaving → backend deletes that user's event,
+  best-effort (Rule 10)
 ```
+Marking a Task done does nothing to the Calendar — Rule 9 was retired with ADR-015, along with the
+per-Task `CalendarSync.taskId` column.
 
 ---
 
