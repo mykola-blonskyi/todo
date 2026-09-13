@@ -20,17 +20,38 @@ import {
 // pattern - the client-side switch (next-themes / navigation) already
 // happened by the time these are called, so a slow or failed persist should
 // never block the UI.
+//
+// "Fire and forget" has to mean the failure too. These are awaited inside a
+// startTransition with no catch anywhere above them, so a backend hiccup
+// during a palette change threw all the way out of the transition and took
+// down the page the user had just successfully recoloured. The cookie is
+// already written and is what the server renders from; the User row is only
+// the cross-device backup, and it reconciles on the next successful change.
+async function persist(description: string, run: Promise<unknown>) {
+  try {
+    await run;
+  } catch (error) {
+    console.error(`Could not persist ${description}:`, error);
+  }
+}
+
 export async function updateThemeAction(theme: Mode) {
-  await graphqlFetch(
-    `mutation UpdateTheme($theme: UserTheme!) { updateTheme(theme: $theme) { id } }`,
-    { theme },
+  await persist(
+    'theme',
+    graphqlFetch(
+      `mutation UpdateTheme($theme: UserTheme!) { updateTheme(theme: $theme) { id } }`,
+      { theme },
+    ),
   );
 }
 
 export async function updateLocaleAction(locale: Locale) {
-  await graphqlFetch(
-    `mutation UpdateLocale($locale: UserLocale!) { updateLocale(locale: $locale) { id } }`,
-    { locale },
+  await persist(
+    'locale',
+    graphqlFetch(
+      `mutation UpdateLocale($locale: UserLocale!) { updateLocale(locale: $locale) { id } }`,
+      { locale },
+    ),
   );
 }
 
@@ -64,9 +85,12 @@ export async function updatePaletteAction(palette: Palette) {
     await currentPreferenceOwner(),
     cookieOptions(),
   );
-  await graphqlFetch(
-    `mutation UpdatePalette($palette: UserPalette!) { updatePalette(palette: $palette) { id } }`,
-    { palette },
+  await persist(
+    'palette',
+    graphqlFetch(
+      `mutation UpdatePalette($palette: UserPalette!) { updatePalette(palette: $palette) { id } }`,
+      { palette },
+    ),
   );
 }
 
@@ -79,8 +103,11 @@ export async function updateLayoutAction(layout: Layout) {
     await currentPreferenceOwner(),
     cookieOptions(),
   );
-  await graphqlFetch(
-    `mutation UpdateLayout($layout: UserLayout!) { updateLayout(layout: $layout) { id } }`,
-    { layout },
+  await persist(
+    'layout',
+    graphqlFetch(
+      `mutation UpdateLayout($layout: UserLayout!) { updateLayout(layout: $layout) { id } }`,
+      { layout },
+    ),
   );
 }
