@@ -890,3 +890,56 @@ either way.
   next-themes as its `defaultTheme` so the pre-paint script applies it — no flash, and no effect
   running after hydration. next-themes still owns the applied class, and a choice already in this
   device's `localStorage` still wins over the row.
+
+---
+
+## ADR-018: Identity comes from the signed session at the data layer, never from an inbound header
+
+Date: 2026-09-13
+
+Status: Accepted
+
+### Context
+ADR-003 keeps the backend internal-only and has it trust an `x-user-id` / `x-user-email` header
+absolutely. The frontend supplied that header by having `proxy.ts` stamp it onto the request it
+forwarded, and `graphqlFetch` read it back off `headers()` when calling the backend.
+
+That is only safe if the proxy runs on every request and overwrites whatever the client sent. It did
+neither. Public paths (`/{locale}/login`, `/{locale}/privacy`) returned before the header was set,
+and the matcher `(?!api|_next/static|_next/image|_vercel|.*\..*)` excluded any path containing a
+dot while the route behind it still rendered. A header the proxy does not overwrite is simply what
+the client sent, so a forged `x-user-id` reached the backend and was trusted.
+
+Confirmed by execution against a built frontend and a fake backend, not by reading: a forged header
+sent to `/en/login` and to `/en/lists/foo.bar` arrived at the backend intact; `/en` correctly
+redirected. Because the backend resolves an unknown `identitySub` by falling back to `email`, the
+attacker needed only a victim's email address, and a Server Action dispatched by id to a public path
+made the same hole writable.
+
+### Decision
+`graphqlFetch` resolves the caller itself, per request, from the signed Auth.js session cookie
+(`shared/lib/server-identity.ts`), and sends that. Nothing reads identity off an inbound request, so
+`proxy.ts` no longer sets those headers at all. The `/api/google/calendar/*` routes already worked
+this way; this makes it the only way.
+
+The proxy keeps its redirect-to-login gate, but it is an optimistic check for the common case — the
+real check is at the data layer, which is what Next.js's own guidance for this version prescribes.
+
+### Alternatives Considered
+- Delete the inbound headers at the top of `proxy.ts` before every branch — rejected: it only helps
+  where the proxy runs, and the defect was precisely that it does not run everywhere. It also leaves
+  the mechanism in place for the next reader to trust again.
+- Have the backend verify the session JWT itself — rejected here as a reversal of ADR-003 rather
+  than a fix to it: it duplicates login's JWKS verification in a second service. Worth revisiting
+  only if the backend ever gains a second consumer.
+
+### Consequences
+- `x-user-id` / `x-user-email` exist only on the hop from the frontend server to the backend.
+  ADR-003's trust model is unchanged; what changed is that the headers are now produced, never
+  received.
+- `proxy.ts`'s skip list is decided in one place at the top of the function, and its matcher
+  excludes only `_next/static` and `_next/image`. A page path is identified by its locale prefix
+  (`localePrefix` is `always`), not by the absence of a dot.
+- `signInUrl` takes a `Locale` rather than a `string`, so an unvalidated `NEXT_LOCALE` cookie — a
+  cookie any `.blonskyi.dev` host can set — can no longer make the sign-in redirect resolve
+  off-origin.

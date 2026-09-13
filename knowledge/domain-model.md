@@ -92,11 +92,11 @@ Fields:
 - `weekDays` (nullable set of weekdays — only meaningful when `recurrenceType = weekly`)
 - `dayOfMonth` (nullable, 1–31 — only meaningful when `recurrenceType = monthly`; clamped to a
   given month's last day at occurrence time if that month is shorter, see Rule 16)
-- `streakDays` (nullable positive integer, default `1` — only meaningful when
-  `recurrenceType = everyNDays`) — how many consecutive days a Streak fires for (see Rule 25 and
-  [glossary.md](glossary.md))
-- `intervalDays` (nullable positive integer — only meaningful when `recurrenceType = everyNDays`) —
-  how many consecutive rest days follow each Streak before the next one starts (Rule 25)
+- `streakDays` (nullable integer 1–366 — only meaningful when `recurrenceType = everyNDays`) — how
+  many consecutive days a Streak fires for (see Rule 25 and [glossary.md](glossary.md)). The column
+  has no database default; `null` is read as `1` at occurrence time (`recurrence.ts`)
+- `intervalDays` (integer 1–366, required when `recurrenceType = everyNDays`) — how many
+  consecutive rest days follow each Streak before the next one starts (Rule 25)
 - `streakStartDate` (nullable date, defaults to `createdAt` — only meaningful when
   `recurrenceType = everyNDays`) — anchors day zero of the Streak/rest cycle; pure calendar
   arithmetic from this date determines which days are ON, independent of `lastSpawnedAt` (Rule 25)
@@ -250,8 +250,6 @@ Constraints: unique on (`userId`, `listId`) — one synced event per User per Li
 Relationships:
 - N:1 with **User**
 - N:1 with **List**
-
-Constraints: unique on (`userId`, `taskId`) — one calendar event per user per task.
 
 ---
 
