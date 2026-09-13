@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getIdentity, signInUrl } from '@shared/lib/identity';
 import { routing } from '@shared/lib/i18n/routing';
+import { LOCALE_COOKIE } from '@shared/lib/i18n/config';
 import {
   GOOGLE_OAUTH_STATE_COOKIE,
   googleCalendarRedirectUri,
@@ -16,7 +17,7 @@ const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 export async function GET(request: NextRequest) {
   const identity = await getIdentity(request);
   const locale =
-    request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
+    request.cookies.get(LOCALE_COOKIE)?.value ?? routing.defaultLocale;
 
   if (!identity) {
     const loginUrl = signInUrl(locale);

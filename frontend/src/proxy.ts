@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from '@shared/lib/i18n/routing';
-import { locales } from '@shared/lib/i18n/config';
+import { LOCALE_COOKIE, locales } from '@shared/lib/i18n/config';
 import { getIdentity, signInUrl } from '@shared/lib/identity';
 
 const intlMiddleware = createMiddleware(routing);
@@ -30,7 +30,7 @@ function redirectLocale(request: NextRequest): string {
   if ((locales as readonly string[]).includes(fromPath)) {
     return fromPath;
   }
-  return request.cookies.get('NEXT_LOCALE')?.value ?? routing.defaultLocale;
+  return request.cookies.get(LOCALE_COOKIE)?.value ?? routing.defaultLocale;
 }
 
 export default async function proxy(request: NextRequest) {
