@@ -122,13 +122,15 @@
     "searchPlaceholder": "Buscar por nombre o email",
     "noResults": "Sin coincidencias para “{query}”",
     "searchError": "No se pudo buscar en este momento. Inténtalo de nuevo enseguida.",
-    "invited": "Invitado",
+    "invited": "Has invitado a {name}",
     "pendingInvitesTitle": "Invitaciones pendientes",
     "acceptButton": "Aceptar",
     "declineButton": "Rechazar",
     "collaboratorsTitle": "Colaboradores",
     "removeButton": "Eliminar",
-    "leaveButton": "Salir"
+    "leaveButton": "Salir",
+    "inviteError": "No se pudo enviar la invitación. Inténtalo de nuevo enseguida.",
+    "resultCount": "{count, plural, =0 {Sin coincidencias} one {# coincidencia} other {# coincidencias}}"
   },
   "Comments": {
     "title": "Comentarios",
@@ -185,8 +187,9 @@
     "collaboratorSearchPlaceholder": "Buscar por nombre o email",
     "collaboratorSearchError": "No se pudo buscar en este momento. Inténtalo de nuevo enseguida.",
     "noResults": "Sin coincidencias para “{query}”",
-    "added": "Añadido",
-    "removeCollaboratorButton": "Eliminar"
+    "added": "Has añadido a {name}",
+    "removeCollaboratorButton": "Eliminar",
+    "addCollaboratorError": "No se pudo añadir a esa persona. Inténtalo de nuevo enseguida."
   },
   "Categories": {
     "title": "Categorías",
