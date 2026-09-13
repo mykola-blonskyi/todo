@@ -122,13 +122,15 @@
     "searchPlaceholder": "Поиск по имени или email",
     "noResults": "Совпадений для «{query}» не найдено",
     "searchError": "Не удалось выполнить поиск. Попробуйте ещё раз через мгновение.",
-    "invited": "Приглашение отправлено",
+    "invited": "Приглашение отправлено: {name}",
     "pendingInvitesTitle": "Ожидающие приглашения",
     "acceptButton": "Принять",
     "declineButton": "Отклонить",
     "collaboratorsTitle": "Участники",
     "removeButton": "Удалить",
-    "leaveButton": "Покинуть"
+    "leaveButton": "Покинуть",
+    "inviteError": "Не удалось отправить приглашение. Попробуйте ещё раз через мгновение.",
+    "resultCount": "{count, plural, =0 {Нет совпадений} one {# совпадение} few {# совпадения} many {# совпадений} other {# совпадения}}"
   },
   "Comments": {
     "title": "Комментарии",
@@ -185,8 +187,9 @@
     "collaboratorSearchPlaceholder": "Поиск по имени или email",
     "collaboratorSearchError": "Не удалось выполнить поиск. Попробуйте ещё раз через мгновение.",
     "noResults": "Совпадений для «{query}» не найдено",
-    "added": "Добавлено",
-    "removeCollaboratorButton": "Удалить"
+    "added": "Добавлен: {name}",
+    "removeCollaboratorButton": "Удалить",
+    "addCollaboratorError": "Не удалось добавить этого человека. Попробуйте ещё раз через мгновение."
   },
   "Categories": {
     "title": "Категории",

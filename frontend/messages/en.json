@@ -122,13 +122,15 @@
     "searchPlaceholder": "Search by name or email",
     "noResults": "No matches for “{query}”",
     "searchError": "Couldn't search right now. Try again in a moment.",
-    "invited": "Invited",
+    "invited": "Invited {name}",
     "pendingInvitesTitle": "Pending invites",
     "acceptButton": "Accept",
     "declineButton": "Decline",
     "collaboratorsTitle": "Collaborators",
     "removeButton": "Remove",
-    "leaveButton": "Leave"
+    "leaveButton": "Leave",
+    "inviteError": "Couldn't send that invite. Try again in a moment.",
+    "resultCount": "{count, plural, =0 {No matches} one {# match} other {# matches}}"
   },
   "Comments": {
     "title": "Comments",
@@ -185,8 +187,9 @@
     "collaboratorSearchPlaceholder": "Search by name or email",
     "collaboratorSearchError": "Couldn't search right now. Try again in a moment.",
     "noResults": "No matches for “{query}”",
-    "added": "Added",
-    "removeCollaboratorButton": "Remove"
+    "added": "Added {name}",
+    "removeCollaboratorButton": "Remove",
+    "addCollaboratorError": "Couldn't add that person. Try again in a moment."
   },
   "Categories": {
     "title": "Categories",

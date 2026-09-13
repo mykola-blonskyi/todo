@@ -122,13 +122,15 @@
     "searchPlaceholder": "Пошук за іменем або email",
     "noResults": "Збігів для «{query}» не знайдено",
     "searchError": "Не вдалося виконати пошук. Спробуйте ще раз за мить.",
-    "invited": "Запрошено",
+    "invited": "Запрошено {name}",
     "pendingInvitesTitle": "Очікувані запрошення",
     "acceptButton": "Прийняти",
     "declineButton": "Відхилити",
     "collaboratorsTitle": "Учасники",
     "removeButton": "Видалити",
-    "leaveButton": "Покинути"
+    "leaveButton": "Покинути",
+    "inviteError": "Не вдалося надіслати запрошення. Спробуйте ще раз за мить.",
+    "resultCount": "{count, plural, =0 {Немає збігів} one {# збіг} few {# збіги} many {# збігів} other {# збігу}}"
   },
   "Comments": {
     "title": "Коментарі",
@@ -185,8 +187,9 @@
     "collaboratorSearchPlaceholder": "Пошук за іменем або email",
     "collaboratorSearchError": "Не вдалося виконати пошук. Спробуйте ще раз за мить.",
     "noResults": "Збігів для «{query}» не знайдено",
-    "added": "Додано",
-    "removeCollaboratorButton": "Видалити"
+    "added": "Додано {name}",
+    "removeCollaboratorButton": "Видалити",
+    "addCollaboratorError": "Не вдалося додати цю людину. Спробуйте ще раз за мить."
   },
   "Categories": {
     "title": "Категорії",

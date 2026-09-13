@@ -112,4 +112,52 @@ describe('ShareSearch', () => {
       });
     });
   });
+
+  it('confirms the invite where the dropdown it closed cannot hide it', async () => {
+    searchMock.mockResolvedValue([
+      {
+        hubUserId: 'user-2',
+        email: 'friend@example.com',
+        name: 'Friend',
+        image: null,
+      },
+    ]);
+    inviteMock.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderWithProviders(<ShareSearch listId="list-1" />);
+
+    await user.type(
+      screen.getByPlaceholderText('Search by name or email'),
+      'fri',
+    );
+    await user.click(await screen.findByText('Friend'));
+
+    expect(await screen.findByText('Invited Friend')).toBeInTheDocument();
+  });
+
+  it('says so when the invite fails, rather than looking like nothing happened', async () => {
+    searchMock.mockResolvedValue([
+      {
+        hubUserId: 'user-2',
+        email: 'friend@example.com',
+        name: 'Friend',
+        image: null,
+      },
+    ]);
+    inviteMock.mockRejectedValue(new Error('nope'));
+    const user = userEvent.setup();
+    renderWithProviders(<ShareSearch listId="list-1" />);
+
+    await user.type(
+      screen.getByPlaceholderText('Search by name or email'),
+      'fri',
+    );
+    await user.click(await screen.findByText('Friend'));
+
+    expect(
+      await screen.findByText(
+        "Couldn't send that invite. Try again in a moment.",
+      ),
+    ).toBeInTheDocument();
+  });
 });
