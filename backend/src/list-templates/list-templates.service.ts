@@ -204,14 +204,20 @@ export class ListTemplatesService {
     ownerId: string,
     templateId: string,
     candidate: ShareCandidateInput,
+    sessionCookie: string,
   ) {
     await this.requireOwned(ownerId, templateId);
 
+    const member = await this.hubClientService.requireProjectMember(
+      candidate,
+      sessionCookie,
+    );
+
     const collaborator = await this.usersService.findOrCreateCandidate({
-      hubUserId: candidate.hubUserId,
-      email: candidate.email,
-      name: candidate.name ?? undefined,
-      image: candidate.image ?? undefined,
+      hubUserId: member.hubUserId,
+      email: member.email,
+      name: member.name ?? undefined,
+      image: member.image ?? undefined,
     });
 
     // No status to update on a re-add (unlike ListShare's pending/accepted/

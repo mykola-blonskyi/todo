@@ -174,6 +174,7 @@ export class ListTemplatesResolver {
   @Mutation(() => PublicUser)
   async addTemplateCollaborator(
     @CurrentUser() identity: Identity,
+    @HubSessionCookie() sessionCookie: string,
     @Args('templateId', { type: () => ID }) templateId: string,
     @Args('candidate', { type: () => ShareCandidateInput })
     candidate: ShareCandidateInput,
@@ -183,6 +184,7 @@ export class ListTemplatesResolver {
       user.id,
       templateId,
       candidate,
+      sessionCookie,
     );
   }
 

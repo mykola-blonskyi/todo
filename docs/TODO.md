@@ -19,7 +19,14 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
       todolist's is not the hub's to receive and it couldn't validate it anyway.) Needs a login-side
       equivalent of the hub's ADR-009 endpoint (or the `client_members` table exposed some other
       way) before this dependency can be fully removed. `scripts/hub-callers.sh` reports how many
-      call sites remain (2 today) and what gets deleted alongside the last one.
+      call sites remain (4 today) and what gets deleted alongside the last one.
+- [ ] That count went from 2 to 4 deliberately. Rule 4 requires the project-access check at invite
+      time, and nothing was performing it: `inviteToList` and `addTemplateCollaborator` took a
+      fully client-supplied candidate and minted a `User` row for whatever address it named. They
+      call the same hub endpoint the search does now, so both mutations need the caller's live hub
+      session exactly as the search already did. Enforcing a rule the app documents is worth a
+      wider migration surface, but it does widen it: the login-side replacement has to cover the
+      invite path, not just the search box.
 - [ ] Real-time updates (WebSocket subscriptions) instead of refresh-to-see-changes
 - [ ] Telegram bot notification channel (business-rules.md Rule 7 names this as a possible future
       addition, not built now)

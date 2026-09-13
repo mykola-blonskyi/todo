@@ -8,7 +8,10 @@ set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
-callers=$(grep -rn '\.searchProjectMembers(' --include='*.ts' backend/src \
+# Both entry points count. requireProjectMember is the Rule 4 check inside the invite
+# path; it calls searchProjectMembers internally, so matching only the latter would
+# report a shrinking dependency while it was in fact growing.
+callers=$(grep -rnE '\.(searchProjectMembers|requireProjectMember)\(' --include='*.ts' backend/src \
   | grep -v '^backend/src/hub/' || true)
 count=$(printf '%s' "$callers" | grep -c . || true)
 

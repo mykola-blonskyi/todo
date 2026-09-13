@@ -5,18 +5,33 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { GoogleCalendarApiClient } from '../src/google-calendar/google-calendar-api.client';
 import { testDb } from './setup/db';
+import { stubHubProjectMembers } from './setup/hub';
 
 interface GraphQLResponse<T> {
   data: T | null;
   errors?: { extensions: { code: string } }[];
 }
 
+// Every candidate any test in this file invites, so requireProjectMember
+// (Rule 4) finds them on the hub roster.
+const HUB_MEMBERS = [
+  {
+    hubUserId: 'collaborator-1',
+    email: 'collaborator@example.com',
+    name: 'Collaborator',
+  },
+  { hubUserId: 'collaborator-a', email: 'a@example.com', name: 'Collaborator' },
+  { hubUserId: 'collaborator-b', email: 'b@example.com', name: 'Collaborator' },
+];
+
+// The Google OAuth token endpoint is also `fetch`, unrelated to the hub
+// roster - routed through the roster's fallback so both keep working.
 function mockTokenExchange(body: unknown, ok = true) {
-  return jest
-    .spyOn(global, 'fetch')
-    .mockResolvedValue(
+  return stubHubProjectMembers(HUB_MEMBERS, () =>
+    Promise.resolve(
       new Response(JSON.stringify(body), { status: ok ? 200 : 400 }),
-    );
+    ),
+  );
 }
 
 describe('Calendar sync (GraphQL)', () => {
@@ -40,6 +55,7 @@ describe('Calendar sync (GraphQL)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    stubHubProjectMembers(HUB_MEMBERS);
   });
 
   afterEach(async () => {
@@ -48,7 +64,12 @@ describe('Calendar sync (GraphQL)', () => {
   });
 
   function asUser(identitySub: string, email: string) {
-    return { 'x-user-id': identitySub, 'x-user-email': email };
+    // inviteToList now needs a session cookie too (requireProjectMember).
+    return {
+      'x-user-id': identitySub,
+      'x-user-email': email,
+      cookie: `authjs.session-token=${identitySub}-session`,
+    };
   }
 
   async function graphql<T>(query: string, headers: Record<string, string>) {
@@ -108,7 +129,7 @@ describe('Calendar sync (GraphQL)', () => {
       `,
       headers,
     );
-    jest.restoreAllMocks();
+    stubHubProjectMembers(HUB_MEMBERS);
   }
 
   async function deleteList(headers: Record<string, string>, listId: string) {

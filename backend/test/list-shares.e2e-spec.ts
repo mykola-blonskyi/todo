@@ -6,11 +6,30 @@ import request from 'supertest';
 import { ListShareStatus } from '@prisma/client';
 import { ShareCandidateInput } from '../src/list-shares/share-candidate.input';
 import { testDb } from './setup/db';
+import { stubHubProjectMembers } from './setup/hub';
 
 interface GraphQLResponse<T> {
   data: T | null;
   errors?: { extensions: { code: string } }[];
 }
+
+// Every candidate any test in this file invites, so requireProjectMember
+// (Rule 4) finds them on the hub roster.
+const HUB_MEMBERS = [
+  { hubUserId: 'collaborator-1', email: 'collaborator@example.com', name: 'A' },
+  {
+    hubUserId: 'victim-1',
+    email: 'attacker-controlled@evil.example.com',
+    name: 'Spoofed Name',
+  },
+  { hubUserId: 'collaborator-a', email: 'a@example.com', name: 'A' },
+  { hubUserId: 'collaborator-b', email: 'b@example.com', name: 'B' },
+  { hubUserId: 'invitee-1', email: 'invitee@example.com', name: null },
+  { hubUserId: 'hub-user-bob', email: 'bob@example.com', name: 'Bob' },
+  // Same person, a second hub id: the hub's own userId never equals login's
+  // `sub`, which is the collision this file's last block is about.
+  { hubUserId: 'second-hub-id-for-bob', email: 'bob@example.com', name: 'Bob' },
+];
 
 describe('List Sharing (GraphQL)', () => {
   let app: INestApplication<App>;
@@ -22,6 +41,7 @@ describe('List Sharing (GraphQL)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    stubHubProjectMembers(HUB_MEMBERS);
   });
 
   afterEach(async () => {
@@ -1185,7 +1205,7 @@ describe('List Sharing (GraphQL)', () => {
         `query {searchShareCandidates(listId: "${listId}", q: "a"){hubUserId}}`,
         owner,
       );
-      jest.restoreAllMocks();
+      stubHubProjectMembers(HUB_MEMBERS);
       expect(searchBody.errors).toBeUndefined();
 
       const inviteBody = await graphql<{
@@ -1599,6 +1619,118 @@ describe('List Sharing (GraphQL)', () => {
       expect(body.errors?.[0].extensions.code).toBe(
         'GRAPHQL_VALIDATION_FAILED',
       );
+    });
+  });
+
+  // Post-ADR-016 a signed-in user's identitySub is login's `sub`, while the
+  // hub's project-members search still returns the hub's own userId. The two
+  // never match, so an invite aimed at someone who had already signed in used
+  // to try to create a second row and collide on User.email.
+  describe('inviting someone whose identifier has moved on', () => {
+    async function signIn(headers: Record<string, string>) {
+      const body = await graphql<{ me: { id: string } }>(
+        `
+          query {
+            me {
+              id
+            }
+          }
+        `,
+        headers,
+      );
+      return body.data!.me.id;
+    }
+
+    it('reuses the existing row when the candidate carries a different id for the same person', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      const bobId = await signIn(asUser('login-sub-bob', 'bob@example.com'));
+
+      const body = await graphql<{
+        inviteToList: { user: { id: string; email: string } };
+      }>(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "hub-user-bob", email: "bob@example.com", name: "Bob", image: null
+        }) {user {id email}}}`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.inviteToList.user.id).toBe(bobId);
+      expect(
+        await testDb.user.count({ where: { email: 'bob@example.com' } }),
+      ).toBe(1);
+    });
+
+    it('leaves the existing identitySub alone rather than repointing the row', async () => {
+      const { owner, listId } = await getOwnerAndList();
+      await signIn(asUser('login-sub-bob', 'bob@example.com'));
+
+      await graphql(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "second-hub-id-for-bob", email: "bob@example.com", name: "Bob", image: null
+        }) {id}}`,
+        owner,
+      );
+
+      const bob = await testDb.user.findUniqueOrThrow({
+        where: { email: 'bob@example.com' },
+      });
+      expect(bob.identitySub).toBe('login-sub-bob');
+    });
+  });
+
+  // Rule 4: the share target must already hold access to this project. The
+  // search enforced it, but nothing tied an invite to a prior search, so an
+  // owner could invite an arbitrary address and mint a User row for a stranger.
+  describe('inviting someone who is not on the project (Rule 4)', () => {
+    it('refuses a candidate the hub does not list, and creates no User row', async () => {
+      const { owner, listId } = await getOwnerAndList();
+
+      const body = await graphql(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "made-up", email: "outsider@example.com", name: "Outsider", image: null
+        }) {id}}`,
+        owner,
+      );
+
+      expect(body.errors?.[0].extensions.code).toBe('FORBIDDEN');
+      expect(
+        await testDb.user.count({ where: { email: 'outsider@example.com' } }),
+      ).toBe(0);
+      expect(await testDb.listShare.count()).toBe(0);
+    });
+
+    it('refuses a real member paired with the wrong hub id', async () => {
+      const { owner, listId } = await getOwnerAndList();
+
+      const body = await graphql(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "not-their-id", email: "invitee@example.com", name: null, image: null
+        }) {id}}`,
+        owner,
+      );
+
+      expect(body.errors?.[0].extensions.code).toBe('FORBIDDEN');
+      expect(await testDb.listShare.count()).toBe(0);
+    });
+
+    // The stored profile comes from the hub, so a caller cannot decorate an
+    // invite with a name and avatar of their choosing.
+    it("stores the hub's record, not the caller's description of it", async () => {
+      const { owner, listId } = await getOwnerAndList();
+
+      await graphql(
+        `mutation {inviteToList(listId: "${listId}", candidate: {
+          hubUserId: "invitee-1", email: "invitee@example.com", name: "Totally Legit Admin", image: "https://evil.example.com/a.png"
+        }) {id}}`,
+        owner,
+      );
+
+      const invitee = await testDb.user.findUniqueOrThrow({
+        where: { email: 'invitee@example.com' },
+      });
+      expect(invitee.name).toBeNull();
+      expect(invitee.image).toBeNull();
     });
   });
 });
