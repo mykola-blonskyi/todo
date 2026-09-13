@@ -1,5 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { GoogleGrantRevokedError } from './google-calendar.errors';
+import { GOOGLE_TIMEOUT_MS } from './google-timeout';
+
+const CALENDAR_ID = 'primary';
+
+async function readEvent(res: Response): Promise<UpsertEventResult> {
+  if (!res.ok) {
+    await throwIfRevoked(res);
+    throw new Error(
+      `Google Calendar event upsert failed: ${res.status} ${await errorReason(res)}`,
+    );
+  }
+
+  const data = (await res.json()) as { id: string };
+  return { eventId: data.id, calendarId: CALENDAR_ID };
+}
 
 export interface UpsertEventInput {
   // When set, the existing event is updated (PATCH) rather than created -
@@ -27,15 +42,32 @@ export class GoogleCalendarApiClient {
     accessToken: string,
     event: UpsertEventInput,
   ): Promise<UpsertEventResult> {
-    const calendarId = 'primary';
-    const end = nextDay(event.dueDate);
+    const res = await this.sendEvent(accessToken, event, event.eventId);
 
-    const url = event.eventId
-      ? `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${event.eventId}`
-      : `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`;
+    // The user deleted the event in Google Calendar directly. The stored
+    // googleEventId still points at it, so every later sync PATCHed a
+    // resource that no longer exists and failed with nothing in the UI able
+    // to clear the stale row - sync was broken for that List for good.
+    // Creating a fresh event is what the user asked for either way.
+    if (event.eventId && (res.status === 404 || res.status === 410)) {
+      return readEvent(await this.sendEvent(accessToken, event, undefined));
+    }
 
-    const res = await fetch(url, {
-      method: event.eventId ? 'PATCH' : 'POST',
+    return readEvent(res);
+  }
+
+  private sendEvent(
+    accessToken: string,
+    event: UpsertEventInput,
+    eventId: string | undefined,
+  ): Promise<Response> {
+    const url = eventId
+      ? `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events/${eventId}`
+      : `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events`;
+
+    return fetch(url, {
+      method: eventId ? 'PATCH' : 'POST',
+      signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
@@ -46,27 +78,17 @@ export class GoogleCalendarApiClient {
         // All-day event - Google Calendar's end.date is exclusive, so a
         // single-day event spans [dueDate, dueDate + 1).
         start: { date: event.dueDate },
-        end: { date: end },
+        end: { date: nextDay(event.dueDate) },
       }),
     });
-
-    if (!res.ok) {
-      await throwIfRevoked(res);
-      throw new Error(
-        `Google Calendar event upsert failed: ${res.status} ${await errorReason(res)}`,
-      );
-    }
-
-    const data = (await res.json()) as { id: string };
-    return { eventId: data.id, calendarId };
   }
 
   async deleteEvent(accessToken: string, eventId: string): Promise<void> {
-    const calendarId = 'primary';
     const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+      `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events/${eventId}`,
       {
         method: 'DELETE',
+        signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
         headers: { Authorization: `Bearer ${accessToken}` },
       },
     );

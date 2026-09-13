@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { decryptToken, encryptToken } from './token-encryption';
 import { GoogleGrantRevokedError } from './google-calendar.errors';
 import z from 'zod';
+import { GOOGLE_TIMEOUT_MS } from './google-timeout';
 
 const tokenResponseSchema = z.object({
   access_token: z.string(),
@@ -188,6 +189,7 @@ export class GoogleCalendarService {
   private async revokeRefreshToken(refreshToken: string) {
     const res = await fetch('https://oauth2.googleapis.com/revoke', {
       method: 'POST',
+      signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ token: refreshToken }),
     });
@@ -202,6 +204,7 @@ export class GoogleCalendarService {
   private async postToTokenEndpoint(params: Record<string, string>) {
     const res = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
+      signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         ...params,
