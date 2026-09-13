@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   List,
@@ -15,6 +15,8 @@ type TemplateWithCollaborators = ListTemplate & {
 
 @Injectable()
 export class OccurrencesService {
+  private readonly logger = new Logger(OccurrencesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   // GraphQL-facing entry point (owner-authorized) - see spawnForTemplate for
@@ -45,9 +47,19 @@ export class OccurrencesService {
 
     const spawned: List[] = [];
     for (const template of templates) {
-      const list = await this.spawnForTemplate(template, now);
-      if (list) {
-        spawned.push(list);
+      // Per template, so one unspawnable template costs only its own
+      // Occurrence. Unguarded, the first throw ended the run and every
+      // template after it silently stopped spawning until someone noticed.
+      try {
+        const list = await this.spawnForTemplate(template, now);
+        if (list) {
+          spawned.push(list);
+        }
+      } catch (error) {
+        this.logger.error(
+          `Spawning Occurrence for ListTemplate ${template.id} failed`,
+          error instanceof Error ? error.stack : String(error),
+        );
       }
     }
     return spawned;

@@ -5,6 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { OccurrencesService } from '../src/occurrences/occurrences.service';
+import { testDb } from './setup/db';
 
 interface GraphQLResponse<T> {
   data: T | null;
@@ -80,5 +81,25 @@ describe('Occurrence spawn cron wiring', () => {
       new Date('2026-03-10T20:00:00.000Z'),
     );
     expect(secondRunSameDay).toHaveLength(0);
+  });
+
+  // Validation stops a bad row being created through the API, so this writes
+  // one directly - a row created before that validation existed looks exactly
+  // like this, and it used to abort the whole run from wherever findMany
+  // happened to order it.
+  it('keeps spawning for every other template when one of them throws', async () => {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const good = await createDailyTemplate(owner, 'Good daily');
+    const broken = await createDailyTemplate(owner, 'Broken daily');
+    await testDb.listTemplate.update({
+      where: { id: broken },
+      data: { timezone: 'Mars/Olympus' },
+    });
+
+    const spawned = await app
+      .get(OccurrencesService)
+      .spawnAllDueOccurrences(new Date('2026-03-10T09:00:00.000Z'));
+
+    expect(spawned.map((list) => list.templateId)).toEqual([good]);
   });
 });

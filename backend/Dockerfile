@@ -38,4 +38,7 @@ EXPOSE 4000
 # Applies pending migrations, then starts the server - see docs/decisions.md
 # for the Coolify env vars this expects (DATABASE_URL, HUB_URL, PROJECT_SLUG,
 # PORT).
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node dist/main"]
+# `exec` so node replaces sh as PID 1 - otherwise sh holds PID 1, installs no
+# SIGTERM handler, and every redeploy waits out the grace period and SIGKILLs
+# node mid-request.
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && exec node dist/main"]
