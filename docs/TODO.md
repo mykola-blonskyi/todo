@@ -38,8 +38,9 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
       (TODO-61) are done
 - [ ] Real-device pass for the Board's touch drag (TODO-62 shipped verified only under Chrome
       touch emulation, never on an actual iOS Safari or low-end Android)
-- [ ] Sign-out leaves the appearance cookies behind, so the next user on a shared browser inherits
-      them and their own `User` row is never read (TODO-64)
+- [ ] Sign-out leaves `NEXT_LOCALE` behind, so the next user on a shared browser inherits the
+      previous user's language and their own `User.locale` is never read (TODO-65). Same family as
+      TODO-64, but written by next-intl's routing rather than this repo's preference actions
 
 ---
 
@@ -57,6 +58,11 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 ## Done
 
+- [x] Sign-out leaves the appearance cookies behind (TODO-64): a `todolist-owner` cookie stamps the
+      other three with a digest of the user id, and `getAppearance` trusts them only when it
+      matches, so a session that expires or a tab that closes is covered as well as a sign-out.
+      next-themes' `storageKey` is owner-scoped for the same reason, since it applies
+      `localStorage` before paint where no Server Action reaches
 - [x] Reading the persisted mode back on a fresh device (TODO-61): mode gained a `todolist-mode`
       cookie and a `User.theme` fallback, handed to next-themes as its `defaultTheme` so the
       pre-paint script applies it without a flash, while a choice already in this device's
