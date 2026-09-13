@@ -14,9 +14,9 @@ vi.mock('next/headers', () => ({
 
 // Referenced lazily: vi.mock hoists above this declaration, so a factory that
 // captured `signOut` directly would hit the TDZ.
-const signOut = vi.fn(() => {
+const signOut = vi.fn<(...args: unknown[]) => never>(() => {
   // signOut redirects by throwing, so the deletes must already have happened.
-  expect(deleted).toHaveLength(4);
+  expect(deleted).toHaveLength(5);
   throw new Error('NEXT_REDIRECT');
 });
 vi.mock('@features/auth/lib/auth', () => ({
@@ -29,7 +29,7 @@ describe('signOutAction', () => {
     signOut.mockClear();
   });
 
-  it('clears every preference cookie, with a matching path, before signing out', async () => {
+  it('clears every preference cookie and the locale cookie, with a matching path, before signing out', async () => {
     await expect(signOutAction('en')).rejects.toThrow('NEXT_REDIRECT');
 
     expect(deleted.map((cookie) => cookie.name)).toEqual([
@@ -37,6 +37,7 @@ describe('signOutAction', () => {
       'todolist-palette',
       'todolist-layout',
       'todolist-owner',
+      'NEXT_LOCALE',
     ]);
     for (const cookie of deleted) {
       expect(cookie.path).toBe('/');

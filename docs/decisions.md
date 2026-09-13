@@ -768,6 +768,28 @@ resolved from their row. Nothing has to be erased for that to hold.
 
 Default for everyone is `workspace` / `classic` / `light` — the closest to what shipped before.
 
+**`NEXT_LOCALE` got the same leak, and a different fix** (TODO-65). It is next-intl's own cookie,
+not one this app writes: `createMiddleware` re-sets it on every document navigation to match
+whatever locale the current URL already carries (`next-intl/middleware/syncCookie`), regardless of
+who is signed in. The owner-stamp from TODO-64 has nothing to attach to there — there is no read
+path this app controls that a stamp could gate, the way `getAppearance` gates the other three
+cookies. `signOutAction` deletes it instead, alongside the appearance cookies. This closes the
+actual leak (no browser carries a stale locale across a sign-out), but it does not make the next
+sign-in consult `User.locale` either — nothing in this app applies that field today, cookie present
+or not; next-intl's own Accept-Language/default-locale fallback decides instead. Building that
+consultation would mean teaching `proxy.ts` to fetch the signed-in user's row on every navigation,
+a materially bigger change than a cookie-hygiene fix, so it is left as its own future ticket rather
+than folded in here.
+
+The login page keeps the departing user's language: `signOutAction` already redirects to
+`/${locale}/login` using the locale the sign-out button was rendered under
+(`LoginSignOutButton`), unrelated to the cookie, and this ticket leaves that alone. Unlike mode's
+`system` revert, there is no neutral default to fall back to — every locale is a real language
+choice, none of them a "follow the OS" option — so reverting would mean silently picking `en` on a
+browser whose Accept-Language never suggested it. A later, cookie-less visit (a fresh tab, a
+bookmark to `/`) no longer inherits the departed user's locale either: with the cookie cleared,
+next-intl's own Accept-Language/default-locale fallback decides instead.
+
 ### Alternatives Considered
 - **One combined `theme` enum of every mode × palette pair** — rejected: 24 values, no way to add
   `system`, and the palette CSS already ships light and dark blocks per palette; two selects that
