@@ -237,8 +237,8 @@ authenticated test flows instead of driving real Google OAuth.
 ### Consequences
 - Two unit-test runners in one repo (Jest + Vitest) is a deliberate, scoped exception, not drift —
   each is the idiomatic default for its own framework
-- Playwright e2e needs the whole stack running (Postgres + backend + frontend), mirroring the hub's
-  `docker-compose.test.yml` pattern
+- `docker-compose.test.yml` runs Postgres only, mirroring the hub's own compose file — Playwright's
+  own `webServer` config builds and starts the backend and frontend themselves
 
 ---
 

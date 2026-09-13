@@ -9,8 +9,8 @@ hub" with todolist's own six layouts and twelve palettes), deployed via Coolify 
 the hub. Full design rationale in [docs/decisions.md](../docs/decisions.md); domain rules in
 [knowledge/business-rules.md](../knowledge/business-rules.md).
 
-**That v1 scope is delivered and live.** Phases 1–7 below are complete apart from the Playwright
-e2e job; Phases 8–11 are post-v1 work, tracked the same way.
+**That v1 scope is delivered and live.** Phases 1–7 below are complete; Phases 8–11 are post-v1
+work, tracked the same way.
 
 This file tracks phase-level progress. The ticket-level, dependency-ordered breakdown lives in
 Plane (`plane.blonskyi.dev`, workspace `blonskyi`, project `TODO`) — see
@@ -120,9 +120,9 @@ Tickets: TODO-17 – TODO-21, TODO-52, TODO-55, TODO-56. Complete.
 
 - [x] GitHub Actions: lint/format/typecheck/test both apps on every push (ADR-010) —
       `.github/workflows/ci.yml`
-- [ ] E2E job (Playwright, both apps) (ADR-008) — no Playwright config or specs exist yet. The
-      original "wait for real pages to drive" reason is long gone; what blocks it now is that
-      Actions itself can't run (see Risks), so a new job couldn't be proven green anyway
+- [x] E2E job (Playwright, both apps) (ADR-008, TODO-68) — root `playwright.config.ts` and an
+      `e2e/` harness that mints a session JWT (hub's ADR-021 pattern) instead of driving real Google
+      OAuth, plus a CI `e2e` job gated on the typecheck jobs
 - [x] Dockerfiles for both apps, `docker-compose.yml`: frontend (public) + backend
       (internal-only) — TODO-35, env vars from Coolify's own per-resource panel, not a committed
       `.env` (see `backend/.env.example`/`frontend/.env.example`)
