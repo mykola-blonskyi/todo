@@ -204,5 +204,16 @@ Follow-ups, now tracked as tickets of their own:
       the old resolution, so a backend hiccup costs the language and never the page. The session-JWT
       alternative was rejected — no locale claim in the OIDC profile, no `User` row yet at first
       sign-in, and no re-issue path for a 24h token
+- [x] Nothing enforced `CHROME_TOKEN` against the Shell markup (TODO-67) — `e2e/chrome-color.spec.ts`
+      loads every layout in a real browser and asserts the emitted `theme-color` is among the
+      background colours painted along the top edge of the viewport. Presence, not equality: only
+      Board, Terminal and Ledger have a single uniform top surface. Workspace's top edge is two
+      colours side by side on desktop, Pocket's `background` column matches only at phone width, and
+      Notebook's own elements are transparent, so the colour reaches the edge from `body`. The check
+      therefore walks up the ancestor chain from `elementFromPoint`, and the palette is pinned to
+      `indigo` because `classic` paints `background` and `card` the same white, which would let the
+      Board case pass whatever its header said. Pinning the layout at all needs the TODO-64 owner
+      stamp on the cookies, or `getAppearance` discards them and every case silently renders
+      `workspace`
 
 ---

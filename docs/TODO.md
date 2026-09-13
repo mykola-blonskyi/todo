@@ -32,11 +32,6 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 ## Planned
 
-- [ ] `CHROME_TOKEN` (`frontend/src/features/preferences/chrome.ts`) records which surface sits at
-      the top of each layout, mirroring the six `Shell.tsx` files with nothing enforcing it — change
-      a Shell's top surface and every test still passes while the `theme-color` meta lies (TODO-67).
-      The sibling risk, hex drifting from `globals.css`, is already covered by a parity test. Needs
-      the Playwright job (TODO-68), since no unit test can see rendered markup
 - [ ] Real-device pass for the Board's touch drag (TODO-62 shipped verified only under Chrome
       touch emulation, never on an actual iOS Safari or low-end Android)
 
@@ -56,6 +51,14 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 ## Done
 
+- [x] `CHROME_TOKEN` mirrored the six `Shell.tsx` files with nothing enforcing it (TODO-67):
+      `e2e/chrome-color.spec.ts` renders each layout in the browser, samples the background colours
+      painted along the top edge of the viewport, and asserts the emitted `theme-color` is among
+      them. Presence, not equality — three of the six layouts have no single top surface (Workspace
+      is two colours side by side on desktop, Pocket matches only at phone width, Notebook paints
+      nothing of its own and inherits `body`), so an equality check would be false for reasons that
+      are not drift. The suite pins the `indigo` palette because `classic` paints `background` and
+      `card` the same white, which would make the Board case vacuous
 - [x] Playwright e2e job in CI (ADR-008, TODO-68): root `playwright.config.ts` + an `e2e/` harness
       that mints an Auth.js session JWT directly (hub's ADR-021 pattern) rather than driving real
       Google OAuth, plus a `.github/workflows/ci.yml` `e2e` job gated on the typecheck jobs passing

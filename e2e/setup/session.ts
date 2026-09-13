@@ -1,8 +1,33 @@
 import type { BrowserContext } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
+import { preferenceOwner } from '../../frontend/src/features/preferences/owner';
+import {
+  LAYOUT_COOKIE,
+  MODE_COOKIE,
+  OWNER_COOKIE,
+  PALETTE_COOKIE,
+  type Appearance,
+} from '../../frontend/src/features/preferences/types';
 import { AUTH_SECRET, E2E_USER, SESSION_COOKIE_NAME } from './constants';
 
-export async function signIn(context: BrowserContext): Promise<void> {
+export type AppearancePin = Pick<Appearance, 'mode' | 'palette' | 'layout'>;
+
+function appearanceCookie(name: string, value: string) {
+  return {
+    name,
+    value,
+    domain: 'localhost',
+    path: '/',
+    httpOnly: false,
+    secure: false,
+    sameSite: 'Lax' as const,
+  };
+}
+
+export async function signIn(
+  context: BrowserContext,
+  appearance?: AppearancePin,
+): Promise<void> {
   const token = await encode({
     token: {
       userId: E2E_USER.identitySub,
@@ -26,5 +51,19 @@ export async function signIn(context: BrowserContext): Promise<void> {
       secure: false,
       sameSite: 'Lax',
     },
+  ]);
+
+  if (!appearance) {
+    return;
+  }
+
+  // getAppearance() drops the other three cookies unless the owner stamp
+  // equals preferenceOwner(x-user-id), and says nothing when it does - the
+  // pinned appearance would quietly render as the backend's or the default.
+  await context.addCookies([
+    appearanceCookie(MODE_COOKIE, appearance.mode),
+    appearanceCookie(PALETTE_COOKIE, appearance.palette),
+    appearanceCookie(LAYOUT_COOKIE, appearance.layout),
+    appearanceCookie(OWNER_COOKIE, preferenceOwner(E2E_USER.identitySub)),
   ]);
 }
