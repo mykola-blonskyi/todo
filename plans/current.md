@@ -170,8 +170,16 @@ Follow-ups, now tracked as tickets of their own:
       The grip is a real button, so the board also gained its first keyboard-operable move. Note
       the ticket's `reorderTasks` hint was wrong: the board re-files a List into a Category via
       `assignCategoryAction`, and orders nothing
-- [ ] Per-layout PWA `theme_color` (TODO-63) — `shared/lib/pwa.ts` ships one constant for every
-      layout
+- [x] Per-layout PWA `theme_color` (TODO-63) — the ticket says the colour follows "layout/palette",
+      but layouts own no colour at all: a `[data-layout]` block sets fonts and `--radius`, and every
+      colour comes from the palette. What a layout picks is *which* surface sits at the top of the
+      viewport, so it splits into two tables in `preferences/chrome.ts` — `CHROME_TOKEN` per layout
+      (`terminal` → `primary`, `board`/`ledger` → `card`, the rest → `background`) and
+      `CHROME_COLORS` per palette × scheme. Only the viewport meta moved: the manifest stays
+      statically prerendered, since its `theme_color` is just the pre-launch default and a manifest
+      is fetched per install, not per navigation. Its colour is now derived from the default
+      appearance (`#ffffff`) rather than the deleted `THEME_COLOR` constant. `CHROME_TOKEN` mirrors
+      the Shell markup with nothing enforcing it, which is TODO-67
 - [x] Sign-out leaves the appearance cookies behind (TODO-64) — a fourth cookie `todolist-owner`
       stamps the other three with a digest of the user id, and `getAppearance` trusts them only
       when it matches, so an expired session or a closed tab is covered as well as an explicit
@@ -179,5 +187,11 @@ Follow-ups, now tracked as tickets of their own:
       where no Server Action reaches, so its `storageKey` is owner-scoped and the incoming user
       reads an empty key and falls back to the row. The login page reverts to the defaults with
       mode `system`. `NEXT_LOCALE` has the same leak and is TODO-65
+- [x] Sign-out leaves `NEXT_LOCALE` behind (TODO-65) — the owner stamp does not extend here, because
+      this is next-intl's cookie, not ours: its middleware re-sets it on every document navigation
+      to match the URL's locale, so a stamp would be overwritten on the next click. `signOutAction`
+      deletes it outright instead. That closes the leak but not its other half — nothing in the app
+      reads `User.locale` to pick a language, so the next user falls to Accept-Language rather than
+      their stored preference. Applying the row is TODO-66
 
 ---
