@@ -30,6 +30,16 @@ import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { createLoaders } from './graphql/loaders';
 import type { Request } from 'express';
 
+const CLIENT_FAULT_CODES = new Set([
+  'GRAPHQL_PARSE_FAILED',
+  'GRAPHQL_VALIDATION_FAILED',
+  'BAD_USER_INPUT',
+  'BAD_REQUEST',
+  'OPERATION_RESOLUTION_FAILURE',
+  'PERSISTED_QUERY_NOT_FOUND',
+  'PERSISTED_QUERY_NOT_SUPPORTED',
+]);
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -81,6 +91,13 @@ import type { Request } from 'express';
             error instanceof GraphQLError ? error.originalError : undefined;
 
           if (originalError instanceof HttpException) {
+            return formattedError;
+          }
+
+          // Apollo raises these before a resolver ever runs, and each one
+          // describes the caller's own request. Masking them cost the caller
+          // the reason their query was rejected and logged a stack per typo.
+          if (CLIENT_FAULT_CODES.has(String(formattedError.extensions?.code))) {
             return formattedError;
           }
 
