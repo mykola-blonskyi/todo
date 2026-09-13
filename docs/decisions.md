@@ -809,6 +809,39 @@ cacheability and still not tracked a palette change. It ships the default appear
 can read that file; `tests/chrome-color.test.ts` re-parses it and diffs the whole table, so the two
 cannot drift apart silently.
 
+**`User.locale` finally gets a read path, and it costs no per-navigation fetch** (TODO-66). TODO-65
+closed the leak half of this and left the positive half open, because applying the stored locale
+looked like it meant resolving the user's row on every navigation. It does not. `localePrefix` is
+next-intl's default `always`, and every in-app link goes through next-intl's own `Link` and
+`useRouter`, so a normal navigation arrives already carrying a prefix — and a path prefix wins at
+Prio 1 in next-intl's resolution, ahead of the cookie, `Accept-Language` and the default. The stored
+preference is only ever consulted on a request with neither a prefix nor a `NEXT_LOCALE` cookie: a
+bare `/`, a bookmark, a typed URL. `proxy.ts` gates the lookup on exactly that, so the cost lands on
+a cold path, roughly once per fresh browser, not on the hot one.
+
+Rather than build its own redirect, the proxy injects the stored locale onto the request with
+`request.cookies.set` and lets next-intl resolve as it already does. That feeds the Prio 2 rung
+instead of duplicating prefix logic next-intl owns, and it is the same in-place mutation the proxy
+already performs one line below for the identity headers, which exists because rebuilding the
+response after next-intl ran dropped the locale (TODO-48). The injection does not leak a real
+`Set-Cookie`: `middleware/syncCookie` writes only when the request cookie is absent and disagrees
+with `Accept-Language`, or present and outdated, and an injected value that matches the locale
+next-intl then resolves is neither. `config.ts`'s claim that this app only reads and clears that
+cookie stays true.
+
+The lookup is best-effort by construction. It is behind a 1s timeout, and any failure falls through
+to next-intl's existing `Accept-Language`/default resolution rather than failing the navigation, so
+a backend hiccup degrades the language and never the page. The returned value is validated against
+`locales` before use, since the proxy treats a backend response as untrusted input like any other.
+An explicit locale still wins for the rest of the session, because the switcher writes the cookie
+client-side and the cookie is checked before the lookup is even reached.
+
+Worth knowing for anything built on this later: `syncCookie` deliberately withholds the cookie when
+`Accept-Language` alone already explains the resolved locale. A user whose browser language matches
+their locale can browse indefinitely with no `NEXT_LOCALE` cookie, so cookie-absence is a poor proxy
+for "has never visited". It does not affect the gate above, since the path prefix short-circuits it
+either way.
+
 ### Alternatives Considered
 - **One combined `theme` enum of every mode × palette pair** — rejected: 24 values, no way to add
   `system`, and the palette CSS already ships light and dark blocks per palette; two selects that
@@ -824,6 +857,16 @@ cannot drift apart silently.
 - **A drag-and-drop library for the Board** — rejected for now: native HTML5 DnD with an
   optimistic re-file covers "drag a card to another column"; touch DnD and multi-select can come
   with real demand.
+- **Stamping the locale into the session JWT at sign-in** (TODO-66) — rejected. The session token is
+  minted in this repo, so adding a claim is possible, but the OIDC profile carries no locale claim,
+  so the value would still need a backend call; the shadow `User` row is created lazily and does not
+  exist yet at first sign-in, so a new user would be stamped `en` regardless of their stored
+  preference; and the token's 24h `maxAge` has no re-issue path, so a mid-session language change
+  would leave a stale claim behind. It trades one cold-path fetch for a value that is wrong for new
+  users and goes stale for the rest.
+- **Resolving the user's row on every navigation** (TODO-66) — rejected as unnecessary rather than
+  as too expensive: the path prefix already decides the locale on every navigation that has one, so
+  the fetch would be redundant work on all but the prefixless requests the shipped gate targets.
 
 ### Consequences
 - New GraphQL mutations `updatePalette` / `updateLayout`; `me` exposes `palette` and `layout`.
