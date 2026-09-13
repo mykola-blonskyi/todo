@@ -644,4 +644,84 @@ describe('ListTemplate (GraphQL)', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('recurrence validation', () => {
+    async function create(owner: Record<string, string>, args: string) {
+      return graphql<{ createListTemplate: { id: string } | null }>(
+        `mutation { createListTemplate(title: "T", taskTitles: ["Vacuum"], ${args}) { id } }`,
+        owner,
+      );
+    }
+
+    it('rejects a timezone that is not a real IANA zone', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+
+      const body = await create(
+        owner,
+        'recurrenceType: daily, timezone: "Mars/Olympus"',
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+      expect(await testDb.listTemplate.count()).toBe(0);
+    });
+
+    it.each([
+      ['weekly with no weekDays', 'recurrenceType: weekly, weekDays: []'],
+      ['a weekDay outside 0..6', 'recurrenceType: weekly, weekDays: [7]'],
+      ['a repeated weekDay', 'recurrenceType: weekly, weekDays: [1, 1]'],
+      ['monthly with no dayOfMonth', 'recurrenceType: monthly'],
+      ['dayOfMonth of 0', 'recurrenceType: monthly, dayOfMonth: 0'],
+      ['dayOfMonth past 31', 'recurrenceType: monthly, dayOfMonth: 32'],
+      ['everyNDays with no intervalDays', 'recurrenceType: everyNDays'],
+      [
+        'a non-positive intervalDays',
+        'recurrenceType: everyNDays, intervalDays: -1',
+      ],
+      ['a non-positive streakDays', 'recurrenceType: daily, streakDays: 0'],
+    ])('rejects %s', async (_name, args) => {
+      const owner = asUser('hub-1', 'owner@example.com');
+
+      const body = await create(owner, `${args}, timezone: "UTC"`);
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+      expect(await testDb.listTemplate.count()).toBe(0);
+    });
+
+    // The patch alone is never enough to judge: monthly needs a dayOfMonth,
+    // and a template switching to it may have none yet.
+    it('rejects an update that leaves the row in a state it would reject on create', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, 'Weekly');
+
+      const body = await graphql<{ updateListTemplate: unknown }>(
+        `mutation { updateListTemplate(id: "${id}", recurrenceType: monthly) { id } }`,
+        owner,
+      );
+
+      expect(body.data).toBeNull();
+      expect(body.errors?.[0]).toBeDefined();
+      const row = await testDb.listTemplate.findUniqueOrThrow({
+        where: { id },
+      });
+      expect(row.recurrenceType).toBe('weekly');
+    });
+
+    it('accepts an update that supplies the fields the new recurrenceType needs', async () => {
+      const owner = asUser('hub-1', 'owner@example.com');
+      const id = await createListTemplate(owner, 'Weekly');
+
+      const body = await graphql<{
+        updateListTemplate: { recurrenceType: string; dayOfMonth: number };
+      }>(
+        `mutation { updateListTemplate(id: "${id}", recurrenceType: monthly, dayOfMonth: 15) { recurrenceType dayOfMonth } }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.updateListTemplate.recurrenceType).toBe('monthly');
+      expect(body.data?.updateListTemplate.dayOfMonth).toBe(15);
+    });
+  });
 });
