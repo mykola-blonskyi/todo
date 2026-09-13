@@ -15,5 +15,5 @@ test('a minted session renders the signed-in workspace', async ({
 
 test('an unauthenticated visit is redirected to login', async ({ page }) => {
   await page.goto('/en');
-  await expect(page).toHaveURL(/\/en\/login$/);
+  await expect(page).toHaveURL(/\/en\/login\?callbackUrl=/);
 });
