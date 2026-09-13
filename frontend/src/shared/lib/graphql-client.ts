@@ -16,10 +16,11 @@ export class GraphQLRequestError extends Error {
   }
 }
 
-// Server Components/Actions only - forwards the trusted identity headers the
-// proxy already validated (ADR-003). An explicit `identity` is only needed
-// from routes the proxy's matcher excludes (e.g.
-// /api/google/calendar/callback), which resolve it themselves.
+// Forwards the trusted identity headers the proxy already validated
+// (ADR-003). An explicit `identity` is needed wherever those headers aren't on
+// the incoming request yet: routes the proxy's matcher excludes (e.g.
+// /api/google/calendar/callback), and the proxy itself, which resolves the
+// identity before it sets them.
 export async function graphqlFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
