@@ -96,7 +96,7 @@ Run from the repo root with `pnpm --filter backend <script>` / `pnpm --filter fr
 | Lint (fix) / check | `lint` / `lint:check` | `lint` |
 | Format (write) / check | `format` / `format:check` | `format` / `format:check` |
 | Unit tests | `test` | `test` |
-| E2E / integration tests | `test:e2e` (real Postgres via Docker) | — (Playwright, not wired up yet) |
+| E2E / integration tests | `test:e2e` (real Postgres via Docker) | root `pnpm test:e2e` (Playwright, both apps) |
 | Prisma | `db:generate`, `db:migrate`, `db:studio` | — |
 
 ## Testing
@@ -106,8 +106,9 @@ Run from the repo root with `pnpm --filter backend <script>` / `pnpm --filter fr
   hitting the actual GraphQL API — `pretest:e2e`/`posttest:e2e` manage the container automatically,
   no manual setup needed. Mocks only the trusted identity header, never the database.
 - **Frontend unit/component**: Vitest + React Testing Library, matching the hub's setup.
-- **Frontend e2e**: Playwright, planned for once there's real UI to drive (see `plans/current.md`
-  Phase 7).
+- **E2E**: Playwright, driving both apps from the root (`playwright.config.ts` + `e2e/`) — signs in
+  by minting a session JWT directly (hub's ADR-021 pattern) rather than driving real Google OAuth,
+  wired into CI as the `e2e` job (see `plans/current.md` Phase 7).
 
 ## Architecture & design docs
 

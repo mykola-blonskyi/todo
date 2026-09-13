@@ -162,6 +162,37 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter frontend test
 
+  e2e:
+    runs-on: ubuntu-latest
+    # Builds and boots both apps against a real Postgres, far slower than the
+    # static checks above - not worth spending on a tree that doesn't compile.
+    needs:
+      - backend-typecheck
+      - frontend-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter backend exec prisma generate
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          # A trace you cannot retrieve is not evidence.
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   deploy:
     # Only after every check above is green, and only for real pushes to
     # main (never PRs) - Coolify itself builds the images from
@@ -176,6 +207,7 @@ jobs:
       - frontend-format
       - frontend-typecheck
       - frontend-test
+      - e2e
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

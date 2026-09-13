@@ -32,16 +32,11 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 ## Planned
 
-- [ ] Playwright e2e job in CI (ADR-008) — nothing exists yet. The standing caveat that Actions was
-      billing-blocked, so a new job couldn't be proven green anyway, no longer applies: CI ran and
-      passed every backend and frontend job on PR #131 (TODO-66). Nothing but the work is in the way
-      now
 - [ ] `CHROME_TOKEN` (`frontend/src/features/preferences/chrome.ts`) records which surface sits at
       the top of each layout, mirroring the six `Shell.tsx` files with nothing enforcing it — change
       a Shell's top surface and every test still passes while the `theme-color` meta lies (TODO-67).
       The sibling risk, hex drifting from `globals.css`, is already covered by a parity test. Needs
-      the Playwright job above, since no unit test can see rendered markup — a dependency on work
-      not yet done, no longer on a blocked CI account
+      the Playwright job (TODO-68), since no unit test can see rendered markup
 - [ ] Real-device pass for the Board's touch drag (TODO-62 shipped verified only under Chrome
       touch emulation, never on an actual iOS Safari or low-end Android)
 
@@ -61,6 +56,10 @@ numbers no longer match; anything below referencing a ticket uses its Plane id (
 
 ## Done
 
+- [x] Playwright e2e job in CI (ADR-008, TODO-68): root `playwright.config.ts` + an `e2e/` harness
+      that mints an Auth.js session JWT directly (hub's ADR-021 pattern) rather than driving real
+      Google OAuth, plus a `.github/workflows/ci.yml` `e2e` job gated on the typecheck jobs passing
+      first
 - [x] Sign-out leaves the appearance cookies behind (TODO-64): a `todolist-owner` cookie stamps the
       other three with a digest of the user id, and `getAppearance` trusts them only when it
       matches, so a session that expires or a tab that closes is covered as well as a sign-out.
