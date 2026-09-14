@@ -50,11 +50,26 @@ echo "Coolify accepted the trigger: $trigger"
 # matches one that is still queued or in progress. So this is never a stale success.
 deployment_uuid=$(printf '%s' "$trigger" | jq -er '.deployments[0].deployment_uuid')
 
+body=$(mktemp)
+trap 'rm -f "$body"' EXIT
+
 deadline=$(( $(date +%s) + timeout_seconds ))
 while :; do
-  deployment=$(curl --fail --silent --max-time 30 \
-    "$api_base/api/v1/deployments/$deployment_uuid" --header "$auth" 2>/dev/null) || deployment=''
-  status=$(printf '%s' "$deployment" | jq -r '.status // empty' 2>/dev/null || true)
+  http_code=$(curl --silent --max-time 30 --output "$body" --write-out '%{http_code}' \
+    "$api_base/api/v1/deployments/$deployment_uuid" --header "$auth" 2>/dev/null) || http_code=000
+  deployment=$(cat "$body")
+  status=''
+
+  case "$http_code" in
+    200) status=$(printf '%s' "$deployment" | jq -r '.status // empty' 2>/dev/null || true) ;;
+    401 | 403)
+      # Sanctum answers 401 for a token that lacks the ability, so this never
+      # recovers. Retrying to the deadline only buries which permission is missing.
+      echo "Coolify refused to report deployment $deployment_uuid (HTTP $http_code)." >&2
+      echo "COOLIFY_WEBHOOK_TOKEN can deploy but not read. Add Coolify's \"read\" ability to it, and \"read:sensitive\" for build logs." >&2
+      exit 1
+      ;;
+  esac
 
   case "$status" in
     finished)
@@ -76,7 +91,7 @@ while :; do
   esac
 
   if [ "$(date +%s)" -ge "$deadline" ]; then
-    echo "Deployment $deployment_uuid was still ${status:-unreachable} after ${timeout_seconds}s." >&2
+    echo "Deployment $deployment_uuid reached no terminal status in ${timeout_seconds}s (last HTTP $http_code, status ${status:-none})." >&2
     report_logs "$deployment"
     exit 1
   fi

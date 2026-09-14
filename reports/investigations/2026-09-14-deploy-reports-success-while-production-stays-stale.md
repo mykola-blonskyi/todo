@@ -73,24 +73,24 @@ button in Coolify's own UI. So `cancelled-by-user` is literal: these deployments
 starting a build container, and were cancelled by hand. One of them, `yuja1omisap7qdknfakqvpzo`,
 sat for eight hours and fifty-one minutes first.
 
-Coolify's queue worker explains the hang. Since 2026-09-13 20:00, `storage/logs/laravel.log` has
-carried a steady ~1,774 errors per hour, unbroken, all of them:
+**Why they hung is not established, and the condition has since cleared on its own.** A deployment
+of `2aa04e6d` triggered at 11:45 on 2026-09-14 started a build container normally and reached
+`finished` at 11:52:11, 6m33s later, with nothing on the VPS having been changed in between.
 
-```
-production.ERROR: Trying to access array offset on null
-  at vendor/laravel/horizon/src/JobPayload.php:49
-```
+An earlier draft of this report blamed Coolify's Horizon queue. That was wrong and is recorded here
+so it is not re-investigated. Since 2026-09-13 20:00 `storage/logs/laravel.log` has carried a
+steady ~1,774 errors per hour, unbroken, all of them `Trying to access array offset on null` at
+`vendor/laravel/horizon/src/JobPayload.php:49`, on the `Worker::getNextJob` → `RedisQueue::pop` →
+`migrateExpiredJobs` path. The onset sits suggestively close to the last good deployment. But that
+error was still firing at the same rate straight through the successful 11:45 deployment, so it
+degrades Horizon's own bookkeeping rather than blocking job dispatch. Same for the 394 entries in
+`coolify_database_queues:high:reserved`: a real backlog, not the cause of this.
 
-The stack is `Worker::getNextJob` → `RedisQueue::pop` → `migrateExpiredJobs` →
-`MarkJobsAsMigrated::handle` → `RedisJobRepository::migrated` → `JobPayload::id`. Line 49 is
-`return $this->decoded['uuid'] ?? $this->decoded['id'];`, and `decoded` is
-`json_decode($value, true)`, so the throw means a payload being migrated did not decode. The
-exception aborts the `pop`, which is how a queued `ApplicationDeploymentJob` never reaches a worker.
-The onset at 20:00 on 2026-09-13 sits immediately before the last successful deployment at 21:04.
-
-Consistent with that, `coolify_database_queues:high:reserved` holds 394 entries and
-`:default:reserved` 30, with `retry_after` scores running out to 2026-09-15 11:11 — a backlog of
-jobs reserved by a worker and never acknowledged.
+The likeliest remaining explanation is Coolify's own deduplication. Once
+`7mgngmvfwmja2kjwm1b1nkoi` was in flight, `bootstrap/helpers/applications.php` matched every later
+trigger against it and returned "Deployment already queued for this commit" without queueing
+anything, which is what the 2026-09-14 10:43 CI run recorded. That is consistent with the evidence
+but not proven, and it is moot now that deployments work.
 
 ### Root cause 3 — CI could not see any of it
 
@@ -128,8 +128,16 @@ Root cause 3 is fixed in `scripts/coolify-deploy.sh`. The `deploy` job now polls
 `cancelled-by-user`, and prints the build log. `deploy-script` runs it against a fake Coolify on
 every push and gates `deploy`.
 
-Root cause 1 is no longer reproducible. Root cause 2 is unresolved and lives on the VPS, not in
-this repo.
+Root cause 1 is no longer reproducible. Root cause 2 cleared on its own.
+
+Production is current: both containers run
+`8mmctncio636ztnyyf32b1nm_{frontend,backend}:2aa04e6d…` as of 2026-09-14 11:52.
+
+That first live run of the new deploy job failed anyway, and its failure was its own. The
+`todo auto-deploy` token's abilities are `["deploy","write"]` with no `read`, so Sanctum answered
+401 to all 180 polls (`app/Http/Middleware/ApiAbility.php`, extending `CheckForAnyAbility`). The
+script treated a permanent 401 as a transient blip, burned the full 1800s deadline and then blamed
+the deployment. It now fails on the first 401 and names the missing ability instead.
 
 ---
 
@@ -142,11 +150,9 @@ turns `deploy` red within the 1800s deadline instead of green in four seconds.
 
 ## Follow-up Tasks
 
-- [ ] Clear Coolify's Horizon queue backlog and restart the worker, then confirm
-      `JobPayload.php:49` stops firing in `storage/logs/laravel.log`.
-- [ ] Re-trigger a deployment of current `main` and confirm a new image tag appears in
-      `docker images` and the containers restart.
-- [ ] Give the `COOLIFY_WEBHOOK_TOKEN` Coolify's "read sensitive data" permission, or the new
-      deploy job reports a failure without the build log that explains it.
+- [ ] Add the `read` ability to the `todo auto-deploy` token, plus `read:sensitive` so failures
+      arrive with their build log. Until then the deploy job fails on every run by design.
+- [ ] Clear Coolify's Horizon backlog and restart the worker to stop `JobPayload.php:49` filling
+      the log at ~1,774/hour. Housekeeping, not a deploy blocker.
 - [ ] Reclaim disk on the VPS. Docker holds 14.6 GB of images (3.2 GB reclaimable) and 4.3 GB of
       build cache on a 38 GB disk, which is what tipped into `ENOSPC`.

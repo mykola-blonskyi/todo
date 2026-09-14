@@ -47,6 +47,11 @@ class Handler(BaseHTTPRequestHandler):
         seen[case] = seen.get(case, 0) + 1
         polls = seen[case]
 
+        # Sanctum's answer to a token holding "deploy" but not "read", which is what
+        # the real token had. It never recovers, so it must not read as transient.
+        if case == "forbidden":
+            return self._send(401, {"message": "Invalid ability provided."})
+
         # Coolify reloads its own proxy mid-deployment, so a poll that never lands
         # must not read as a deployment that failed.
         if case == "flaky" and polls == 1:
