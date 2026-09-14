@@ -217,3 +217,21 @@ Follow-ups, now tracked as tickets of their own:
       `workspace`
 
 ---
+
+---
+
+## Cross-cutting: full-stack audit (2026-09-13)
+
+- [x] Three parallel reviewers (architect, backend, frontend) audited the whole repository, and the
+      findings were fixed in one branch. Two critical: the frontend forwarded `x-user-id` /
+      `x-user-email` read off the *incoming* request to a backend that trusts them absolutely, and
+      `proxy.ts` neither ran on every route nor overwrote what the client sent - so anyone could act
+      as any user knowing only their email, for reads and, through a Server Action dispatched to a
+      public path, for writes. Identity now comes from the signed session at the data layer
+      (ADR-018). Alongside it: Rule 4 was enforced for the first time, `ListShare.list` stopped
+      exposing a List to someone who had only been invited, an unvalidated template timezone stopped
+      being able to halt occurrence spawning for everyone, the app gained error boundaries, the
+      schema gained its first indexes, and the environment is validated at boot. Full ledger and the
+      eight findings left open in
+      [reports/audits/2026-09-13-full-stack-audit.md](../reports/audits/2026-09-13-full-stack-audit.md)
+
