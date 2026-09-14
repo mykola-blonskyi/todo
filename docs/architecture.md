@@ -155,8 +155,10 @@ per-Task `CalendarSync.taskId` column.
   gets none, staying internal-only (ADR-003)
 - **Database**: same shared Postgres instance as the hub, dedicated `todo_app` role / `todo`
   database — not part of this repo's `docker-compose.yml` (external, already running)
-- **Deploy trigger**: a single Coolify deploy webhook, called by the `deploy` job in
-  `.github/workflows/ci.yml` only after every lint/format/typecheck/test job passes on `main`
+- **Deploy trigger**: `scripts/coolify-deploy.sh`, run by the `deploy` job in
+  `.github/workflows/ci.yml` only after every lint/format/typecheck/test job passes on `main`. It
+  POSTs the Coolify deploy webhook and then waits on `/api/v1/deployments/{uuid}` for the
+  deployment's real outcome. The script's header says why the webhook's own 200 is not that outcome
 
 See `docker-compose.yml`, `backend/Dockerfile`, and `frontend/Dockerfile` at the repo root for the
 actual configuration — this section intentionally doesn't duplicate it.
