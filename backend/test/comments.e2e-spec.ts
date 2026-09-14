@@ -10,8 +10,6 @@ interface GraphQLResponse<T> {
   errors?: { extensions: { code: string } }[];
 }
 
-// Every candidate any test in this file invites, so requireProjectMember
-// (Rule 4) finds them on the hub roster.
 const HUB_MEMBERS = [
   {
     hubUserId: 'collaborator-1',
@@ -38,7 +36,6 @@ describe('Comments (GraphQL)', () => {
   });
 
   function asUser(identitySub: string, email: string) {
-    // inviteToList now needs a session cookie too (requireProjectMember).
     return {
       'x-user-id': identitySub,
       'x-user-email': email,

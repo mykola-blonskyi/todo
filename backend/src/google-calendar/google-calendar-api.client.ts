@@ -45,10 +45,6 @@ export class GoogleCalendarApiClient {
     const res = await this.sendEvent(accessToken, event, event.eventId);
 
     // The user deleted the event in Google Calendar directly. The stored
-    // googleEventId still points at it, so every later sync PATCHed a
-    // resource that no longer exists and failed with nothing in the UI able
-    // to clear the stale row - sync was broken for that List for good.
-    // Creating a fresh event is what the user asked for either way.
     if (event.eventId && (res.status === 404 || res.status === 410)) {
       return readEvent(await this.sendEvent(accessToken, event, undefined));
     }

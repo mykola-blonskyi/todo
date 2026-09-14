@@ -144,7 +144,6 @@ model Task {
   comments Comment[] @relation("TaskComments")
 
   @@map("tasks")
-  // Every tasksByListId batch, and the cascade from List.
   @@index([listId])
 }
 
@@ -370,7 +369,6 @@ model ListCategoryAssignment {
 
   @@unique([userId, listId])
   @@map("list_category_assignments")
-  // The cascade target when a Category is deleted.
   @@index([categoryId])
   @@index([listId])
 }

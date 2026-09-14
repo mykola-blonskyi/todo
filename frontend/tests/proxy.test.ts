@@ -38,11 +38,6 @@ describe('proxy middleware', () => {
   // Ordering regression (TODO-48): rebuilding a response after next-intl ran
   // dropped the locale header it sets internally, so every non-default-locale
   // URL rendered in English.
-  // The proxy used to stamp x-user-id/x-user-email onto the request and the
-  // data layer used to read them back as proof of identity. Anything the
-  // proxy did not overwrite was whatever the caller sent, so these three
-  // pin the shape that replaced it: identity rides the signed session only,
-  // and no page escapes the gate.
   it('passes the request to next-intl without stamping identity headers on it', async () => {
     getTokenMock.mockResolvedValue({
       userId: 'login-user-1',

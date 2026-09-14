@@ -14,10 +14,6 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  // What the container healthcheck polls. `/` answers from memory, so it went
-  // green while the shared Postgres was unreachable and every GraphQL query
-  // was failing - a healthcheck that only proves the process is running is a
-  // healthcheck that never fires when it matters.
   @Get('health')
   async getHealth(): Promise<{ status: string }> {
     try {

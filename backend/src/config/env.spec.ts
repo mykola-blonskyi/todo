@@ -21,9 +21,6 @@ describe('validateEnv', () => {
     expect(() => validateEnv(rest)).toThrow(key);
   });
 
-  // The failure this exists for: a key that is present, looks plausible and
-  // is the wrong length. token-encryption.ts only noticed on the first
-  // encrypt, which is days after the deploy that introduced it.
   it('rejects an encryption key that decodes to the wrong length', () => {
     expect(() =>
       validateEnv({

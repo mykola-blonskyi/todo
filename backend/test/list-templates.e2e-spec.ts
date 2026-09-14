@@ -11,8 +11,6 @@ interface GraphQLResponse<T> {
   errors?: { extensions: { code: string } }[];
 }
 
-// Every candidate any test in this file adds as a collaborator, so
-// requireProjectMember (Rule 4) finds them on the hub roster.
 const HUB_MEMBERS = [
   { hubUserId: 'hub-2', email: 'collab@example.com', name: 'Collab' },
   {
@@ -703,8 +701,6 @@ describe('ListTemplate (GraphQL)', () => {
       expect(await testDb.listTemplate.count()).toBe(0);
     });
 
-    // The patch alone is never enough to judge: monthly needs a dayOfMonth,
-    // and a template switching to it may have none yet.
     it('rejects an update that leaves the row in a state it would reject on create', async () => {
       const owner = asUser('hub-1', 'owner@example.com');
       const id = await createListTemplate(owner, 'Weekly');

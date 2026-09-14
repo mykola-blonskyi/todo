@@ -41,12 +41,6 @@ const STATUS_CODES: Record<number, string> = {
   409: 'CONFLICT',
 };
 
-// Every check-then-write in this app is a race: uniqueness is checked, then
-// written, with no lock between. The sequential path returns a clean
-// ConflictException and the concurrent one used to return "Internal server
-// error" for the identical situation. Translating here rather than in each
-// service keeps one maintenance site instead of one per constraint, and keeps
-// the constraint name - which describes the schema - out of the response.
 const PRISMA_CODES: Record<string, { code: string; message: string }> = {
   P2002: { code: 'CONFLICT', message: 'That already exists' },
   P2025: { code: 'NOT_FOUND', message: 'Not found' },
@@ -130,9 +124,6 @@ const CLIENT_FAULT_CODES = new Set([
             return { message, extensions: { code } };
           }
 
-          // Apollo raises these before a resolver ever runs, and each one
-          // describes the caller's own request. Masking them cost the caller
-          // the reason their query was rejected and logged a stack per typo.
           if (CLIENT_FAULT_CODES.has(String(formattedError.extensions?.code))) {
             return formattedError;
           }

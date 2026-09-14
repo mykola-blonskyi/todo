@@ -17,16 +17,10 @@ const AUTH_SECRET = process.env.AUTH_SECRET!;
 
 // "This app's own sign-in page, for this locale" - shared by proxy.ts and the
 // /api/google/calendar/connect route.
-//
-// Takes a Locale, not a string: this interpolates into a relative URL, and an
-// unvalidated NEXT_LOCALE of "/evil.com" made it resolve off-origin. The type
-// is what stops a caller passing the raw cookie.
 export function signInUrl(locale: Locale): URL {
   return new URL(`/${locale}/login`, process.env.APP_URL!);
 }
 
-// The one place a session token becomes an Identity. Shared with
-// server-identity.ts, which resolves the same token outside middleware.
 export async function identityFromRequestLike(
   req: NextRequest | { headers: Headers },
 ): Promise<Identity | null> {
@@ -41,10 +35,6 @@ export async function identityFromRequestLike(
     return null;
   }
 
-  // The backend has always read x-user-name/x-user-image and nothing has sent
-  // them since the proxy stopped setting headers, so User.name and User.image
-  // stayed null for anyone who signed in without first being invited - i.e.
-  // their own avatar never appeared in the shell.
   return {
     userId: token.userId,
     email: token.email,

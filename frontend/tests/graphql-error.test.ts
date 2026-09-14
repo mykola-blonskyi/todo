@@ -5,8 +5,6 @@ function error(code?: string) {
   return new GraphQLRequestError([{ message: 'nope', extensions: { code } }]);
 }
 
-// The detail pages call notFound() on this. Every GraphQL failure used to
-// qualify, so a backend restart told a user their own list did not exist.
 describe('isMissing', () => {
   it.each(['NOT_FOUND', 'FORBIDDEN'])('is true for %s', (code) => {
     expect(isMissing(error(code))).toBe(true);

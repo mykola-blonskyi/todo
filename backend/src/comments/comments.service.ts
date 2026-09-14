@@ -77,9 +77,6 @@ export class CommentsService {
     return byKey;
   }
 
-  // Nullable in the schema because GraphQL has no way to say "optional but
-  // never null" for a scalar argument, so an explicit null arrives here and
-  // used to reach .trim() as a TypeError - a 500 for what is a bad request.
   private requireBody(body: string | null | undefined): string {
     const trimmed = body?.trim();
     if (!trimmed) {

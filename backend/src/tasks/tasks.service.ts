@@ -101,11 +101,6 @@ export class TasksService {
     return true;
   }
 
-  // Moving one Task is a swap with its neighbour, resolved and written inside
-  // one transaction. Expressing it as "here is the whole new order" meant the
-  // caller had to read the order first and send it back, and any Task added or
-  // deleted in between made the write fail outright - a collaborator typing in
-  // the same List was enough.
   async moveTask(ownerId: string, id: string, direction: TaskMoveDirection) {
     const task = await this.requireOwnedTask(ownerId, id);
 
@@ -142,9 +137,6 @@ export class TasksService {
     });
   }
 
-  // Nullable in the schema because GraphQL has no way to say "optional but
-  // never null" for a scalar argument, so an explicit null arrives here and
-  // used to reach .trim() as a TypeError - a 500 for what is a bad request.
   private requireTitle(title: string | null | undefined): string {
     const trimmed = title?.trim();
     if (!trimmed) {

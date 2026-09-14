@@ -5,7 +5,6 @@ import z from 'zod';
 
 // The hub is a separate service that can be slow or unreachable; without this
 // undici holds a stalled response until its 300s headers timeout, and this
-// call now sits in the invite path.
 const HUB_TIMEOUT_MS = 5000;
 
 // The hub's own wire shape (ADR-009: `{ userId, email, name, image }[]`) -
@@ -49,13 +48,6 @@ export class HubClientService {
     }));
   }
 
-  // Rule 4: a share target must already hold access to this project, checked
-  // here rather than taken on trust from the caller. searchShareCandidates
-  // ran the check but nothing bound an invite to a prior search, so any owner
-  // could invite an arbitrary email and mint a User row for a stranger.
-  //
-  // The hub's own record is what comes back, not the caller's input: an
-  // invite names a person, it does not get to describe them.
   async requireProjectMember(
     candidate: ShareCandidateInput,
     sessionCookie: string,

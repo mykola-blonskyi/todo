@@ -19,10 +19,6 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-// Every caller awaits these inside a startTransition with no catch above it,
-// so a rejection here reaches the error boundary and replaces the page the
-// user has just recoloured. The cookie is already written and is what the
-// server renders from, so the change has in fact taken effect.
 describe('preference actions when the backend is down', () => {
   it.each([
     ['updatePaletteAction', 'ocean'],

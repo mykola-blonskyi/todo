@@ -268,10 +268,6 @@ function ListCard({
           {...grip}
           aria-label={tBoard('dragHandle', { list: list.title })}
           className={cn(
-            // Visible on every pointer type is wrong here: a coarse pointer
-            // needs it always shown, a keyboard user needs it reachable even
-            // though a mouse never should see it - so it's visually hidden
-            // until it's focused or the device has a coarse pointer.
             'sr-only shrink-0 touch-none rounded-md text-muted-foreground',
             'focus-visible:not-sr-only focus-visible:ml-auto focus-visible:flex focus-visible:h-11 focus-visible:w-11 focus-visible:items-center focus-visible:justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             'any-pointer-coarse:not-sr-only any-pointer-coarse:ml-auto any-pointer-coarse:flex any-pointer-coarse:h-11 any-pointer-coarse:w-11 any-pointer-coarse:items-center any-pointer-coarse:justify-center',
