@@ -121,6 +121,10 @@ model List {
   categoryAssignments ListCategoryAssignment[]
 
   @@map("lists")
+  // myLists is ownerId + createdAt desc; the archive cron filters on
+  // templateId and the two archive timestamps.
+  @@index([ownerId, createdAt])
+  @@index([templateId, archivedAt, unarchivedAt])
 }
 
 // ─── Task ────────────────────────────────────────────────────────────────────
@@ -140,6 +144,8 @@ model Task {
   comments Comment[] @relation("TaskComments")
 
   @@map("tasks")
+  // Every tasksByListId batch, and the cascade from List.
+  @@index([listId])
 }
 
 // ─── ListShare ───────────────────────────────────────────────────────────────
@@ -166,6 +172,9 @@ model ListShare {
 
   @@unique([listId, userId])
   @@map("list_shares")
+  // pendingInvites filters by userId; the composite unique starts with
+  // listId, so it cannot serve a userId-only lookup.
+  @@index([userId, status])
 }
 
 // ─── Comment ─────────────────────────────────────────────────────────────────
@@ -187,6 +196,8 @@ model Comment {
   list   List?   @relation("ListComments", fields: [listId], references: [id], onDelete: Cascade)
 
   @@map("comments")
+  @@index([listId])
+  @@index([taskId])
 }
 
 // ─── CalendarSync ────────────────────────────────────────────────────────────
@@ -209,6 +220,9 @@ model CalendarSync {
 
   @@unique([userId, listId])
   @@map("calendar_syncs")
+  // deleteCalendarEventsForList looks up by listId alone, which the
+  // (userId, listId) unique cannot serve.
+  @@index([listId])
 }
 
 // ─── GoogleCalendarConnection ────────────────────────────────────────────────
@@ -294,6 +308,8 @@ model ListTemplate {
   spawnedLists          List[]
 
   @@map("list_templates")
+  @@index([ownerId])
+  @@index([status])
 }
 
 // ─── TemplateCollaborator ────────────────────────────────────────────────────
@@ -354,4 +370,7 @@ model ListCategoryAssignment {
 
   @@unique([userId, listId])
   @@map("list_category_assignments")
+  // The cascade target when a Category is deleted.
+  @@index([categoryId])
+  @@index([listId])
 }
