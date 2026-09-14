@@ -248,7 +248,7 @@ export function TemplateForm({
             <Input
               id="template-interval-days"
               type="number"
-              min={0}
+              min={1}
               value={intervalDays}
               onChange={(event) => setIntervalDays(Number(event.target.value))}
               className="w-24"

@@ -198,4 +198,28 @@ describe('TemplateForm', () => {
     expect(screen.queryByDisplayValue('Vacuum')).not.toBeInTheDocument();
     expect(screen.getByDisplayValue('Laundry')).toBe(laundryBefore);
   });
+
+  // The backend rejects streakDays or intervalDays below 1, so a form that
+  // offers 0 sends a value the server refuses and the user gets the error
+  // boundary instead of a field message.
+  it('offers no recurrence number the backend would reject', () => {
+    renderWithIntl(
+      <TemplateForm
+        onSubmit={vi.fn()}
+        submitLabel="Save"
+        initialValues={{
+          title: 'Every other day',
+          taskTitles: ['Vacuum'],
+          recurrenceType: 'everyNDays',
+          intervalDays: 2,
+          streakDays: 1,
+          timezone: 'UTC',
+        }}
+      />,
+    );
+
+    for (const label of ['Days in a row', 'Rest days between streaks']) {
+      expect(screen.getByLabelText(label)).toHaveAttribute('min', '1');
+    }
+  });
 });
