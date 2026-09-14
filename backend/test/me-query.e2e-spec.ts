@@ -183,4 +183,33 @@ describe('me query (GraphQL)', () => {
       expect(row.name).toBe('Stable');
     });
   });
+
+  // The frontend percent-encodes these two: a header value may only carry
+  // latin-1, so a real name cannot be sent raw.
+  it('records a percent-encoded name and image on the User row', async () => {
+    const body = await meQuery({
+      'x-user-id': 'hub-1',
+      'x-user-email': 'owner@example.com',
+      'x-user-name': encodeURIComponent('Микола Блонський'),
+      'x-user-image': encodeURIComponent('https://example.test/a b.png'),
+    });
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.me.name).toBe('Микола Блонський');
+    const row = await testDb.user.findUniqueOrThrow({
+      where: { identitySub: 'hub-1' },
+    });
+    expect(row.image).toBe('https://example.test/a b.png');
+  });
+
+  it('ignores a name that is not decodable rather than failing the request', async () => {
+    const body = await meQuery({
+      'x-user-id': 'hub-1',
+      'x-user-email': 'owner@example.com',
+      'x-user-name': '%E0%A4%A',
+    });
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.me.name).toBeNull();
+  });
 });

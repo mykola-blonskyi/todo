@@ -58,6 +58,14 @@ export async function graphqlFetch<T>(
       'Content-Type': 'application/json',
       ...(userId ? { 'x-user-id': userId } : {}),
       ...(email ? { 'x-user-email': email } : {}),
+      // Percent-encoded because a header value may only carry latin-1 and
+      // these are real names: undici rejects "Микола" outright.
+      ...(caller?.name
+        ? { 'x-user-name': encodeURIComponent(caller.name) }
+        : {}),
+      ...(caller?.image
+        ? { 'x-user-image': encodeURIComponent(caller.image) }
+        : {}),
       ...(cookie ? { cookie } : {}),
     },
     body: JSON.stringify({ query, variables }),
