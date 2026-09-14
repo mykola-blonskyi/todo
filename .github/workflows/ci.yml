@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
     branches: [main]
+  # Re-deploying otherwise needs an empty commit, which is how a broken deploy
+  # stayed broken across two releases: there was no way to retry one.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -212,13 +215,23 @@ jobs:
       - frontend-typecheck
       - frontend-test
       - e2e
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Coolify deployment
         # Coolify's /deploy route (routes/api.php) explicitly rejects GET
         # (routes it to a "use POST instead" handler) - only POST triggers
         # a real deployment, despite what some of Coolify's own docs show.
+        #
+        # The body is printed rather than discarded. A 200 here means Coolify
+        # accepted the trigger, not that it deployed: it answers 200 and does
+        # nothing when the application already has a deployment in progress,
+        # which is exactly how #134 and #135 reported success while production
+        # stayed on #133.
         run: |
           curl --fail --show-error --silent --request POST "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
-            --header "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}"
+            --header "Authorization: Bearer ${{ secrets.COOLIFY_WEBHOOK_TOKEN }}" \
+            --output response.json --write-out 'HTTP %{http_code} in %{time_total}s\n'
+          echo "Coolify response:"
+          cat response.json
+          echo
