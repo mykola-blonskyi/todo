@@ -9,6 +9,8 @@ import type { Locale } from './i18n/config';
 export interface Identity {
   userId: string;
   email: string;
+  name?: string;
+  image?: string;
 }
 
 const AUTH_SECRET = process.env.AUTH_SECRET!;
@@ -39,7 +41,16 @@ export async function identityFromRequestLike(
     return null;
   }
 
-  return { userId: token.userId, email: token.email };
+  // The backend has always read x-user-name/x-user-image and nothing has sent
+  // them since the proxy stopped setting headers, so User.name and User.image
+  // stayed null for anyone who signed in without first being invited - i.e.
+  // their own avatar never appeared in the shell.
+  return {
+    userId: token.userId,
+    email: token.email,
+    name: typeof token.name === 'string' ? token.name : undefined,
+    image: typeof token.picture === 'string' ? token.picture : undefined,
+  };
 }
 
 // Shared by proxy.ts (page requests) and the /api/google/calendar routes,

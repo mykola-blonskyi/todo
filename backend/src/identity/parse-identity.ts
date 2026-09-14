@@ -18,13 +18,23 @@ export function parseIdentity(req: Request): Identity | null {
     return null;
   }
 
-  const name = req.headers['x-user-name'];
-  const image = req.headers['x-user-image'];
-
   return {
     identitySub,
     email,
-    name: typeof name === 'string' ? name : undefined,
-    image: typeof image === 'string' ? image : undefined,
+    name: decodeHeader(req.headers['x-user-name']),
+    image: decodeHeader(req.headers['x-user-image']),
   };
+}
+
+// A header value may only carry latin-1, so the frontend percent-encodes these
+// two - a name like "Микола" cannot be sent raw.
+function decodeHeader(value: string | string[] | undefined) {
+  if (typeof value !== 'string' || !value) {
+    return undefined;
+  }
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return undefined;
+  }
 }
