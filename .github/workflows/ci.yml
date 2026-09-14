@@ -85,6 +85,10 @@ jobs:
       # real per-environment secret (CI never talks to real Google Calendar
       # data).
       TOKEN_ENCRYPTION_KEY: y6pTgWQY7Sl4qAIAYKKubuJjYOXMxr0yfPWWBHNCsRQ=
+      # Booting AppModule validates the whole environment (src/config/env.ts),
+      # so these have to be present even though no e2e spec reaches Google.
+      GOOGLE_CLIENT_ID: todolist-ci
+      GOOGLE_CLIENT_SECRET: todolist-ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
