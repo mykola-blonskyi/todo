@@ -134,7 +134,6 @@ export function TaskSection({
 }: TaskSectionProps) {
   const tTasks = useTranslations('Tasks');
   const createTaskWithId = createTaskAction.bind(null, list.id);
-  const moveTaskInList = moveTaskAction.bind(null, list.id);
 
   const taskRowLabels = {
     editButton: tTasks('editButton'),
@@ -145,6 +144,8 @@ export function TaskSection({
     moveUp: tTasks('moveUp'),
     moveDown: tTasks('moveDown'),
     dueDateLabel: tTasks('dueDateLabel'),
+    editTitleLabel: (title: string) => tTasks('editTitleLabel', { title }),
+    editDueDateLabel: (title: string) => tTasks('editDueDateLabel', { title }),
   };
 
   return (
@@ -164,6 +165,7 @@ export function TaskSection({
         <Input
           name="title"
           placeholder={tTasks('createPlaceholder')}
+          aria-label={tTasks('createPlaceholder')}
           required
         />
         <Button type="submit">{tTasks('addButton')}</Button>
@@ -183,7 +185,7 @@ export function TaskSection({
               onToggleDone={toggleTaskDoneAction}
               onUpdate={updateTaskAction}
               onDelete={deleteTaskAction}
-              onMove={moveTaskInList}
+              onMove={moveTaskAction}
               onAddComment={addTaskCommentAction}
             />
           ))}

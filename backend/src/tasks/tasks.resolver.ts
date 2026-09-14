@@ -7,6 +7,7 @@ import {
   ResolveField,
 } from '@nestjs/graphql';
 import { Task } from './task.model';
+import { TaskMoveDirection } from './task-move-direction';
 import { TasksService } from './tasks.service';
 import { UsersService } from '../users/users.service';
 import { CurrentUser } from '../identity/current-user.decorator';
@@ -68,12 +69,13 @@ export class TasksResolver {
   }
 
   @Mutation(() => [Task])
-  async reorderTasks(
+  async moveTask(
     @CurrentUser() identity: Identity,
-    @Args('listId', { type: () => ID }) listId: string,
-    @Args('taskIds', { type: () => [ID] }) taskIds: string[],
+    @Args('id', { type: () => ID }) id: string,
+    @Args('direction', { type: () => TaskMoveDirection })
+    direction: TaskMoveDirection,
   ) {
     const user = await this.usersService.findOrCreateByIdentity(identity);
-    return this.tasksService.reorderTasks(user.id, listId, taskIds);
+    return this.tasksService.moveTask(user.id, id, direction);
   }
 }

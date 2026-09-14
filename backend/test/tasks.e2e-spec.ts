@@ -57,6 +57,16 @@ describe('Task (GraphQL)', () => {
     return body.data!.createTask.id;
   }
 
+  async function threeTasks() {
+    const owner = asUser('hub-1', 'owner@example.com');
+    const listId = await createList(owner, 'Groceries');
+    const milkId = await createTask(owner, listId, 'Milk');
+    const eggsId = await createTask(owner, listId, 'Eggs');
+    const breadId = await createTask(owner, listId, 'Bread');
+
+    return { owner, listId, milkId, eggsId, breadId };
+  }
+
   it('creates a Task on an owned List', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
     const listId = await createList(owner, 'Groceries');
@@ -270,55 +280,87 @@ describe('Task (GraphQL)', () => {
     expect(body.errors?.[0]).toBeDefined();
   });
 
-  it('reorders Tasks within a List for its owner', async () => {
-    const owner = asUser('hub-1', 'owner@example.com');
-    const listId = await createList(owner, 'Groceries');
-    const milkId = await createTask(owner, listId, 'Milk');
-    const breadId = await createTask(owner, listId, 'Bread');
-    const eggsId = await createTask(owner, listId, 'Eggs');
+  it('moves a Task up and down within its List', async () => {
+    const { owner, milkId, eggsId, breadId } = await threeTasks();
 
-    const body = await graphql<{
-      reorderTasks: { title: string; position: number }[];
-    }>(
-      `mutation { reorderTasks(listId: "${listId}", taskIds: ["${eggsId}", "${milkId}", "${breadId}"]) { title position } }`,
+    const down = await graphql<{ moveTask: { id: string }[] }>(
+      `mutation { moveTask(id: "${milkId}", direction: down) { id } }`,
       owner,
     );
+    expect(down.data?.moveTask.map((task) => task.id)).toEqual([
+      eggsId,
+      milkId,
+      breadId,
+    ]);
 
-    expect(body.data?.reorderTasks).toEqual([
-      { title: 'Eggs', position: 0 },
-      { title: 'Milk', position: 1 },
-      { title: 'Bread', position: 2 },
+    const up = await graphql<{ moveTask: { id: string }[] }>(
+      `mutation { moveTask(id: "${milkId}", direction: up) { id } }`,
+      owner,
+    );
+    expect(up.data?.moveTask.map((task) => task.id)).toEqual([
+      milkId,
+      eggsId,
+      breadId,
     ]);
   });
 
-  it('rejects reorderTasks with a taskIds set that does not match the List exactly', async () => {
-    const owner = asUser('hub-1', 'owner@example.com');
-    const listId = await createList(owner, 'Groceries');
-    const milkId = await createTask(owner, listId, 'Milk');
-    await createTask(owner, listId, 'Bread');
+  // The button is one click from being pressed again, so hitting the end is
+  // not a failure the caller has to handle.
+  it.each([
+    ['up', 'first'],
+    ['down', 'last'],
+  ])(
+    'leaves the order alone moving %s from the %s position',
+    async (direction) => {
+      const { owner, milkId, breadId, eggsId } = await threeTasks();
+      const id = direction === 'up' ? milkId : breadId;
 
-    const body = await graphql<{ reorderTasks: unknown }>(
-      `mutation { reorderTasks(listId: "${listId}", taskIds: ["${milkId}"]) { id } }`,
+      const body = await graphql<{ moveTask: { id: string }[] }>(
+        `mutation { moveTask(id: "${id}", direction: ${direction}) { id } }`,
+        owner,
+      );
+
+      expect(body.errors).toBeUndefined();
+      expect(body.data?.moveTask.map((task) => task.id)).toEqual([
+        milkId,
+        eggsId,
+        breadId,
+      ]);
+    },
+  );
+
+  // The old whole-array mutation rejected any set that did not match the List
+  // exactly, so a Task added between the caller's read and its write failed
+  // the move outright.
+  it('still moves when a collaborator adds a Task in between', async () => {
+    const { owner, listId, milkId, eggsId, breadId } = await threeTasks();
+    const addedId = await createTask(owner, listId, 'Jam');
+
+    const body = await graphql<{ moveTask: { id: string }[] }>(
+      `mutation { moveTask(id: "${milkId}", direction: down) { id } }`,
       owner,
     );
 
-    expect(body.data).toBeNull();
-    expect(body.errors?.[0]).toBeDefined();
+    expect(body.errors).toBeUndefined();
+    expect(body.data?.moveTask.map((task) => task.id)).toEqual([
+      eggsId,
+      milkId,
+      breadId,
+      addedId,
+    ]);
   });
 
-  it('denies reorderTasks for a non-owner', async () => {
-    const owner = asUser('hub-1', 'owner@example.com');
-    const listId = await createList(owner, 'Groceries');
-    const milkId = await createTask(owner, listId, 'Milk');
-    const breadId = await createTask(owner, listId, 'Bread');
+  it('denies moveTask for a non-owner', async () => {
+    const { milkId } = await threeTasks();
+    const stranger = asUser('hub-2', 'stranger@example.com');
 
-    const body = await graphql<{ reorderTasks: unknown }>(
-      `mutation { reorderTasks(listId: "${listId}", taskIds: ["${breadId}", "${milkId}"]) { id } }`,
-      asUser('hub-2', 'other@example.com'),
+    const body = await graphql<{ moveTask: unknown }>(
+      `mutation { moveTask(id: "${milkId}", direction: down) { id } }`,
+      stranger,
     );
 
     expect(body.data).toBeNull();
-    expect(body.errors?.[0]).toBeDefined();
+    expect(body.errors?.[0].extensions.code).toBe('NOT_FOUND');
   });
 
   // GraphQL cannot express "optional but never null" for a scalar argument, so
