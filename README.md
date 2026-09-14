@@ -6,19 +6,22 @@ the personal hub ([blonskyi.dev](https://blonskyi.dev), repo `my-projects`). Use
 `*.blonskyi.dev` projects — this repo is a genuine OIDC client of it, not a consumer of the hub's own
 session cookie (ADR-016).
 
-**Status: early implementation.** Design is complete (see `docs/`), infrastructure and the Prisma
-schema are in place, and implementation is underway ticket by ticket — see
-[Issues](https://github.com/mykola-blonskyi/todo/issues) for the current breakdown and
-[plans/current.md](plans/current.md) for the phased plan.
+**Status: live.** The v1 scope is deployed and in use, and the post-v1 phases (recurring templates,
+categories, layouts and palettes) have landed on top of it. See
+[plans/current.md](plans/current.md) for the phase-level record and Plane for open tickets.
 
-## What it does (once built)
+## What it does
 
 - Create Lists of Tasks, with optional due dates
 - Share a List with other hub-authorized users — they can toggle tasks done and comment, but not
   edit the list's content
 - Optional, one-way, manual sync of due-dated Tasks to your own Google Calendar
+- Recurring ListTemplates that spawn dated occurrences on a schedule, and auto-archive the stale
+  ones
+- Categories on Lists, with per-user filtering
 - Six switchable layouts (Workspace, Board, Notebook, Pocket, Terminal, Ledger), twelve colour
   palettes, light/dark/system — all per-user; localized (en/ru/uk/es), matching the hub
+- Installable as a PWA, with a themed icon set and a per-layout theme colour
 
 ## Tech stack
 
@@ -56,9 +59,14 @@ cd ..
 
 cp frontend/.env.example frontend/.env   # see "Local login instance" below for the OIDC values
 
-pnpm --filter backend start:dev    # NestJS on its configured port
+pnpm --filter backend start:dev    # NestJS on backend/.env's PORT
 pnpm --filter frontend dev         # Next.js on http://localhost:3000
 ```
+
+All three servers run at once, so the backend needs a port of its own: Next.js holds 3000 and
+`login` holds 4000. Give `PORT` in `backend/.env` a free one and point `BACKEND_URL` in
+`frontend/.env` at the same value. `backend/.env.example` ships `PORT=4000`, which collides with
+`login`.
 
 ### Local `login` instance
 
@@ -107,8 +115,8 @@ Run from the repo root with `pnpm --filter backend <script>` / `pnpm --filter fr
   no manual setup needed. Mocks only the trusted identity header, never the database.
 - **Frontend unit/component**: Vitest + React Testing Library, matching the hub's setup.
 - **E2E**: Playwright, driving both apps from the root (`playwright.config.ts` + `e2e/`) — signs in
-  by minting a session JWT directly (hub's ADR-021 pattern) rather than driving real Google OAuth,
-  wired into CI as the `e2e` job (see `plans/current.md` Phase 7).
+  by minting a session JWT directly (hub's ADR-021 pattern) rather than driving real Google OAuth.
+  Runs in CI as the `e2e` job.
 
 ## Architecture & design docs
 
@@ -122,13 +130,30 @@ Run from the repo root with `pnpm --filter backend <script>` / `pnpm --filter fr
 
 ## Issue tracking
 
-Specs and implementation tickets live as [GitHub Issues](https://github.com/mykola-blonskyi/todo/issues)
-(see `docs/agents/issue-tracker.md`) — specs describe a feature end-to-end; tickets are the
-vertical-slice breakdown of each spec, in dependency order.
+Specs and implementation tickets live in [Plane](https://plane.blonskyi.dev), workspace `blonskyi`,
+project `TODO` (see [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)) — specs describe a
+feature end-to-end; tickets are the vertical-slice breakdown of each spec, in dependency order. The
+GitHub Issues this repo used until 2026-08-07 were migrated there and are all closed, and Plane's
+numbering does not match the old one. Code review still happens on GitHub pull requests.
 
 ## Deployment
 
-Planned: Coolify on the same VPS as the hub, two services (frontend public, backend internal-only),
-two GHCR images, GitHub Actions building/pushing on merge to `main`. Not live yet — see
-`plans/current.md` Phase 7 for what's still needed (Dockerfiles, Coolify registration, deploy
-secrets).
+Live on [todo.blonskyi.dev](https://todo.blonskyi.dev), via Coolify on the same VPS as the hub. Two
+services: `frontend` holds the public domain, `backend` stays internal-only on Coolify's private
+network (ADR-003).
+
+Coolify builds both images itself from the root `docker-compose.yml`, so there is no registry and
+CI pushes nothing. Every `${VAR:?}` in that file comes from Coolify's per-resource environment
+panel, never a committed `.env`.
+
+On a push to `main`, once every lint, format, typecheck and test job is green, the `deploy` job runs
+[`scripts/coolify-deploy.sh`](scripts/coolify-deploy.sh). It POSTs the deploy webhook and then polls
+`/api/v1/deployments/{uuid}` until the deployment reaches a terminal state, failing the job and
+printing the build log if it did not finish. The webhook's own 200 means only that Coolify queued
+the work, which is why the job cannot stop there — see
+[docs/architecture.md](docs/architecture.md#deployment) and
+[reports/investigations/2026-09-14-deploy-reports-success-while-production-stays-stale.md](reports/investigations/2026-09-14-deploy-reports-success-while-production-stays-stale.md).
+
+The `COOLIFY_WEBHOOK_TOKEN` secret needs Coolify's `read` ability as well as `deploy`, or the poll
+gets a 403 and the job fails with no way to see the outcome. `read:sensitive` additionally lets it
+print the build log of a failure.
