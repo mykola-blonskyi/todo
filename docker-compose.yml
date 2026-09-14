@@ -49,7 +49,11 @@ services:
       dockerfile: frontend/Dockerfile
     environment:
       APP_URL: ${APP_URL:?}
-      AUTH_URL: ${AUTH_URL:?}
+      # Defaulted, not required, because unlike its siblings this one was a
+      # literal here rather than a panel entry, so no environment is known to
+      # supply it yet. A staging resource can now override it instead of
+      # inheriting production's URL and bouncing its users there.
+      AUTH_URL: ${AUTH_URL:-https://todo.blonskyi.dev/api/auth}
       HUB_URL: ${HUB_URL:?}
       OIDC_ISSUER: ${OIDC_ISSUER:?}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?}
