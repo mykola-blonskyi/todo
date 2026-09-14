@@ -61,11 +61,17 @@ run_case unknown_status 1
 run_case no_uuid 1
 run_case flaky 0
 run_case never_settles 1 1
+# A zero deadline separates the two paths without timing: taking the 401 exit prints
+# the permission message, while looping would print the timeout one instead.
+run_case forbidden 1 0
 
 # The exit code alone passed while the build log was being swallowed by a redirection
 # order bug, which is the whole reason a failed deploy is worth turning red.
 expect_output failed 'no space left on device'
-expect_output never_settles 'was still'
+expect_output never_settles 'no terminal status'
+# The first live run of this script burned its whole 1800s deadline on a 401 and then
+# blamed the deployment, so the message has to name the token, not the deployment.
+expect_output forbidden 'Add Coolify'
 
 [ "$failures" -eq 0 ] || { echo "$failures case(s) failed"; exit 1; }
 echo "all cases passed"
