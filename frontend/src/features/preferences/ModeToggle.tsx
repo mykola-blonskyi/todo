@@ -15,13 +15,6 @@ interface ModeToggleProps {
   className?: string;
 }
 
-// Mode takes three writes where palette and layout take one: next-themes owns
-// the client state, the cookie is what the server renders from (its Server
-// Action cannot write it - next-themes applies localStorage before paint,
-// where no Server Action reaches), and the User row is the cross-device
-// backup. Exported because the terminal's `:mode` is a second way in, not a
-// second implementation, and it used to do only two of the three - leaving
-// generateViewport emitting the old theme-color.
 export function applyMode(mode: Mode, setTheme: (mode: Mode) => void) {
   setTheme(mode);
   writePreferenceCookie(MODE_COOKIE, mode);

@@ -5,11 +5,6 @@ export interface HubMember {
   image?: string | null;
 }
 
-// Rule 4 puts a hub project-members lookup in the invite path, so every suite
-// that invites someone needs a roster to invite them from. Declaring it per
-// suite keeps the rule honest in tests: a candidate who is not listed here is
-// refused, exactly as in production.
-//
 // Routes by URL rather than answering every call, because the Google Calendar
 // suites stub `fetch` for their own outbound requests - pass `fallback` to
 // keep those working alongside the roster.

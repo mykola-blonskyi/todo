@@ -17,10 +17,6 @@ export class GraphQLRequestError extends Error {
   }
 }
 
-// "This page is not yours to see", as distinct from "the backend failed".
-// Both arrive as a GraphQLRequestError, and treating every one of them as a
-// 404 told a user whose backend had restarted that their own list no longer
-// existed.
 export function isMissing(error: unknown): boolean {
   return (
     error instanceof GraphQLRequestError &&

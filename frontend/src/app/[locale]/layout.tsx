@@ -107,8 +107,6 @@ export default async function LocaleLayout({
     getServerIdentity(),
   ]);
 
-  // No session means no nav to load - /[locale]/login and /[locale]/privacy
-  // render logged out.
   let nav: NavData | null = null;
   if (identity) {
     try {

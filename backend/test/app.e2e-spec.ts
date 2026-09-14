@@ -24,9 +24,6 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
-  // The catch-all that hides resolver internals used to swallow GraphQL's own
-  // validation errors too, so a caller asking for a field that does not exist
-  // was told the server had failed.
   it('tells a caller their query was rejected, rather than reporting a server fault', async () => {
     const res = await request(app.getHttpServer())
       .post('/graphql')
@@ -44,8 +41,6 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  // The container healthcheck polls this. `/` answers from memory, so it went
-  // green while the database was unreachable and every query was failing.
   it('/health (GET) reports ok while the database answers', async () => {
     const res = await request(app.getHttpServer()).get('/health').expect(200);
 

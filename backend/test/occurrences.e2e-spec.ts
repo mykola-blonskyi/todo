@@ -11,8 +11,6 @@ interface GraphQLResponse<T> {
   errors?: { extensions: { code: string } }[];
 }
 
-// Every candidate any test in this file adds as a collaborator, so
-// requireProjectMember (Rule 4) finds them on the hub roster.
 const HUB_MEMBERS = [
   { hubUserId: 'hub-2', email: 'collab@example.com', name: 'Collab' },
 ];
@@ -35,8 +33,6 @@ describe('Occurrence spawning (GraphQL)', () => {
   });
 
   function asUser(identitySub: string, email: string) {
-    // addTemplateCollaborator now needs a session cookie too
-    // (requireProjectMember).
     return {
       'x-user-id': identitySub,
       'x-user-email': email,

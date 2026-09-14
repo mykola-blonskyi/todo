@@ -47,9 +47,6 @@ export class OccurrencesService {
 
     const spawned: List[] = [];
     for (const template of templates) {
-      // Per template, so one unspawnable template costs only its own
-      // Occurrence. Unguarded, the first throw ended the run and every
-      // template after it silently stopped spawning until someone noticed.
       try {
         const list = await this.spawnForTemplate(template, now);
         if (list) {

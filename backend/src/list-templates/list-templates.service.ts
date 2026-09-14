@@ -103,9 +103,6 @@ export class ListTemplatesService {
       await this.requireOwnedCategory(ownerId, updates.defaultCategoryId);
     }
 
-    // Validate the row as it will be, not the patch: switching to `monthly`
-    // without sending a dayOfMonth has to fail, and it can only be seen
-    // against the existing values.
     validateRecurrence({
       recurrenceType: updates.recurrenceType ?? existing.recurrenceType,
       weekDays: updates.weekDays ?? existing.weekDays,
@@ -253,9 +250,6 @@ export class ListTemplatesService {
     return true;
   }
 
-  // Nullable in the schema because GraphQL has no way to say "optional but
-  // never null" for a scalar argument, so an explicit null arrives here and
-  // used to reach .trim() as a TypeError - a 500 for what is a bad request.
   private requireTitle(title: string | null | undefined): string {
     const trimmed = title?.trim();
     if (!trimmed) {

@@ -33,15 +33,6 @@ function requireInteger(
   return value;
 }
 
-// The recurrence fields a ListTemplate needs depend entirely on its
-// recurrenceType, so this is where that dependency is stated once. Everything
-// downstream (recurrence.ts isDue) then trusts the row.
-//
-// Nothing validated these before, and every invalid value failed silently
-// rather than loudly: an unknown timezone threw inside Intl and aborted the
-// whole cron run for every template after it, intervalDays of -1 made the
-// cycle length 0 and `n % 0` NaN so the template never fired again, and
-// dayOfMonth of 0 never equals any calendar day.
 export function validateRecurrence(config: RecurrenceConfig): void {
   if (!isValidTimezone(config.timezone)) {
     throw new BadRequestException(
@@ -49,8 +40,6 @@ export function validateRecurrence(config: RecurrenceConfig): void {
     );
   }
 
-  // Checked for every type, not just everyNDays: a caller may set it
-  // alongside any recurrence, and a stored negative would surface only later.
   if (config.streakDays != null) {
     requireInteger(config.streakDays, 'streakDays', 1, 366);
   }
@@ -79,9 +68,6 @@ export function validateRecurrence(config: RecurrenceConfig): void {
       return;
 
     case ListTemplateRecurrenceType.everyNDays:
-      // Rule 25: streakDays ON days then intervalDays OFF days. A rest period
-      // below 1 would make the cycle equal the streak, which is `daily` by
-      // another name and never what the caller meant.
       requireInteger(config.intervalDays, 'intervalDays', 1, 366);
       return;
   }

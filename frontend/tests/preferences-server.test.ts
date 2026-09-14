@@ -13,8 +13,6 @@ vi.mock('next/headers', () => ({
     }),
 }));
 
-// The owner stamp keys off the signed session, not a request header - a
-// header would let a caller claim someone else's appearance cookies.
 const getServerIdentity =
   vi.fn<() => Promise<{ userId: string; email: string } | null>>();
 vi.mock('@shared/lib/server-identity', () => ({

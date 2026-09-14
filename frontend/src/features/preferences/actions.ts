@@ -20,13 +20,6 @@ import {
 // pattern - the client-side switch (next-themes / navigation) already
 // happened by the time these are called, so a slow or failed persist should
 // never block the UI.
-//
-// "Fire and forget" has to mean the failure too. These are awaited inside a
-// startTransition with no catch anywhere above them, so a backend hiccup
-// during a palette change threw all the way out of the transition and took
-// down the page the user had just successfully recoloured. The cookie is
-// already written and is what the server renders from; the User row is only
-// the cross-device backup, and it reconciles on the next successful change.
 async function persist(description: string, run: Promise<unknown>) {
   try {
     await run;

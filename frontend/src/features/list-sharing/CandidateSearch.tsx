@@ -26,13 +26,6 @@ interface CandidateSearchProps {
   select: (candidate: ShareCandidate) => Promise<unknown>;
 }
 
-// One search box shared by list sharing and template collaborators: the two
-// were byte-identical apart from which mutation they called, so the same bug
-// had to be fixed twice and the second copy always lagged.
-//
-// Debounced so search fires once typing pauses, not on every keystroke - the
-// timeout lives in a useEffect (not the input's change handler) so its
-// cleanup actually runs and cancels stale in-flight timers.
 export function CandidateSearch({
   inputId,
   queryKey,
@@ -59,19 +52,11 @@ export function CandidateSearch({
     queryFn: () => search(debouncedQuery),
     enabled: debouncedQuery.length > 0,
     staleTime: 30_000,
-    // Interactive search should fail fast, not retry 3x with backoff (the
-    // default) - a failure here isn't a transient network blip that
-    // self-resolves, and 5+ seconds before any error feedback is too slow
-    // for a search-as-you-type interaction.
     retry: false,
   });
 
   const choose = useMutation({
     mutationFn: select,
-    // The outcome has to live outside the dropdown. Clearing the query closes
-    // the dropdown in the same commit, so a confirmation rendered inside it
-    // unmounted before anyone could read it and a failure showed nothing at
-    // all - the user's only signal was clicking again.
     onSuccess: (_data, candidate) => {
       setStatus(labels.confirmed(candidate.name ?? candidate.email));
       setQuery('');

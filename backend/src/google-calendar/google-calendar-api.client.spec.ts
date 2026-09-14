@@ -36,9 +36,6 @@ describe('GoogleCalendarApiClient.upsertEvent', () => {
     expect(result.eventId).toBe('event-1');
   });
 
-  // The user deleted the event in Google Calendar directly. Nothing in the UI
-  // clears the stale googleEventId, so without this every later sync of that
-  // List patched a resource that no longer exists and failed for good.
   it.each([404, 410])(
     'creates a fresh event when Google answers %s to the patch',
     async (status) => {

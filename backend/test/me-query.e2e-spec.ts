@@ -184,8 +184,6 @@ describe('me query (GraphQL)', () => {
     });
   });
 
-  // The frontend percent-encodes these two: a header value may only carry
-  // latin-1, so a real name cannot be sent raw.
   it('records a percent-encoded name and image on the User row', async () => {
     const body = await meQuery({
       'x-user-id': 'hub-1',

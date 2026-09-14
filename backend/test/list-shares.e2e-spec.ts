@@ -13,8 +13,6 @@ interface GraphQLResponse<T> {
   errors?: { extensions: { code: string } }[];
 }
 
-// Every candidate any test in this file invites, so requireProjectMember
-// (Rule 4) finds them on the hub roster.
 const HUB_MEMBERS = [
   { hubUserId: 'collaborator-1', email: 'collaborator@example.com', name: 'A' },
   {
@@ -26,8 +24,6 @@ const HUB_MEMBERS = [
   { hubUserId: 'collaborator-b', email: 'b@example.com', name: 'B' },
   { hubUserId: 'invitee-1', email: 'invitee@example.com', name: null },
   { hubUserId: 'hub-user-bob', email: 'bob@example.com', name: 'Bob' },
-  // Same person, a second hub id: the hub's own userId never equals login's
-  // `sub`, which is the collision this file's last block is about.
   { hubUserId: 'second-hub-id-for-bob', email: 'bob@example.com', name: 'Bob' },
 ];
 
@@ -1522,11 +1518,6 @@ describe('List Sharing (GraphQL)', () => {
     });
   });
 
-  // ListShare.list used to be a full `List`, so a pending or declined invitee
-  // could read the tasks, comments and collaborators of a List they had no
-  // access to (Rule 3). It is a ListSummary now, which is why these are
-  // schema-validation failures rather than permission denials: the fields are
-  // not reachable to ask for.
   describe('what an invite exposes about the List it points at', () => {
     async function invitePending() {
       const { owner, listId } = await getOwnerAndList();
@@ -1604,9 +1595,6 @@ describe('List Sharing (GraphQL)', () => {
       );
     });
 
-    // A collaborator is another person, not a profile to read: theme, locale,
-    // layout and the Google Calendar connection state were all selectable
-    // through List.collaborators, ListShare.user and Comment.author.
     it.each([
       'myLists {collaborators {googleCalendarConnected}}',
       'pendingInvites {user {theme}}',
@@ -1622,10 +1610,6 @@ describe('List Sharing (GraphQL)', () => {
     });
   });
 
-  // Post-ADR-016 a signed-in user's identitySub is login's `sub`, while the
-  // hub's project-members search still returns the hub's own userId. The two
-  // never match, so an invite aimed at someone who had already signed in used
-  // to try to create a second row and collide on User.email.
   describe('inviting someone whose identifier has moved on', () => {
     async function signIn(headers: Record<string, string>) {
       const body = await graphql<{ me: { id: string } }>(
@@ -1679,9 +1663,6 @@ describe('List Sharing (GraphQL)', () => {
     });
   });
 
-  // Rule 4: the share target must already hold access to this project. The
-  // search enforced it, but nothing tied an invite to a prior search, so an
-  // owner could invite an arbitrary address and mint a User row for a stranger.
   describe('inviting someone who is not on the project (Rule 4)', () => {
     it('refuses a candidate the hub does not list, and creates no User row', async () => {
       const { owner, listId } = await getOwnerAndList();
@@ -1714,8 +1695,6 @@ describe('List Sharing (GraphQL)', () => {
       expect(await testDb.listShare.count()).toBe(0);
     });
 
-    // The stored profile comes from the hub, so a caller cannot decorate an
-    // invite with a name and avatar of their choosing.
     it("stores the hub's record, not the caller's description of it", async () => {
       const { owner, listId } = await getOwnerAndList();
 

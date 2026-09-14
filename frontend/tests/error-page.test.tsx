@@ -36,9 +36,6 @@ describe('ErrorPage', () => {
 });
 
 describe('GlobalError', () => {
-  // It stands in for the root layout, so it reaches neither the intl provider
-  // nor globals.css. Rendering it with no provider around it, and finding its
-  // own html/body and its own styling, is the whole claim.
   it('renders standalone, with nothing wrapping it', () => {
     const html = renderToStaticMarkup(
       <GlobalError error={new Error('boom')} unstable_retry={vi.fn()} />,

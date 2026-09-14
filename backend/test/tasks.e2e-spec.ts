@@ -304,8 +304,6 @@ describe('Task (GraphQL)', () => {
     ]);
   });
 
-  // The button is one click from being pressed again, so hitting the end is
-  // not a failure the caller has to handle.
   it.each([
     ['up', 'first'],
     ['down', 'last'],
@@ -329,9 +327,6 @@ describe('Task (GraphQL)', () => {
     },
   );
 
-  // The old whole-array mutation rejected any set that did not match the List
-  // exactly, so a Task added between the caller's read and its write failed
-  // the move outright.
   it('still moves when a collaborator adds a Task in between', async () => {
     const { owner, listId, milkId, eggsId, breadId } = await threeTasks();
     const addedId = await createTask(owner, listId, 'Jam');
@@ -363,9 +358,6 @@ describe('Task (GraphQL)', () => {
     expect(body.errors?.[0].extensions.code).toBe('NOT_FOUND');
   });
 
-  // GraphQL cannot express "optional but never null" for a scalar argument, so
-  // an explicit null reaches the service. It used to hit .trim() as a
-  // TypeError and surface as a server fault.
   it('rejects an explicit null title as a bad request', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
     const listId = await createList(owner, 'Groceries');

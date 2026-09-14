@@ -176,10 +176,6 @@ describe('TemplateForm', () => {
       }),
     );
   });
-  // Rows used to be keyed by position, so deleting one made React reuse the
-  // surviving rows' DOM nodes for different tasks - the values stayed right,
-  // but the caret, focus and any in-progress IME composition moved to the
-  // wrong row. Node identity is the mechanism, so it is what this asserts.
   it('keeps each checklist row on its own element when an earlier one is deleted', async () => {
     const user = userEvent.setup();
     renderWithIntl(

@@ -10,8 +10,6 @@ interface GraphQLResponse<T> {
   errors?: { extensions: { code: string } }[];
 }
 
-// Every candidate any test in this file invites, so requireProjectMember
-// (Rule 4) finds them on the hub roster.
 const HUB_MEMBERS = [
   { hubUserId: 'hub-2', email: 'collab@example.com', name: 'Collaborator' },
 ];
@@ -34,7 +32,6 @@ describe('List (GraphQL)', () => {
   });
 
   function asUser(identitySub: string, email: string) {
-    // inviteToList now needs a session cookie too (requireProjectMember).
     return {
       'x-user-id': identitySub,
       'x-user-email': email,
@@ -431,9 +428,6 @@ describe('List (GraphQL)', () => {
     });
   });
 
-  // @nestjs/apollo leaves any status it does not know as INTERNAL_SERVER_ERROR,
-  // so "this list does not exist" and "the database is down" reached the
-  // caller identically - and the frontend rendered both as "not found".
   it('reports a missing List as NOT_FOUND, not as a server fault', async () => {
     const owner = asUser('hub-1', 'owner@example.com');
 
