@@ -6,6 +6,7 @@ import request from 'supertest';
 import { ListShareStatus } from '@prisma/client';
 import { ShareCandidateInput } from '../src/list-shares/share-candidate.input';
 import { testDb } from './setup/db';
+import { UsersService } from '../src/users/users.service';
 import { stubHubProjectMembers } from './setup/hub';
 
 interface GraphQLResponse<T> {
@@ -1711,5 +1712,28 @@ describe('List Sharing (GraphQL)', () => {
       expect(invitee.name).toBeNull();
       expect(invitee.image).toBeNull();
     });
+  });
+
+  // Both transactions read no row, both insert, and Postgres fails the second
+  // on the unique index. The retry has to sit outside the transaction: once
+  // Postgres aborts it, a read inside it only raises again.
+  it('resolves one row when the same new person is invited twice at once', async () => {
+    const users = app.get(UsersService);
+    const candidate = {
+      hubUserId: 'race-1',
+      email: 'race@example.com',
+      name: 'Race',
+      image: null,
+    };
+
+    const [a, b] = await Promise.all([
+      users.findOrCreateCandidate(candidate),
+      users.findOrCreateCandidate(candidate),
+    ]);
+
+    expect(a.id).toBe(b.id);
+    expect(
+      await testDb.user.count({ where: { email: 'race@example.com' } }),
+    ).toBe(1);
   });
 });

@@ -99,7 +99,25 @@ export class UsersService {
   // finds untouched, identitySub included: a candidate is client-supplied, so
   // writing it would let any caller repoint a real user's row at an id of
   // their choosing.
-  findOrCreateCandidate(candidate: Candidate): Promise<User> {
+  async findOrCreateCandidate(candidate: Candidate): Promise<User> {
+    try {
+      return await this.resolveCandidate(candidate);
+    } catch (error) {
+      // Two invites for the same new person in flight at once. The retry is
+      // out here rather than around the create because Postgres aborts the
+      // whole transaction on the constraint violation, so a read inside it
+      // only raises again.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return this.resolveCandidate(candidate);
+      }
+      throw error;
+    }
+  }
+
+  private resolveCandidate(candidate: Candidate): Promise<User> {
     return this.prisma.$transaction(async (tx) => {
       const existing =
         (await tx.user.findUnique({
@@ -111,28 +129,14 @@ export class UsersService {
         return existing;
       }
 
-      try {
-        return await tx.user.create({
-          data: {
-            identitySub: candidate.hubUserId,
-            email: candidate.email,
-            name: candidate.name,
-            image: candidate.image,
-          },
-        });
-      } catch (error) {
-        // Two invites for the same new person in flight at once: the loser of
-        // the create reads the winner's row rather than failing the caller.
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2002'
-        ) {
-          return tx.user.findUniqueOrThrow({
-            where: { email: candidate.email },
-          });
-        }
-        throw error;
-      }
+      return tx.user.create({
+        data: {
+          identitySub: candidate.hubUserId,
+          email: candidate.email,
+          name: candidate.name,
+          image: candidate.image,
+        },
+      });
     });
   }
 
