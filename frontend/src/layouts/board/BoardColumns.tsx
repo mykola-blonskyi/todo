@@ -180,7 +180,7 @@ export function BoardColumns({
               />
             ))}
 
-            <AddListForm categoryId={column.id} />
+            <AddListForm categoryId={column.id} categoryName={column.name} />
             {over ? (
               <p className="px-2 text-center text-xs font-semibold text-primary">
                 {t('dropHint')}
@@ -267,7 +267,15 @@ function ListCard({
         <button
           {...grip}
           aria-label={tBoard('dragHandle', { list: list.title })}
-          className="ml-auto hidden h-11 w-11 shrink-0 touch-none items-center justify-center rounded-md text-muted-foreground any-pointer-coarse:flex"
+          className={cn(
+            // Visible on every pointer type is wrong here: a coarse pointer
+            // needs it always shown, a keyboard user needs it reachable even
+            // though a mouse never should see it - so it's visually hidden
+            // until it's focused or the device has a coarse pointer.
+            'sr-only shrink-0 touch-none rounded-md text-muted-foreground',
+            'focus-visible:not-sr-only focus-visible:ml-auto focus-visible:flex focus-visible:h-11 focus-visible:w-11 focus-visible:items-center focus-visible:justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'any-pointer-coarse:not-sr-only any-pointer-coarse:ml-auto any-pointer-coarse:flex any-pointer-coarse:h-11 any-pointer-coarse:w-11 any-pointer-coarse:items-center any-pointer-coarse:justify-center',
+          )}
         >
           <GripVertical aria-hidden="true" className="h-4 w-4" />
         </button>
@@ -310,7 +318,13 @@ function ListCard({
   );
 }
 
-function AddListForm({ categoryId }: { categoryId: string | null }) {
+function AddListForm({
+  categoryId,
+  categoryName,
+}: {
+  categoryId: string | null;
+  categoryName: string;
+}) {
   const t = useTranslations('Board');
   const tLists = useTranslations('Lists');
   const [open, setOpen] = useState(false);
@@ -339,6 +353,7 @@ function AddListForm({ categoryId }: { categoryId: string | null }) {
       <Input
         name="title"
         placeholder={tLists('createPlaceholder')}
+        aria-label={t('addListLabel', { category: categoryName })}
         required
         autoFocus
       />

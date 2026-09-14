@@ -17,6 +17,8 @@ interface TaskRowLabels {
   moveUp: string;
   moveDown: string;
   dueDateLabel: string;
+  editTitleLabel: (title: string) => string;
+  editDueDateLabel: (title: string) => string;
 }
 
 interface TaskRowProps {
@@ -49,6 +51,7 @@ export function TaskRow({
   const [isEditing, setIsEditing] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const commentsId = `task-comments-${task.id}`;
 
   if (isEditing) {
     return (
@@ -72,12 +75,14 @@ export function TaskRow({
             name="title"
             defaultValue={task.title}
             required
+            aria-label={labels.editTitleLabel(task.title)}
             className="flex-1"
           />
           <Input
             name="dueDate"
             type="date"
             defaultValue={task.dueDate ? task.dueDate.slice(0, 10) : ''}
+            aria-label={labels.editDueDateLabel(task.title)}
             className="w-40"
           />
           <Button type="submit" size="sm" disabled={isPending}>
@@ -137,6 +142,7 @@ export function TaskRow({
             count={task.comments.length}
             isOpen={commentsOpen}
             onToggle={() => setCommentsOpen((open) => !open)}
+            controlsId={commentsId}
             className={
               task.comments.length > 0 || commentsOpen
                 ? undefined
@@ -204,7 +210,7 @@ export function TaskRow({
         </div>
       </div>
       {commentsOpen ? (
-        <div className="pl-7 pr-1">
+        <div id={commentsId} className="pl-7 pr-1">
           <CommentThread
             comments={task.comments}
             onSubmit={(formData) => onAddComment(task.id, formData)}

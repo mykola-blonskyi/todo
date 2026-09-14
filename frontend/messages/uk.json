@@ -114,7 +114,9 @@
     "cancelButton": "Скасувати",
     "moveUp": "Перемістити вгору",
     "moveDown": "Перемістити вниз",
-    "dueDateLabel": "Термін"
+    "dueDateLabel": "Термін",
+    "editTitleLabel": "Редагувати назву «{title}»",
+    "editDueDateLabel": "Редагувати термін «{title}»"
   },
   "Sharing": {
     "title": "Поділитися",
@@ -138,7 +140,8 @@
     "addPlaceholder": "Написати коментар...",
     "addButton": "Надіслати",
     "showButton": "Коментарі ({count})",
-    "hideButton": "Сховати коментарі"
+    "hideButton": "Сховати коментарі",
+    "posted": "Коментар опубліковано."
   },
   "CalendarSync": {
     "syncButton": "Синхронізувати з Google Календарем",
@@ -198,6 +201,7 @@
     "createButton": "Створити",
     "emptyState": "Поки що немає категорій. Створіть першу вище.",
     "editButton": "Редагувати",
+    "renameLabel": "Перейменувати «{category}»",
     "saveButton": "Зберегти",
     "cancelButton": "Скасувати",
     "deleteButton": "Видалити",
@@ -289,6 +293,7 @@
   "Board": {
     "invites": "Запрошення",
     "addList": "Додати список",
+    "addListLabel": "Додати список до «{category}»",
     "dropHint": "Відпустіть, щоб перемістити сюди",
     "dragHandle": "Перемістити «{list}»",
     "dragMoving": "Переміщення «{list}» до «{column}». Натисніть Enter для підтвердження, Escape для скасування.",
@@ -367,6 +372,7 @@
     "footerHint": "Натисніть на колонку для сортування · розгорніть рядок, щоб працювати із завданнями",
     "invitesTitle": "Очікувані запрошення",
     "fieldTitle": "Назва",
-    "fieldMeta": "Категорія та синхронізація"
+    "fieldMeta": "Категорія та синхронізація",
+    "addTaskLabel": "Додати завдання до «{list}»"
   }
 }

@@ -114,7 +114,9 @@
     "cancelButton": "Cancelar",
     "moveUp": "Subir",
     "moveDown": "Bajar",
-    "dueDateLabel": "Vence"
+    "dueDateLabel": "Vence",
+    "editTitleLabel": "Editar el título de {title}",
+    "editDueDateLabel": "Editar la fecha límite de {title}"
   },
   "Sharing": {
     "title": "Compartir",
@@ -138,7 +140,8 @@
     "addPlaceholder": "Escribe un comentario...",
     "addButton": "Publicar",
     "showButton": "Comentarios ({count})",
-    "hideButton": "Ocultar comentarios"
+    "hideButton": "Ocultar comentarios",
+    "posted": "Comentario publicado."
   },
   "CalendarSync": {
     "syncButton": "Sincronizar con Google Calendar",
@@ -198,6 +201,7 @@
     "createButton": "Crear",
     "emptyState": "Aún no hay categorías. Crea una arriba para empezar.",
     "editButton": "Editar",
+    "renameLabel": "Renombrar {category}",
     "saveButton": "Guardar",
     "cancelButton": "Cancelar",
     "deleteButton": "Eliminar",
@@ -289,6 +293,7 @@
   "Board": {
     "invites": "Invitaciones",
     "addList": "Añadir lista",
+    "addListLabel": "Añadir una lista a {category}",
     "dropHint": "Suelta para mover aquí",
     "dragHandle": "Mover {list}",
     "dragMoving": "Moviendo {list} a {column}. Pulsa Enter para confirmar, Escape para cancelar.",
@@ -367,6 +372,7 @@
     "footerHint": "Haz clic en una columna para ordenar · despliega una fila para trabajar en sus tareas",
     "invitesTitle": "Invitaciones pendientes",
     "fieldTitle": "Título",
-    "fieldMeta": "Categoría y sincronización"
+    "fieldMeta": "Categoría y sincronización",
+    "addTaskLabel": "Añadir una tarea a {list}"
   }
 }

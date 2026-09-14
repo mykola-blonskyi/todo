@@ -299,6 +299,9 @@ describe.each(layouts)('layout: %s', (layout) => {
     expect(
       screen.getAllByRole('button', { name: 'Delete' }).length,
     ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole('textbox', { name: 'New task title' }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('templates pages render the template and its editor', () => {
@@ -329,6 +332,9 @@ describe.each(layouts)('layout: %s', (layout) => {
     expect(screen.getAllByRole('button', { name: 'Edit' })).toHaveLength(2);
     expect(
       screen.getByPlaceholderText('New category name'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'New category name' }),
     ).toBeInTheDocument();
   });
 

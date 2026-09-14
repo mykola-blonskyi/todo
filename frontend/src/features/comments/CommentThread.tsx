@@ -1,9 +1,11 @@
 'use client';
 
-import { useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useId, useState, useTransition } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@ui/components/button';
 import { Input } from '@ui/components/input';
+import { Label } from '@ui/components/label';
+import { formatRelativeDay } from '@shared/lib/dates';
 import type { Comment } from './types';
 
 interface CommentThreadProps {
@@ -13,7 +15,10 @@ interface CommentThreadProps {
 
 export function CommentThread({ comments, onSubmit }: CommentThreadProps) {
   const t = useTranslations('Comments');
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
+  const [posted, setPosted] = useState(0);
+  const inputId = useId();
 
   return (
     <div className="flex flex-col gap-2">
@@ -26,7 +31,10 @@ export function CommentThread({ comments, onSubmit }: CommentThreadProps) {
               <span className="font-medium">
                 {comment.author.name ?? comment.author.email}
               </span>{' '}
-              <span className="text-muted-foreground">{comment.body}</span>
+              <span className="text-muted-foreground">{comment.body}</span>{' '}
+              <span className="text-xs text-muted-foreground">
+                {formatRelativeDay(comment.createdAt, locale)}
+              </span>
             </li>
           ))}
         </ul>
@@ -36,10 +44,15 @@ export function CommentThread({ comments, onSubmit }: CommentThreadProps) {
         action={(formData: FormData) => {
           startTransition(async () => {
             await onSubmit(formData);
+            setPosted((count) => count + 1);
           });
         }}
       >
+        <Label htmlFor={inputId} className="sr-only">
+          {t('addPlaceholder')}
+        </Label>
         <Input
+          id={inputId}
           name="body"
           placeholder={t('addPlaceholder')}
           required
@@ -49,6 +62,14 @@ export function CommentThread({ comments, onSubmit }: CommentThreadProps) {
           {t('addButton')}
         </Button>
       </form>
+      {/* Mounted whether or not there's anything to say: several screen
+          readers skip a live region that appears together with its first
+          message. A trailing zero-width space alternates so posting twice in
+          a row still changes the text and gets re-announced. */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {posted > 0 ? t('posted') : ''}
+        {posted % 2 === 0 ? '' : '​'}
+      </p>
     </div>
   );
 }

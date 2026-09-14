@@ -114,7 +114,9 @@
     "cancelButton": "Отмена",
     "moveUp": "Переместить вверх",
     "moveDown": "Переместить вниз",
-    "dueDateLabel": "Срок"
+    "dueDateLabel": "Срок",
+    "editTitleLabel": "Изменить название «{title}»",
+    "editDueDateLabel": "Изменить срок «{title}»"
   },
   "Sharing": {
     "title": "Поделиться",
@@ -138,7 +140,8 @@
     "addPlaceholder": "Написать комментарий...",
     "addButton": "Отправить",
     "showButton": "Комментарии ({count})",
-    "hideButton": "Скрыть комментарии"
+    "hideButton": "Скрыть комментарии",
+    "posted": "Комментарий опубликован."
   },
   "CalendarSync": {
     "syncButton": "Синхронизировать с Google Календарём",
@@ -198,6 +201,7 @@
     "createButton": "Создать",
     "emptyState": "Пока нет категорий. Создайте первую выше.",
     "editButton": "Изменить",
+    "renameLabel": "Переименовать «{category}»",
     "saveButton": "Сохранить",
     "cancelButton": "Отмена",
     "deleteButton": "Удалить",
@@ -289,6 +293,7 @@
   "Board": {
     "invites": "Приглашения",
     "addList": "Добавить список",
+    "addListLabel": "Добавить список в «{category}»",
     "dropHint": "Отпустите, чтобы переместить сюда",
     "dragHandle": "Переместить «{list}»",
     "dragMoving": "Перемещение «{list}» в «{column}». Нажмите Enter для подтверждения, Escape для отмены.",
@@ -367,6 +372,7 @@
     "footerHint": "Нажмите на колонку для сортировки · разверните строку, чтобы работать с задачами",
     "invitesTitle": "Ожидающие приглашения",
     "fieldTitle": "Название",
-    "fieldMeta": "Категория и синхронизация"
+    "fieldMeta": "Категория и синхронизация",
+    "addTaskLabel": "Добавить задачу в «{list}»"
   }
 }
