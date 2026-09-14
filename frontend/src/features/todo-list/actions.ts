@@ -132,29 +132,12 @@ export async function unassignCategoryAction(listId: string) {
   revalidatePath('/[locale]', 'page');
 }
 
-export async function moveTaskAction(
-  listId: string,
-  taskId: string,
-  direction: 'up' | 'down',
-) {
-  const data = await graphqlFetch<{ list: { tasks: { id: string }[] } }>(
-    `query TaskOrder($id: ID!) { list(id: $id) { tasks { id } } }`,
-    { id: listId },
-  );
-
-  const ids = data.list.tasks.map((task) => task.id);
-  const index = ids.indexOf(taskId);
-  const swapWith = direction === 'up' ? index - 1 : index + 1;
-  if (index === -1 || swapWith < 0 || swapWith >= ids.length) {
-    return;
-  }
-  [ids[index], ids[swapWith]] = [ids[swapWith], ids[index]];
-
+export async function moveTaskAction(taskId: string, direction: 'up' | 'down') {
   await graphqlFetch(
-    `mutation ReorderTasks($listId: ID!, $taskIds: [ID!]!) {
-      reorderTasks(listId: $listId, taskIds: $taskIds) { id }
+    `mutation MoveTask($taskId: ID!, $direction: TaskMoveDirection!) {
+      moveTask(id: $taskId, direction: $direction) { id }
     }`,
-    { listId, taskIds: ids },
+    { taskId, direction },
   );
 
   revalidatePath('/[locale]/lists/[id]', 'page');

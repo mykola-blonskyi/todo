@@ -1173,12 +1173,12 @@ describe('List Sharing (GraphQL)', () => {
       expect(updateBody.errors).toBeUndefined();
       expect(updateBody.data?.updateTask.title).toBe('Task 1 updated');
 
-      const reorderBody = await graphql<{ reorderTasks: { id: string }[] }>(
-        `mutation {reorderTasks(listId: "${listId}", taskIds: ["${taskId}"]){id}}`,
+      const moveBody = await graphql<{ moveTask: { id: string }[] }>(
+        `mutation {moveTask(id: "${taskId}", direction: down){id}}`,
         owner,
       );
-      expect(reorderBody.errors).toBeUndefined();
-      expect(reorderBody.data?.reorderTasks).toHaveLength(1);
+      expect(moveBody.errors).toBeUndefined();
+      expect(moveBody.data?.moveTask).toHaveLength(1);
 
       const renameBody = await graphql<{ renameList: { title: string } }>(
         `mutation {renameList(id: "${listId}", title: "Groceries 2"){title}}`,
@@ -1296,12 +1296,12 @@ describe('List Sharing (GraphQL)', () => {
       expect(deleteTaskBody.data).toBeNull();
       expect(deleteTaskBody.errors).toBeDefined();
 
-      const reorderBody = await graphql<{ reorderTasks: { id: string }[] }>(
-        `mutation {reorderTasks(listId: "${listId}", taskIds: ["${taskId}"]){id}}`,
+      const moveBody = await graphql<{ moveTask: { id: string }[] }>(
+        `mutation {moveTask(id: "${taskId}", direction: down){id}}`,
         collaboratorA,
       );
-      expect(reorderBody.data).toBeNull();
-      expect(reorderBody.errors).toBeDefined();
+      expect(moveBody.data).toBeNull();
+      expect(moveBody.errors).toBeDefined();
 
       const renameBody = await graphql<{ renameList: { title: string } }>(
         `mutation {renameList(id: "${listId}", title: "Hijacked"){title}}`,

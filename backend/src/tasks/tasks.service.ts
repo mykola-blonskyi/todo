@@ -4,14 +4,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ListShareStatus } from '@prisma/client';
+import { ListShareStatus, Prisma } from '@prisma/client';
+import { TaskMoveDirection } from './task-move-direction';
 
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
   tasksForList(listId: string) {
-    return this.prisma.task.findMany({
+    return this.tasksForListWith(this.prisma, listId);
+  }
+
+  private tasksForListWith(
+    client: Prisma.TransactionClient | PrismaService,
+    listId: string,
+  ) {
+    return client.task.findMany({
       where: { listId },
       orderBy: { position: 'asc' },
     });
@@ -93,27 +101,45 @@ export class TasksService {
     return true;
   }
 
-  async reorderTasks(ownerId: string, listId: string, taskIds: string[]) {
-    await this.requireOwnedList(ownerId, listId);
+  // Moving one Task is a swap with its neighbour, resolved and written inside
+  // one transaction. Expressing it as "here is the whole new order" meant the
+  // caller had to read the order first and send it back, and any Task added or
+  // deleted in between made the write fail outright - a collaborator typing in
+  // the same List was enough.
+  async moveTask(ownerId: string, id: string, direction: TaskMoveDirection) {
+    const task = await this.requireOwnedTask(ownerId, id);
 
-    const tasks = await this.prisma.task.findMany({ where: { listId } });
-    const currentIds = new Set(tasks.map((task) => task.id));
-    const sameSet =
-      taskIds.length === tasks.length &&
-      taskIds.every((id) => currentIds.has(id));
-    if (!sameSet) {
-      throw new BadRequestException(
-        "taskIds must match the List's current Tasks exactly",
-      );
-    }
+    return this.prisma.$transaction(async (tx) => {
+      const neighbour = await tx.task.findFirst({
+        where: {
+          listId: task.listId,
+          position:
+            direction === TaskMoveDirection.up
+              ? { lt: task.position }
+              : { gt: task.position },
+        },
+        orderBy: {
+          position: direction === TaskMoveDirection.up ? 'desc' : 'asc',
+        },
+      });
 
-    await this.prisma.$transaction(
-      taskIds.map((id, position) =>
-        this.prisma.task.update({ where: { id }, data: { position } }),
-      ),
-    );
+      // Already at the end it was asked to move towards. Not an error: the
+      // button is one click away from being pressed again.
+      if (!neighbour) {
+        return this.tasksForListWith(tx, task.listId);
+      }
 
-    return this.tasksForList(listId);
+      await tx.task.update({
+        where: { id: task.id },
+        data: { position: neighbour.position },
+      });
+      await tx.task.update({
+        where: { id: neighbour.id },
+        data: { position: task.position },
+      });
+
+      return this.tasksForListWith(tx, task.listId);
+    });
   }
 
   // Nullable in the schema because GraphQL has no way to say "optional but
