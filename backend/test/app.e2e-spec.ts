@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { PrismaService } from './../src/prisma/prisma.service';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -41,5 +42,21 @@ describe('AppController (e2e)', () => {
 
   afterEach(async () => {
     await app.close();
+  });
+
+  // The container healthcheck polls this. `/` answers from memory, so it went
+  // green while the database was unreachable and every query was failing.
+  it('/health (GET) reports ok while the database answers', async () => {
+    const res = await request(app.getHttpServer()).get('/health').expect(200);
+
+    expect(res.body).toEqual({ status: 'ok' });
+  });
+
+  it('/health (GET) reports unavailable when the database does not answer', async () => {
+    jest
+      .spyOn(app.get(PrismaService), '$queryRaw')
+      .mockRejectedValue(new Error('connection refused'));
+
+    await request(app.getHttpServer()).get('/health').expect(503);
   });
 });
