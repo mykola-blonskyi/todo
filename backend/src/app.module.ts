@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { HttpException, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { validateEnv } from './config/env';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -63,7 +64,7 @@ const CLIENT_FAULT_CODES = new Set([
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     ScheduleModule.forRoot(),
     PrismaModule,
     GraphQLModule.forRootAsync<ApolloDriverConfig>({

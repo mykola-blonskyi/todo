@@ -18,9 +18,8 @@ describe('GoogleCalendarApiClient.upsertEvent', () => {
   });
 
   function methodsCalled() {
-    return fetchMock.mock.calls.map(
-      (call) => (call[1] as RequestInit | undefined)?.method,
-    );
+    const calls = fetchMock.mock.calls as [unknown, RequestInit | undefined][];
+    return calls.map(([, init]) => init?.method);
   }
 
   it('patches the stored event when there is one', async () => {
@@ -84,7 +83,7 @@ describe('GoogleCalendarApiClient.upsertEvent', () => {
       dueDate: '2026-03-10',
     });
 
-    const init = fetchMock.mock.calls[0][1] as RequestInit;
-    expect(init.signal).toBeInstanceOf(AbortSignal);
+    const calls = fetchMock.mock.calls as [unknown, RequestInit | undefined][];
+    expect(calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
 });
