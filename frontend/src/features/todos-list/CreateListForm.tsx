@@ -10,7 +10,12 @@ export const CreateListForm = () => {
 
   return (
     <form action={createListAction} className="flex gap-2">
-      <Input name="title" placeholder={t('createPlaceholder')} required />
+      <Input
+        name="title"
+        placeholder={t('createPlaceholder')}
+        aria-label={t('createPlaceholder')}
+        required
+      />
       <Button type="submit">{t('createButton')}</Button>
     </form>
   );

@@ -114,7 +114,9 @@
     "cancelButton": "Cancel",
     "moveUp": "Move up",
     "moveDown": "Move down",
-    "dueDateLabel": "Due"
+    "dueDateLabel": "Due",
+    "editTitleLabel": "Edit title for {title}",
+    "editDueDateLabel": "Edit due date for {title}"
   },
   "Sharing": {
     "title": "Share",
@@ -138,7 +140,8 @@
     "addPlaceholder": "Write a comment...",
     "addButton": "Post",
     "showButton": "Comments ({count})",
-    "hideButton": "Hide comments"
+    "hideButton": "Hide comments",
+    "posted": "Comment posted."
   },
   "CalendarSync": {
     "syncButton": "Sync to Google Calendar",
@@ -198,6 +201,7 @@
     "createButton": "Create",
     "emptyState": "No categories yet. Create one above to get started.",
     "editButton": "Edit",
+    "renameLabel": "Rename {category}",
     "saveButton": "Save",
     "cancelButton": "Cancel",
     "deleteButton": "Delete",
@@ -289,6 +293,7 @@
   "Board": {
     "invites": "Invites",
     "addList": "Add list",
+    "addListLabel": "Add a list to {category}",
     "dropHint": "Drop to move here",
     "dragHandle": "Move {list}",
     "dragMoving": "Moving {list} to {column}. Press Enter to confirm, Escape to cancel.",
@@ -367,6 +372,7 @@
     "footerHint": "Click a column to sort · expand a row to work on its tasks",
     "invitesTitle": "Pending invites",
     "fieldTitle": "Title",
-    "fieldMeta": "Category & sync"
+    "fieldMeta": "Category & sync",
+    "addTaskLabel": "Add a task to {list}"
   }
 }

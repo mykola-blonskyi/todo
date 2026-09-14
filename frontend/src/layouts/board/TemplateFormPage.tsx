@@ -10,6 +10,7 @@ export function TemplateFormPage({
 }: TemplateFormPageProps) {
   const t = useTranslations('ListTemplates');
   const tBoard = useTranslations('Board');
+  const drawerTitle = template ? template.title : t('newTemplateTitle');
 
   return (
     <>
@@ -17,13 +18,12 @@ export function TemplateFormPage({
       <Drawer
         backHref="/templates"
         closeLabel={tBoard('close')}
+        title={drawerTitle}
         crumb={
           <>
             <span>{t('title')}</span>
             <span aria-hidden="true">/</span>
-            <span className="truncate text-foreground">
-              {template ? template.title : t('newTemplateTitle')}
-            </span>
+            <span className="truncate text-foreground">{drawerTitle}</span>
           </>
         }
       >

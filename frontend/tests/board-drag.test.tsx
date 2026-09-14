@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from './setup/render';
 import { nav } from './setup/fixtures';
 import { BoardColumns } from '@/layouts/board/BoardColumns';
@@ -263,6 +264,19 @@ describe('Board touch drag', () => {
     expect(handle).toHaveAttribute('aria-pressed', 'false');
     expect(assignCategory).not.toHaveBeenCalled();
   });
+
+  it('keeps the drag handle focusable without a coarse pointer', () => {
+    renderBoard();
+    const handle = grip('Launch todo v2');
+
+    expect(handle).not.toHaveAttribute('disabled');
+    expect(handle).not.toHaveAttribute('tabindex', '-1');
+    expect(handle.className).not.toMatch(/(^| )hidden( |$)/);
+
+    handle.focus();
+
+    expect(handle).toHaveFocus();
+  });
 });
 
 describe('Board mouse drag', () => {
@@ -287,6 +301,22 @@ describe('Board mouse drag', () => {
     await waitFor(() =>
       expect(assignCategory).toHaveBeenCalledWith('l-launch', 'c-home'),
     );
+  });
+});
+
+describe('Board add-list form', () => {
+  it('names each column add-list input after its own column', async () => {
+    const user = userEvent.setup();
+    renderBoard();
+
+    const workColumn = screen.getByRole('region', { name: 'Work' });
+    await user.click(
+      within(workColumn).getByRole('button', { name: '+ Add list' }),
+    );
+
+    expect(
+      screen.getByRole('textbox', { name: 'Add a list to Work' }),
+    ).toBeInTheDocument();
   });
 });
 

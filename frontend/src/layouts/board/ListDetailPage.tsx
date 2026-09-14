@@ -40,6 +40,7 @@ export function ListDetailPage({ nav, list }: ListDetailPageProps) {
       <Drawer
         backHref="/"
         closeLabel={t('close')}
+        title={list.title}
         crumb={
           <>
             <span

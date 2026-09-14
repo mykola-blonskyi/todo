@@ -14,7 +14,12 @@ export function CategoryCreateForm({ className }: CategoryCreateFormProps) {
   const t = useTranslations('Categories');
   return (
     <form action={createCategoryAction} className={cn('flex gap-2', className)}>
-      <Input name="name" placeholder={t('createPlaceholder')} required />
+      <Input
+        name="name"
+        placeholder={t('createPlaceholder')}
+        aria-label={t('createPlaceholder')}
+        required
+      />
       <Button type="submit">{t('createButton')}</Button>
     </form>
   );

@@ -13,7 +13,9 @@ describe('CreateListForm', () => {
   it('renders the input and submit button with the right labels', () => {
     renderWithIntl(<CreateListForm />);
 
-    expect(screen.getByPlaceholderText('New list title')).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'New list title' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
   });
 

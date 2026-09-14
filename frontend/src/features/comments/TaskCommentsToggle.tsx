@@ -9,6 +9,7 @@ interface TaskCommentsToggleProps {
   count: number;
   isOpen: boolean;
   onToggle: () => void;
+  controlsId: string;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export function TaskCommentsToggle({
   count,
   isOpen,
   onToggle,
+  controlsId,
   className,
 }: TaskCommentsToggleProps) {
   const t = useTranslations('Comments');
@@ -30,6 +32,7 @@ export function TaskCommentsToggle({
       variant="ghost"
       size="sm"
       aria-expanded={isOpen}
+      aria-controls={controlsId}
       className={cn('h-7 px-1.5 text-xs text-muted-foreground', className)}
       onClick={onToggle}
     >

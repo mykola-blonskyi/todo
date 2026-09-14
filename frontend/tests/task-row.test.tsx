@@ -14,6 +14,8 @@ const labels = {
   moveUp: 'Move up',
   moveDown: 'Move down',
   dueDateLabel: 'Due',
+  editTitleLabel: (title: string) => `Edit title for ${title}`,
+  editDueDateLabel: (title: string) => `Edit due date for ${title}`,
 };
 
 const task: Task = {
@@ -101,6 +103,20 @@ describe('TaskRow', () => {
     expect(screen.getByRole('button', { name: /Move down/ })).toBeDisabled();
   });
 
+  it('names the edit inputs after the task being edited', async () => {
+    const user = userEvent.setup();
+    renderTaskRow();
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
+
+    expect(
+      screen.getByRole('textbox', { name: 'Edit title for Buy milk' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Edit due date for Buy milk'),
+    ).toBeInTheDocument();
+  });
+
   it('switches to edit mode and submits the updated title', async () => {
     const user = userEvent.setup();
     const { onUpdate } = renderTaskRow();
@@ -146,8 +162,15 @@ describe('TaskRow', () => {
 
     expect(screen.queryByText('Get 2%')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Comments (1)' }));
+    const toggle = screen.getByRole('button', { name: 'Comments (1)' });
+    await user.click(toggle);
     expect(screen.getByText('Get 2%')).toBeInTheDocument();
+
+    const controlsId = toggle.getAttribute('aria-controls');
+    expect(controlsId).toBeTruthy();
+    expect(document.getElementById(controlsId!)).toContainElement(
+      screen.getByText('Get 2%'),
+    );
 
     await user.type(
       screen.getByPlaceholderText('Write a comment...'),

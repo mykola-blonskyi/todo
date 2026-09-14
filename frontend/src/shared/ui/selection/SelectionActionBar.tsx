@@ -42,75 +42,80 @@ export function SelectionActionBar({
     setFailure(null);
   }
 
-  if (!selection?.active) {
-    return null;
-  }
-
-  const ids = selection.selectedIds;
+  const ids = selection?.selectedIds ?? [];
 
   return (
     <div
       className={cn(
         'flex flex-wrap items-center gap-2 text-sm',
         isPending && 'opacity-60',
+        !active && 'sr-only',
         className,
       )}
     >
-      <span className="tabular-nums">{copy.selectedCount(ids.length)}</span>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isPending}
-        onClick={selection.selectAll}
-      >
-        {copy.selectAll(selection.selectableCount)}
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isPending || ids.length === 0}
-        onClick={selection.clear}
-      >
-        {copy.clear}
-      </Button>
-      <Button
-        type="button"
-        variant="destructive"
-        size="sm"
-        disabled={isPending || ids.length === 0}
-        onClick={() => {
-          if (!window.confirm(copy.confirm(ids.length))) {
-            return;
-          }
-          startTransition(async () => {
-            try {
-              const result = await action(ids);
-              if (result.failedIds.length > 0) {
-                setFailure(
-                  copy.partialFailure(
-                    result.succeededIds.length,
-                    result.failedIds.length,
-                  ),
-                );
+      {/* Mounted whether or not selection mode is active: several screen
+          readers skip a live region that appears together with its first
+          message, so the count has to already be here for entering selection
+          mode to be announced at all. */}
+      <span role="status" aria-live="polite" className="tabular-nums">
+        {active ? copy.selectedCount(ids.length) : ''}
+      </span>
+      {active && selection ? (
+        <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isPending}
+            onClick={selection.selectAll}
+          >
+            {copy.selectAll(selection.selectableCount)}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isPending || ids.length === 0}
+            onClick={selection.clear}
+          >
+            {copy.clear}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={isPending || ids.length === 0}
+            onClick={() => {
+              if (!window.confirm(copy.confirm(ids.length))) {
                 return;
               }
-              setFailure(null);
-              selection.cancel();
-            } catch {
-              setFailure(copy.failed);
-            }
-          });
-        }}
-      >
-        {copy.delete}
-      </Button>
-      {failure ? (
-        <span role="status" className="text-destructive">
-          {failure}
-        </span>
+              startTransition(async () => {
+                try {
+                  const result = await action(ids);
+                  if (result.failedIds.length > 0) {
+                    setFailure(
+                      copy.partialFailure(
+                        result.succeededIds.length,
+                        result.failedIds.length,
+                      ),
+                    );
+                    return;
+                  }
+                  setFailure(null);
+                  selection.cancel();
+                } catch {
+                  setFailure(copy.failed);
+                }
+              });
+            }}
+          >
+            {copy.delete}
+          </Button>
+        </>
       ) : null}
+      <span role="status" className="text-destructive">
+        {failure ?? ''}
+      </span>
     </div>
   );
 }

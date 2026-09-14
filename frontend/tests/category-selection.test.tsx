@@ -86,6 +86,9 @@ describe('Category selection', () => {
 
     expect(screen.getByDisplayValue('Work')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Select Work' })).toBeChecked();
+    expect(
+      screen.getByRole('textbox', { name: 'Rename Work' }),
+    ).toBeInTheDocument();
   });
 
   it('hides the toggle when there are no categories', () => {

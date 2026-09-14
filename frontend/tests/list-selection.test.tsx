@@ -50,6 +50,23 @@ describe('List selection', () => {
     expect(screen.getByRole('button', { name: 'Select' })).toBeInTheDocument();
   });
 
+  it('mounts the selection status region before selection mode starts', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<Overview />);
+
+    const status = document.querySelector('[role="status"][aria-live]');
+    expect(status).not.toBeNull();
+    expect(status).toHaveTextContent('');
+
+    await user.click(screen.getByRole('button', { name: 'Select' }));
+
+    // The same node's text changed, rather than a new live region mounting
+    // together with its first message - the shape several screen readers
+    // fail to announce.
+    expect(document.querySelector('[role="status"][aria-live]')).toBe(status);
+    expect(status).toHaveTextContent('No lists selected');
+  });
+
   it('offers a checkbox for owned lists only', async () => {
     const user = userEvent.setup();
     renderWithIntl(<Overview />);

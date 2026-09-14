@@ -429,6 +429,7 @@ function LedgerRow({
                 <Input
                   name="title"
                   placeholder={tTasks('createPlaceholder')}
+                  aria-label={t('addTaskLabel', { list: list.title })}
                   required
                   className="max-w-md"
                 />

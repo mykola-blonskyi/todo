@@ -30,7 +30,13 @@ export function CategoryRow({ category }: CategoryRowProps) {
             });
           }}
         >
-          <Input name="name" defaultValue={category.name} required autoFocus />
+          <Input
+            name="name"
+            defaultValue={category.name}
+            required
+            autoFocus
+            aria-label={t('renameLabel', { category: category.name })}
+          />
           <Button type="submit" size="sm" disabled={isPending}>
             {t('saveButton')}
           </Button>
